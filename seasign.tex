@@ -8,26 +8,38 @@
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\E}{\mathcal{E}}
 \newcommand{\F}{\mathbb{F}}
+\newcommand{\Fpbar}{\overline{\mathbb{F}}_p}
 \newcommand{\Fqbar}{\overline{\mathbb{F}}_q}
+\newcommand{\FF}{\mathcal{F}}
 \newcommand{\N}{\mathbb{N}}
+\newcommand{\OO}{\mathcal{O}}
 \newcommand{\Q}{\mathbb{Q}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\ch}{\text{ch}}
 \newcommand{\End}{\text{End}}
+\newcommand{\Cl}{\text{Cl}}
 
+\renewcommand{\a}{\mathfrak{a}}
+\renewcommand{\b}{\mathfrak{b}}
+\renewcommand{\c}{\mathfrak{c}}
+\renewcommand{\l}{\mathfrak{l}}
+\newcommand{\e}{\textbf{x}}
+\newcommand{\f}{\textbf{x}}
+\newcommand{\x}{\textbf{x}}
+\newcommand{\z}{\textbf{z}}
 
 % THEOREM ENVIRONMENTS
-\newtheorem{definition}{Definition}
-\newtheorem{example}{Example}
-\newtheorem{theorem}{Theorem}
+%\newtheorem{definition}{Definition}
+%\newtheorem{example}{Example}
+%\newtheorem{theorem}{Theorem}
 
 
 
 \title{SeaSign}
 
 \author{Luca De Feo \and Steven D. Galbraith}
-\address{Mathematics Department, University of Auckland, NZ.
+\institute{Mathematics Department, University of Auckland, NZ.
 \email{s.galbraith@auckland.ac.nz}}
 
 
@@ -49,10 +61,175 @@
 
 \section{Intro}
 
-\section{Scheme}
+Stolbunov~\cite{Sto12} was the first to give a signature scheme based on isogeny problems.
+Due to renewed interest in this problem, especially CSIDH~\cite{CLMPR18} and the scheme by De Feo et al~\cite{DFKS18}.
 
 
-\section{Security}
+\section{Background}
+
+Let $p$ be a prime.
+Let $E$ be an ordinary elliptic curve over $\F_p$ with $\End(E) \cong \OO$ or $E$ a supersingular curve over $\F_p$ with $\End_{\F_p}(E) \cong \OO$ where $\OO$ is an order in an imaginary quadratic field.
+Let $\Cl(\OO )$ be the ideal class group of $\OO$.
+One can define the action of an $\OO$-ideal $\a$ on the curve $E$ as the image curve $E'$ under the isogeny $\phi : E \to E'$ whose kernel is equal to the kernel ideal $E[ \a ] = \{ P \in E( \Fpbar ) : \alpha(P) = 0 \; \forall \alpha \in \a \}$.
+We denote this action as $\a * E$.
+
+The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \cong \OO$ is a principal homogenous space for $\Cl(\OO )$.
+General references for all this are Couveignes~\cite{Couv06}
+and Stolbunov~\cite{Sto12}.
+
+To make this action efficient one must work with ideals $\a = \prod_{i=1}^t \l_i^{e_i}$ where $\l_1, \dots, \l_t$ are prime $\OO$-ideals of small norm $\ell_i$.
+Throughout the paper we assume that $\{ \l_1, \dots, \l_t \}$ is a set of split prime ideals in $\OO$ of norm polynomial in the size of the class group.
+Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assuming a generalised Riemann hypothesis, $\ell_i = O( \log(p)^2 )$.
+
+The basic computational assumption is the ideal action problem:
+
+\begin{definition}\label{defn:ass1}
+Given $E$ and $E_A$ to find an ideal $\a$, if it exists, such that $j( E_A ) = j( \a * E )$.
+\end{definition}
+
+The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-etc).
+
+
+\section{Basic Signature Scheme}
+
+Section XX of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his decription is not complete and he does not give a proof of security).
+It is a Fiat-Shamir scheme based on an identification protocol.
+
+The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^t \l_i^{e_i}$ is the private key.
+To construct the private key one uniformly chooses an exponent vector $(e_1, \dots, e_t) \in \Z^t$ in some box.
+
+In the identification protocol the prover generates $k$ random ideals $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ for $1 \le j \le k$ and computes $E_j = \b_j * E$.
+Again the exponent vectors are uniformly and independently sampled in some box in $\Z^t$.
+The prover sends $(j( E_j ) : 1 \le j \le t )$ to the verifier.
+[XX I hope there is no confusion about the notation $j$ here XX]
+The verifier responds with $k$ uniformly chosen challenge bits $b_1, \dots, b_k \in \{0,1\}$.
+If $b_j = 0$ the prover responds with $( f_{j,i} )$ and the verifier checks that $j(E_j) = j( \prod_{i=1}^t \l_i^{f_{j,i}} * E )$.
+If $b_j = 1$ the prover responds with a representation of $\b_j \a^{-1}$ (Stolbunov notes that sending the vector $(f_{j,i} - e_j )$ would not be secure as it would leak the private key; but he does not clearly explain how this can be securely done) and the verifier checks that $j(E_j) = j( \b_j \a^{-1} * E_A )$.
+
+To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_j$ as the hash value $H( j(E_1), \dots, j(E_k) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
+
+In the following two subsections we propose two solutions to the problem of representing $\b_j \a^{-1}$ without leaking the private key. One solution requires knowledge of a relation lattice in the ideal class group. The other solution uses ideas from lattice cryptography.
+
+\subsection{Using the relation lattice}
+
+Let $\{ \l_1, \dots, \l_t \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
+Define $L = \{ (x_1, \dots, x_t ) \in \Z^t : \prod_{i=1}^t \l_i^{x_i} = 1 \}$.
+Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
+We call this the \emph{relation lattice}.
+
+A basis for this lattice can be constructed in subexponential time using classical algorithms (Ref) or in probabilistic polynomial time using quantum algorithms (generate random $\b = \prod_{i=1}^t \l_i^{x_i} $ and solve the discrete logarithm problem $\b = \l_i^{y}$ for a random $i$, if a solution exists, using Shor's algorithm).
+The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
+The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
+It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficent (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
+
+For the remainder of this section we assume that the relation lattice is known.
+Let $\{ \x_1, \dots, \x_t \}$ be a basis for $L$
+Let $\FF = \{ \sum_{j=1}^t : u_j \x_j : -1/2 \le u_j < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
+Then there is a one-to-one correspondence between $\FF \cap \Z^t$ and $\Cl(\OO)$ by
+$(z_1, \dots, z_t ) \in \FF \cap \Z^t  \mapsto \prod_{j=1}^t \l_j^{z_j}$.
+In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' as basis for $L$ as possible.
+
+Note that, given a basis $\{ \x_1, \dots, \x_t \}$ for $L$ and a vector $\z = (z_1, \dots, z_t ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method.
+
+
+
+Returning to Stolbunov's signature scheme, the solution to the problem is then straightforward:
+Given $\a = \prod_{i=1}^t \l_i^{e_i}$ and $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$,
+a representation of $\b_j \a^{-1}$ is obtained by computing the vector $\z' = (f_{j,i} - e_j)$
+and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
+The vector $\z$ is sent as the response to the $j$-th challenge.
+Since $\b_j$ is a uniformly chosen ideal class, the class $\b_j \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^t$ is uniformly distributed and carries no information about the private key.
+
+\begin{lemma}
+If $\b_j$ is a uniformly chosen ideal class then the vector 
+$\z \in \FF \cap \Z^t$ corresponding to $\f_j - \e$ is uniformly distributed.
+\end{lemma}
+
+\begin{proof}
+For fixed $\e$ the vector $\z$ depends only on the ideal class of $\b_j$.
+But $\b_j$ is uniform and independent of $\e$ and not known to verifier.
+\end{proof}
+
+
+
+If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$.
+
+One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^t$.
+The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^t$ and then apply Babai rounding as above.
+
+
+\begin{lemma}
+Let $B \N$. Let $D_1$ the distribution on ideal classes obtained by computing $\prod_{i=1}^t \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
+Suppose the statistical distance between $D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
+Let $D_2$ be the distribution on $\FF \cap \Z^t$ defined by uniformly sampling vectors $\x \in (\Z \cap [-B,B])^t$ and applying Babai rounding.
+Let $U$ be the uniform distribution on $\FF \cap \Z^t$.
+Then the statistical distance between $D_2$ and $U$ is at most $\epsilon$.
+\end{lemma}
+
+\begin{proof}
+They are the same thing.
+\end{proof}
+
+
+
+
+\subsection{Using rejection sampling}
+
+The approach in the previous section is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
+Hence this section contains our main solution to the problem of representing the ideal class $\b_j \a^{-1}$.
+The idea is to use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
+
+Let $B > 0$ be a constant. Suppose when generating the private key we sample uniformly $e_j \in \Z \cap [-B, B]$. Let $\e = ( e_1, \dots, e_t )$.
+The value $B$ is chosen large enough that $\prod_{i=1}^t \l_i^{e_i}$ is close to uniformly distributed in $\Cl(\OO)$.
+
+The idea is to sample the exponents $ f_{j,i} $ uniformly in $\Z \cap [-(k+1)B, (k+1)B]$, where $k$ is the number of parallel rounds of the identification protocol.
+Let $\f_j = (f_{j,1}, \dots, f_{j,t} )$.
+It is certainly the case that $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ is close to uniformly distributed.
+
+If a challenge bit $b_j = 1$ and the prover is required to provide a representation of $\b_j \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_t) = \f_j - \e$ so that $z_j = f_{j,i} - e_j $.
+Now, if all $|z_j| \le kB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
+It remains to show that in the accepting case the vector leaks no information about the private key, and that the rejecting case occurs with low probability. We do this in the following two lemmas.
+
+\begin{lemma}
+An accepted vector is independent of $\e$.
+\end{lemma}
+
+\begin{proof}
+Since $\f_j$ is uniform and independent of $\e$ and not known to verifier.
+\end{proof}
+
+
+\begin{lemma}
+The probability that a vector is rejected is at most $1/k$.
+The probability that $k$ such vectors are accepted is at least $ \approx 1/e$.
+\end{lemma}
+
+\begin{proof}
+Each entry $e_j$ lies in $[-B,B]$ and each entry of $f_{j,i}$ lies in $[-(k+1)B, (k+1)B]$,
+so $z_j = f_{j,i} - e_j \in [-(k+2)B, (k+2)B]$.
+
+blah blah
+\end{proof}
+
+
+
+\subsection{identification protocols and signature schemes}
+
+Various transforms to turn an ID protocol into a sig scheme.
+REFS.
+We focus in this paper on classical adversaries and therefore use the Fiat-Shamir scheme.
+
+
+
+\section{Security proof}
+
+
+We now prove security of the basic scheme in the random oracle model against a classical adversary. The proof covers both cases.
+The proof technique is the standard approach that uses the forking lemma.
+
+
+Theorem: In random oracle model, the basic signature scheme is unforgeable under a chosen message attack.
+
 
 
 \section{Smaller sigs}
