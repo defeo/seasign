@@ -19,6 +19,7 @@
 \newcommand{\ch}{\text{ch}}
 \newcommand{\End}{\text{End}}
 \newcommand{\Cl}{\text{Cl}}
+\newcommand{\seed}{\textsf{seed}}
 
 \renewcommand{\a}{\mathfrak{a}}
 \renewcommand{\b}{\mathfrak{b}}
@@ -227,7 +228,7 @@ blah blah
 \end{proof}
 
 
-
+Parameters for the scheme in this case would be ****
 
 
 
@@ -247,7 +248,7 @@ We now prove security of the basic scheme in the random oracle model against a c
 The proof technique is the standard approach that uses the forking lemma.
 
 
-\begin{theorem}
+\begin{theorem}\label{thm:security}
 In random oracle model, the basic signature scheme is unforgeable under a chosen message attack under the assumption of Definition~\ref{defn:ass1}.
 \end{theorem}
 
@@ -275,6 +276,7 @@ The proof now evokes the Forking Lemma. The adversary is replayed with the same 
 With non-neglible probability the adversary outputs a forgery with the same message $m$ and the same input $(j(E_1), \dots, j(E_k), m)$ to $H$, but a different output string $b_1'\cdots b_k'$. Let $j$ be an index such that $b_j \ne b_j'$ (without loss of generality $b_j = 0$ and $b_j' = 1$). Then the ideal classes $\c_j$ and $\c_j'$ in the two signatures are such that $j( \c_j * E ) = j( \c_j' * E_A )$ and so $\c_j' \c_j^{-1}$ is a solution to the problem instance.
 \end{proof}
 
+Due to the forking lemma, this proof is not tight. We could give an exact formula for the success probability of the reduction.
 
 
 
@@ -287,7 +289,7 @@ To get shorter signatures it is natural to try to increase the size of the chall
 In this section we sketch an approach to obtain larger sets of challenge values, by trading the challenge size with the public key size. In the next section we explain how to shorten the public keys again.
 
 
-The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,s} = \a_s * E )$ where $s = 2^l$.
+The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
 In the identification protocol one chooses $k$ random ideals $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ and computes $E_j = \b_j * E$.
 Now the verifier responds with $k$ uniformly chosen challenge $b_1, \dots, b_k \in \{1, 2, \dots, 2^s \}$.
 For each $j$ the prover responds with a representation $\c_j$ of the ideal class $\a_{b_j} \b_j^{-1}$ and the verifier can check that $j( E_j ) = j( \c_j * E_{A, b_j})$.
@@ -295,8 +297,44 @@ For each $j$ the prover responds with a representation $\c_j$ of the ideal class
 For security we now only require $ks \ge 128$. Taking, say, $s = 16$ can mean $k$ as low as 8, and so only 8 ideal classes need to be transmitted as part of the signature.
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes.
 
+Again the signature comes in two flavours: first scheme uses the relation lattice in the class group, assuming this can be computed; second scheme uses rejection sampling.
+The signature size in the latter case would be.....
+
+\subsection{Security proof}
+
+When we apply the forking lemma we now find there is some index $j$ with $b_j \ne b_j'$.
+Hence have have ideal classes $\c_j$ and $\c_j'$ such that $j( \c_j * E_{A, b_j} ) = j( \c_j' * E_{A, b_j'})$. It follows that $\c_j' \c_j^{-1}$ is an ideal class corresponding to an isogeny $E_{A,b_j} \to E_{A,b_j'}$.
+Hence the computational assumption underlying the scheme is:
+Given $(E_{A,1}, \dots, E_{A,2^s} )$ to find an isogeny between any pair of the elliptic curves.
+If this assumption is hard then one can immediately apply Theorem~\ref{thm:security} to obtain a secure signature scheme.
+
+Since this assumption seems a bit un-natural, we show how to give a signature scheme based on some more natural problems.
+
+Version 1: We can reduce to the standard problem of Definition~\ref{defn:ass1} with a extra $1/2$ factor in the success probability (which is not a big issue since the security proof isn't tight anyway).
+Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}. Choose random ideal classes $\b_1, \dots, \b_{2^s}$ and compute $E_j = \b_j * E$ for $1 \le j \le 2^{s-1}$ and $E_j = \b_j * E_A$ for $2^{s-1} < j \le 2^s$. Choose a random permutation $\pi$ on $\{ 1, 2, \dots, 2^s \}$ and set the public key to be the sequence $E_{A,j} = E_{\pi(j)}$.
+Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether the curve has been generated from $E$ or $E_A$.
+When the forking lemma is applied we have, for some index $j$, two different ideals $\c_j, \c_j'$ such that $j( \c_j * E_{A, b_j} ) = j( \c_j' * E_{A, b_j'})$.
+With probability $1/2$ we have that one of the $E_{A,b_j}$ is known to the simulator as  $\b * E$ and the other is known as $\b' * E_A$. If this event occurs then one solves the original instance as $\b' \b^{-1}$.
+
+Version 2: Have a computational assumption $(E, \a * E, \a^2 * E, \a^3 * E , \dots, a^{2^s - 1} * E )$ and 3-special soundness implies can get $\a$ with a good probability. This is cute but ultimately pointless.
+
+
+\subsection{Reducing storage for private keys}
+
+Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom generator as $PRG( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
+The prover only needs to store $\seed$ and can then recompute the private keys as needed.
+Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $k \approx 8$ private keys.
+
+Could also use a Merkle tree for the private keys, but not sure if this saves anything?
+
+
 
 \section{Smaller public keys}
+
+Use a Merkle tree to compress the public key.
+Public key is now just a hash value.
+
+Signature increases to have 
 
 
 \bibliographystyle{plain}
