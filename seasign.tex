@@ -25,8 +25,8 @@
 \renewcommand{\b}{\mathfrak{b}}
 \renewcommand{\c}{\mathfrak{c}}
 \renewcommand{\l}{\mathfrak{l}}
-\newcommand{\e}{\textbf{x}}
-\newcommand{\f}{\textbf{x}}
+\newcommand{\e}{\textbf{e}}
+\newcommand{\f}{\textbf{f}}
 \newcommand{\x}{\textbf{x}}
 \newcommand{\z}{\textbf{z}}
 
@@ -78,8 +78,8 @@ The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \co
 General references for all this are Couveignes~\cite{Couv06}
 and Stolbunov~\cite{Sto12}.
 
-To make this action efficient one must work with ideals $\a = \prod_{i=1}^t \l_i^{e_i}$ where $\l_1, \dots, \l_t$ are prime $\OO$-ideals of small norm $\ell_i$.
-Throughout the paper we assume that $\{ \l_1, \dots, \l_t \}$ is a set of split prime ideals in $\OO$ of norm polynomial in the size of the class group.
+To make this action efficient one must work with ideals $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are prime $\OO$-ideals of small norm $\ell_i$.
+Throughout the paper we assume that $\{ \l_1, \dots, \l_n \}$ is a set of split prime ideals in $\OO$ of norm polynomial in the size of the class group.
 Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assuming a generalised Riemann hypothesis, $\ell_i = O( \log(p)^2 )$.
 
 The basic computational assumption is the ideal action problem:
@@ -94,84 +94,89 @@ Note that this problem admits a random self-reduction: Given an instance $(E, E_
 If $\a'$ is the solution to the instance $(E_1, E_2)$ then $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
 
 
+For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
+
+
 \section{Basic Signature Scheme}
 
 Section XX of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his decription is not complete and he does not give a proof of security).
 It is a Fiat-Shamir scheme based on an identification protocol.
 
-The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^t \l_i^{e_i}$ is the private key.
-To construct the private key one uniformly chooses an exponent vector $(e_1, \dots, e_t) \in \Z^t$ in some box.
+The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^n \l_i^{e_i}$ is the private key.
+To construct the private key one uniformly chooses an exponent vector $(e_1, \dots, e_n) \in \Z^n$ in some box.
 
-In the identification protocol the prover generates $k$ random ideals $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ for $1 \le j \le k$ and computes $E_j = \b_j * E$.
-Again the exponent vectors are uniformly and independently sampled in some box in $\Z^t$.
-The prover sends $(j( E_j ) : 1 \le j \le k )$ to the verifier.
-[XX I hope there is no confusion about the notation $j$ here XX]
-The verifier responds with $k$ uniformly chosen challenge bits $b_1, \dots, b_k \in \{0,1\}$.
-If $b_j = 0$ the prover responds with $( f_{j,i} )$ and the verifier checks that $j(E_j) = j( \prod_{i=1}^t \l_i^{f_{j,i}} * E )$.
-If $b_j = 1$ the prover responds with a representation of $\b_j \a^{-1}$ (Stolbunov notes that sending the vector $(f_{j,i} - e_j )$ would not be secure as it would leak the private key; but he does not clearly explain how this can be securely done) and the verifier checks that $j(E_j) = j( \b_j \a^{-1} * E_A )$.
+In the identification protocol the prover generates $t$ random ideals $\b_ = \prod_{i=1}^n \l_i^{f_{k,i}}$ for $1 \le k \le t$ and computes $E_k = \b_k * E$.
+Again the exponent vectors are uniformly and independently sampled in some box in $\Z^n$.
+The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
+The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
+If $b_k = 0$ the prover responds with $( f_{k,i} )$ and the verifier checks that $j(E_k) = j( \prod_{i=1}^n \l_i^{f_{k,i}} * E )$.
+If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$ (Stolbunov notes that sending the vector $(f_{k,i} - e_k )$ would not be secure as it would leak the private key; but he does not clearly explain how this can be securely done) and the verifier checks that $j(E_k) = j( \b_k \a^{-1} * E_A )$.
 
-To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_j$ as the hash value $H( j(E_1), \dots, j(E_k) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
-The signature consists of the binary string $b_1\cdots b_k$ and the representations of the ideal classes $\b_j$ when $b_j = 0$ and $\b_j \a^{-1}$ when $b_j = 1$.
+To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
+The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
 
-The verifier computes, for $1 \le j \le k$, $E_j = \b_j * E$ when $b_j = 0$ and $E_j = \b_j \a^{-1} * E_A$ when $b_j = 1$. The verifier then computes $H( j( E_1), \dots, j(E_k), m )$ and checks whether this is equal to the binary string $b_1\cdots b_k$, and accepts the signature if and only if the strings agree.
+The verifier computes, for $1 \le k \le t$, $E_k = \b_k * E$ when $b_k = 0$ and $E_k = \b_k \a^{-1} * E_A$ when $b_k = 1$. The verifier then computes $H( j( E_1), \dots, j(E_t), m )$ and checks whether this is equal to the binary string $b_1\cdots b_t$, and accepts the signature if and only if the strings agree.
 
-In the following two subsections we propose two solutions to the problem of representing $\b_j \a^{-1}$ without leaking the private key. One solution requires knowledge of a relation lattice in the ideal class group. The other solution uses ideas from lattice cryptography.
+In the following two subsections we propose two solutions to the problem of representing $\b_k \a^{-1}$ without leaking the private key. One solution requires knowledge of a relation lattice in the ideal class group. The other solution uses ideas from lattice cryptography.
 
 \subsection{Using the relation lattice}
 
-Let $\{ \l_1, \dots, \l_t \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
-Define $L = \{ (x_1, \dots, x_t ) \in \Z^t : \prod_{i=1}^t \l_i^{x_i} = 1 \}$.
+Let $\{ \l_1, \dots, \l_n \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
+Define $L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} = 1 \}$.
 Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
 We call this the \emph{relation lattice}.
 
-A basis for this lattice can be constructed in subexponential time using classical algorithms (Ref) or in probabilistic polynomial time using quantum algorithms (generate random $\b = \prod_{i=1}^t \l_i^{x_i} $ and solve the discrete logarithm problem $\b = \l_i^{y}$ for a random $i$, if a solution exists, using Shor's algorithm).
+A basis for this lattice can be constructed in subexponential time using classical algorithms (Ref) or in probabilistic polynomial time using quantum algorithms (generate random $\b = \prod_{i=1}^n \l_i^{x_i} $ and solve the discrete logarithm problem $\b = \l_i^{y}$ for a random $i$, if a solution exists, using Shor's algorithm).
 The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
 The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
 It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficent (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
 
 For the remainder of this section we assume that the relation lattice is known.
-Let $\{ \x_1, \dots, \x_t \}$ be a basis for $L$
-Let $\FF = \{ \sum_{j=1}^t : u_j \x_j : -1/2 \le u_j < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
-Then there is a one-to-one correspondence between $\FF \cap \Z^t$ and $\Cl(\OO)$ by
-$(z_1, \dots, z_t ) \in \FF \cap \Z^t  \mapsto \prod_{j=1}^t \l_j^{z_j}$.
+Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$
+Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
+Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$ by
+$(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
 In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' as basis for $L$ as possible.
 
-Note that, given a basis $\{ \x_1, \dots, \x_t \}$ for $L$ and a vector $\z = (z_1, \dots, z_t ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method.
+Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method.
 
 
 
 Returning to Stolbunov's signature scheme, the solution to the problem is then straightforward:
-Given $\a = \prod_{i=1}^t \l_i^{e_i}$ and $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$,
-a representation of $\b_j \a^{-1}$ is obtained by computing the vector $\z' = (f_{j,i} - e_j)$
+Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
+a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = (f_{k,i} - e_k)$
 and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
-The vector $\z$ is sent as the response to the $j$-th challenge.
-Since $\b_j$ is a uniformly chosen ideal class, the class $\b_j \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^t$ is uniformly distributed and carries no information about the private key.
+The vector $\z$ is sent as the response to the $k$-th challenge.
+Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
 
 \begin{lemma}
-If $\b_j$ is a uniformly chosen ideal class then the vector 
-$\z \in \FF \cap \Z^t$ corresponding to $\f_j - \e$ is uniformly distributed.
+If $\b_k$ is a uniformly chosen ideal class then the vector 
+$\z \in \FF \cap \Z^n$ corresponding to $\f_k - \e$ is uniformly distributed.
 \end{lemma}
 
 \begin{proof}
-For fixed $\e$ the vector $\z$ depends only on the ideal class of $\b_j$.
-But $\b_j$ is uniform and independent of $\e$ and not known to verifier.
+For fixed $\e$ the vector $\z$ depends only on the ideal class of $\b_k$.
+But $\b_k$ is uniform and independent of $\e$ and not known to verifier.
 \end{proof}
 
 
 
 If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$.
 
-One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^t$.
-The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^t$ and then apply Babai rounding as above.
+One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^n$.
+The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^n$ and then apply Babai rounding as above.
 
 
 \begin{lemma} \label{lem:sim1}
-Let $B \N$. Let $D_1$ the distribution on ideal classes obtained by computing $\prod_{i=1}^t \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
+Let $B \in \N$. Let $D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
 Suppose the statistical distance between $D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
-Let $D_2$ be the distribution on $\FF \cap \Z^t$ defined by uniformly sampling vectors $\x \in (\Z \cap [-B,B])^t$ and applying Babai rounding.
-Let $U$ be the uniform distribution on $\FF \cap \Z^t$.
+Let $D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
+Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
 Then the statistical distance between $D_2$ and $U$ is at most $\epsilon$.
 \end{lemma}
+
+Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
+
 
 \begin{proof}
 They are the same thing.
@@ -183,18 +188,18 @@ They are the same thing.
 \subsection{Using rejection sampling}
 
 The approach in the previous section is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
-Hence this section contains our main solution to the problem of representing the ideal class $\b_j \a^{-1}$.
+Hence this section contains our main solution to the problem of representing the ideal class $\b_k \a^{-1}$.
 The idea is to use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
 
-Let $B > 0$ be a constant. Suppose when generating the private key we sample uniformly $e_j \in \Z \cap [-B, B]$. Let $\e = ( e_1, \dots, e_t )$.
-The value $B$ is chosen large enough that $\prod_{i=1}^t \l_i^{e_i}$ is close to uniformly distributed in $\Cl(\OO)$.
+Let $B > 0$ be a constant. Suppose when generating the private key we sample uniformly $e_k \in [-B, B]$. Let $\e = ( e_1, \dots, e_n )$.
+The value $B$ is chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ is close to uniformly distributed in $\Cl(\OO)$.
 
-The idea is to sample the exponents $ f_{j,i} $ uniformly in $\Z \cap [-(k+1)B, (k+1)B]$, where $k$ is the number of parallel rounds of the identification protocol.
-Let $\f_j = (f_{j,1}, \dots, f_{j,t} )$.
-It is certainly the case that $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ is close to uniformly distributed.
+The idea is to sample the exponents $ f_{k,i} $ uniformly in $[-(t+1)B, (t+1)B]$, where $t$ is the number of parallel rounds of the identification protocol.
+Let $\f_k = (f_{k,1}, \dots, f_{k,t} )$.
+It is certainly the case that $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ is close to uniformly distributed.
 
-If a challenge bit $b_j = 1$ and the prover is required to provide a representation of $\b_j \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_t) $ so that $z_j = f_{j,i} - e_j $.
-Now, if all $|z_j| \le kB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
+If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_n) $ so that $z_k = f_{k,i} - e_k $.
+Now, if all $|z_k| \le tB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
 It remains to show that in the accepting case the vector leaks no information about the private key, and that the rejecting case occurs with low probability. We do this in the following two lemmas.
 
 \begin{lemma}
@@ -202,12 +207,12 @@ An accepted vector is independent of $\e$.
 \end{lemma}
 
 \begin{proof}
-Since $\f_j$ is uniform and independent of $\e$ and not known to verifier.
+Since $\f_k$ is uniform and independent of $\e$ and not known to verifier.
 \end{proof}
 
 
 \begin{lemma} \label{lem:sim2}
-The  distribution of vectors $\z = (z_1, \dots, z_t) $ output by the signing algorithm is the uniform distribution on $[-kB,kB]^t$.
+The  distribution of vectors $\z = (z_1, \dots, z_n) $ output by the signing algorithm is the uniform distribution on $[-tB,tB]^n$.
 \end{lemma}
 
 \begin{proof}
@@ -216,13 +221,13 @@ Standard rejection sampling.
 
 
 \begin{lemma}
-The probability that a vector is rejected is at most $1/k$.
-The probability that $k$ such vectors are accepted is at least $ \approx 1/e$.
+The probability that a vector is rejected is at most $1/t$.
+The probability that $t$ such vectors are accepted is at least $ \approx 1/e$.
 \end{lemma}
 
 \begin{proof}
-Each entry $e_j$ lies in $[-B,B]$ and each entry of $f_{j,i}$ lies in $[-(k+1)B, (k+1)B]$,
-so $z_j = f_{j,i} - e_j \in [-(k+2)B, (k+2)B]$.
+Each entry $e_k$ lies in $[-B,B]$ and each entry of $f_{k,i}$ lies in $[-(t+1)B, (t+1)B]$,
+so $z_k = f_{k,i} - e_k \in [-(t+2)B, (t+2)B]$.
 
 blah blah
 \end{proof}
@@ -261,19 +266,19 @@ Run $A$ with public key $(E, E_A)$ (or apply the random self-reduction mentioned
 Suppose the adversary $A$ makes at most $Q$ (polynomial in the security parameter) queries in total to either the random oracle $H$ or the signing oracle. We now explain how the simulator responds to these queries. The simulator maintains a list, initially empty, of pairs $(x, H(x))$ for each value of the random oracle that has been defined.
 
 To answer a Sign query on message $m$ the simulator chooses 
-$k$ uniformly chosen bits $b_1, \dots, b_k \in \{0,1\}$.
-When $b_j = 0$ the simulator chooses a random ideal $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ as in the real protocol and computes $E_j = \b_j * E$.
-When $b_j = 1$ the simulator chooses a random representation of an ideal $\c_j$ (consistent with the protocol under consideration; so using Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} as appropriate) and computes $E_j = \c_j * E_A$.
-We define $H( j( E_1), \dots, j(E_k), m ) := b_1 \cdots b_k$, unless the random oracle has already been defined on this input in which case we output $\perp$.
-The probability of failure is at most $Q/\sqrt{p}^k$, since the values $j(E)$ are uniformly and independently sampled by the simulator from $\Cl(\OO)$, which has size at least $\sqrt{p}$.
-Note that $Q/\sqrt{p}^k$ since $p$ is exponential in the security parameter and $Q$ is polynomial.
+$t$ uniformly chosen bits $b_1, \dots, b_t \in \{0,1\}$.
+When $b_k = 0$ the simulator chooses a random ideal $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ as in the real protocol and computes $E_k = \b_k * E$.
+When $b_k = 1$ the simulator chooses a random representation of an ideal $\c_k$ (consistent with the protocol under consideration; so using Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} as appropriate) and computes $E_k = \c_k * E_A$.
+We define $H( j( E_1), \dots, j(E_t), m ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case we output $\perp$.
+The probability of failure is at most $Q/\sqrt{p}^t$, since the values $j(E)$ are uniformly and independently sampled by the simulator from $\Cl(\OO)$, which has size at least $\sqrt{p}$.
+Note that $Q/\sqrt{p}^t$ since $p$ is exponential in the security parameter and $Q$ is polynomial.
 Assumning the simulation does not fail, the output is a valid signature and is indistinguishable from signatures output by the real scheme in the random oracle model and assuming the statistical distances in Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} are negligible.
 
-To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^k$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
+To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
 
-Eventually $A$ outputs a forgery $(m, b_1\cdots b_k, \c_1, \dots, \c_k)$ that passes the verification equation.
+Eventually $A$ outputs a forgery $(m, b_1\cdots b_t, \c_1, \dots, \c_t)$ that passes the verification equation.
 The proof now evokes the Forking Lemma. The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
-With non-neglible probability the adversary outputs a forgery with the same message $m$ and the same input $(j(E_1), \dots, j(E_k), m)$ to $H$, but a different output string $b_1'\cdots b_k'$. Let $j$ be an index such that $b_j \ne b_j'$ (without loss of generality $b_j = 0$ and $b_j' = 1$). Then the ideal classes $\c_j$ and $\c_j'$ in the two signatures are such that $j( \c_j * E ) = j( \c_j' * E_A )$ and so $\c_j' \c_j^{-1}$ is a solution to the problem instance.
+With non-neglible probability the adversary outputs a forgery with the same message $m$ and the same input $(j(E_1), \dots, j(E_t), m)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance.
 \end{proof}
 
 Due to the forking lemma, this proof is not tight. We could give an exact formula for the success probability of the reduction.
@@ -284,17 +289,17 @@ Due to the forking lemma, this proof is not tight. We could give an exact formul
 
 
 The signature size of the basic scheme is very large, since the sigma protocol that underlies the identification scheme only has single bit challenges. 
-In practice we need $k \ge 128$, which means signatures are very large.
+In practice we need $t \ge 128$, which means signatures are very large.
 To get shorter signatures it is natural to try to increase the size of the challenges.
 In this section we sketch an approach to obtain larger sets of challenge values, by trading the challenge size with the public key size. In the next section we explain how to shorten the public keys again.
 
 
 The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
-In the identification protocol one chooses $k$ random ideals $\b_j = \prod_{i=1}^t \l_i^{f_{j,i}}$ and computes $E_j = \b_j * E$.
-Now the verifier responds with $k$ uniformly chosen challenge $b_1, \dots, b_k \in \{1, 2, \dots, 2^s \}$.
-For each $j$ the prover responds with a representation $\c_j$ of the ideal class $\a_{b_j} \b_j^{-1}$ and the verifier can check that $j( E_j ) = j( \c_j * E_{A, b_j})$.
+In the identification protocol one chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $E_k = \b_k * E$.
+Now the verifier responds with $t$ uniformly chosen challenge $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
+For each $k$ the prover responds with a representation $\c_k$ of the ideal class $\a_{b_k} \b_k^{-1}$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
 
-For security we now only require $ks \ge 128$. Taking, say, $s = 16$ can mean $k$ as low as 8, and so only 8 ideal classes need to be transmitted as part of the signature.
+For security we now only require $ts \ge 128$. Taking, say, $s = 16$ can mean $t$ as low as 8, and so only 8 ideal classes need to be transmitted as part of the signature.
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes.
 
 Again the signature comes in two flavours: first scheme uses the relation lattice in the class group, assuming this can be computed; second scheme uses rejection sampling.
@@ -302,8 +307,8 @@ The signature size in the latter case would be.....
 
 \subsection{Security proof}
 
-When we apply the forking lemma we now find there is some index $j$ with $b_j \ne b_j'$.
-Hence have have ideal classes $\c_j$ and $\c_j'$ such that $j( \c_j * E_{A, b_j} ) = j( \c_j' * E_{A, b_j'})$. It follows that $\c_j' \c_j^{-1}$ is an ideal class corresponding to an isogeny $E_{A,b_j} \to E_{A,b_j'}$.
+When we apply the forking lemma we now find there is some index $k$ with $b_k \ne b_k'$.
+Hence have have ideal classes $\c_k$ and $\c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$. It follows that $\c_k' \c_k^{-1}$ is an ideal class corresponding to an isogeny $E_{A,b_k} \to E_{A,b_k'}$.
 Hence the computational assumption underlying the scheme is:
 Given $(E_{A,1}, \dots, E_{A,2^s} )$ to find an isogeny between any pair of the elliptic curves.
 If this assumption is hard then one can immediately apply Theorem~\ref{thm:security} to obtain a secure signature scheme.
@@ -311,10 +316,10 @@ If this assumption is hard then one can immediately apply Theorem~\ref{thm:secur
 Since this assumption seems a bit un-natural, we show how to give a signature scheme based on some more natural problems.
 
 Version 1: We can reduce to the standard problem of Definition~\ref{defn:ass1} with a extra $1/2$ factor in the success probability (which is not a big issue since the security proof isn't tight anyway).
-Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}. Choose random ideal classes $\b_1, \dots, \b_{2^s}$ and compute $E_j = \b_j * E$ for $1 \le j \le 2^{s-1}$ and $E_j = \b_j * E_A$ for $2^{s-1} < j \le 2^s$. Choose a random permutation $\pi$ on $\{ 1, 2, \dots, 2^s \}$ and set the public key to be the sequence $E_{A,j} = E_{\pi(j)}$.
+Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}. Choose random ideal classes $\b_1, \dots, \b_{2^s}$ and compute $E_k = \b_k * E$ for $1 \le k \le 2^{s-1}$ and $E_k = \b_k * E_A$ for $2^{s-1} < k \le 2^s$. Choose a random permutation $\pi$ on $\{ 1, 2, \dots, 2^s \}$ and set the public key to be the sequence $E_{A,k} = E_{\pi(k)}$.
 Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether the curve has been generated from $E$ or $E_A$.
-When the forking lemma is applied we have, for some index $j$, two different ideals $\c_j, \c_j'$ such that $j( \c_j * E_{A, b_j} ) = j( \c_j' * E_{A, b_j'})$.
-With probability $1/2$ we have that one of the $E_{A,b_j}$ is known to the simulator as  $\b * E$ and the other is known as $\b' * E_A$. If this event occurs then one solves the original instance as $\b' \b^{-1}$.
+When the forking lemma is applied we have, for some index $k$, two different ideals $\c_k, \c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$.
+With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simulator as  $\b * E$ and the other is known as $\b' * E_A$. If this event occurs then one solves the original instance as $\b' \b^{-1}$.
 
 Version 2: Have a computational assumption $(E, \a * E, \a^2 * E, \a^3 * E , \dots, a^{2^s - 1} * E )$ and 3-special soundness implies can get $\a$ with a good probability. This is cute but ultimately pointless.
 
@@ -323,7 +328,7 @@ Version 2: Have a computational assumption $(E, \a * E, \a^2 * E, \a^3 * E , \do
 
 Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom generator as $PRG( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
 The prover only needs to store $\seed$ and can then recompute the private keys as needed.
-Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $k \approx 8$ private keys.
+Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $t \approx 8$ private keys.
 
 Could also use a Merkle tree for the private keys, but not sure if this saves anything?
 
