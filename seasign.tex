@@ -105,7 +105,7 @@ It is a Fiat-Shamir scheme based on an identification protocol.
 The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^n \l_i^{e_i}$ is the private key.
 To construct the private key one uniformly chooses an exponent vector $(e_1, \dots, e_n) \in \Z^n$ in some box.
 
-In the identification protocol the prover generates $t$ random ideals $\b_ = \prod_{i=1}^n \l_i^{f_{k,i}}$ for $1 \le k \le t$ and computes $E_k = \b_k * E$.
+In the identification protocol the prover generates $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ for $1 \le k \le t$ and computes $E_k = \b_k * E$.
 Again the exponent vectors are uniformly and independently sampled in some box in $\Z^n$.
 The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
 The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
@@ -136,7 +136,7 @@ Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$
 Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
 Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$ by
 $(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
-In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' as basis for $L$ as possible.
+In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
 
 Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method.
 
@@ -272,7 +272,7 @@ When $b_k = 1$ the simulator chooses a random representation of an ideal $\c_k$ 
 We define $H( j( E_1), \dots, j(E_t), m ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case we output $\perp$.
 The probability of failure is at most $Q/\sqrt{p}^t$, since the values $j(E)$ are uniformly and independently sampled by the simulator from $\Cl(\OO)$, which has size at least $\sqrt{p}$.
 Note that $Q/\sqrt{p}^t$ since $p$ is exponential in the security parameter and $Q$ is polynomial.
-Assumning the simulation does not fail, the output is a valid signature and is indistinguishable from signatures output by the real scheme in the random oracle model and assuming the statistical distances in Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} are negligible.
+Assuming the simulation does not fail, the output is a valid signature and is indistinguishable from signatures output by the real scheme in the random oracle model and assuming the statistical distances in Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} are negligible.
 
 To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
 
@@ -296,7 +296,7 @@ In this section we sketch an approach to obtain larger sets of challenge values,
 
 The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
 In the identification protocol one chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $E_k = \b_k * E$.
-Now the verifier responds with $t$ uniformly chosen challenge $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
+Now the verifier responds with $t$ uniformly chosen challenges $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
 For each $k$ the prover responds with a representation $\c_k$ of the ideal class $\a_{b_k} \b_k^{-1}$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
 
 For security we now only require $ts \ge 128$. Taking, say, $s = 16$ can mean $t$ as low as 8, and so only 8 ideal classes need to be transmitted as part of the signature.
