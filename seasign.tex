@@ -94,6 +94,9 @@ Note that this problem admits a random self-reduction: Given an instance $(E, E_
 If $\a'$ is the solution to the instance $(E_1, E_2)$ then $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
 
 
+CSIDH parameters here ***
+
+
 For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
 
 
@@ -101,6 +104,8 @@ For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B
 
 Section XX of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his decription is not complete and he does not give a proof of security).
 It is a Fiat-Shamir scheme based on an identification protocol.
+Section 4 of Couveignes~\cite{Couv06} also sketches this identification protocol, but does not mention that it can be converted to a signature scheme.
+
 
 The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^n \l_i^{e_i}$ is the private key.
 To construct the private key one uniformly chooses an exponent vector $(e_1, \dots, e_n) \in \Z^n$ in some box.
@@ -110,7 +115,7 @@ Again the exponent vectors are uniformly and independently sampled in some box i
 The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
 The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
 If $b_k = 0$ the prover responds with $( f_{k,i} )$ and the verifier checks that $j(E_k) = j( \prod_{i=1}^n \l_i^{f_{k,i}} * E )$.
-If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$ (Stolbunov notes that sending the vector $(f_{k,i} - e_k )$ would not be secure as it would leak the private key; but he does not clearly explain how this can be securely done) and the verifier checks that $j(E_k) = j( \b_k \a^{-1} * E_A )$.
+If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$ (Stolbunov notes that sending the vector $(f_{k,i} - e_k )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage) and the verifier checks that $j(E_k) = j( \b_k \a^{-1} * E_A )$.
 
 To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
@@ -126,7 +131,8 @@ Define $L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} = 1 \}$.
 Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
 We call this the \emph{relation lattice}.
 
-A basis for this lattice can be constructed in subexponential time using classical algorithms (Ref) or in probabilistic polynomial time using quantum algorithms (generate random $\b = \prod_{i=1}^n \l_i^{x_i} $ and solve the discrete logarithm problem $\b = \l_i^{y}$ for a random $i$, if a solution exists, using Shor's algorithm).
+A basis for this lattice can be constructed in subexponential time using classical algorithms (Ref) or in probabilistic polynomial time using quantum algorithms (generate random $\b = \prod_{i=1}^n \l_i^{x_i} $ and solve the discrete logarithm problem $\b = \l_i^{y}$ for a random $i$, if a solution exists, using Shor's algorithm) 
+or as a hidden subgroup problem in $\Z^n$ (??????).
 The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
 The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
 It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficent (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
@@ -271,13 +277,13 @@ When $b_k = 0$ the simulator chooses a random ideal $\b_k = \prod_{i=1}^n \l_i^{
 When $b_k = 1$ the simulator chooses a random representation of an ideal $\c_k$ (consistent with the protocol under consideration; so using Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} as appropriate) and computes $E_k = \c_k * E_A$.
 We define $H( j( E_1), \dots, j(E_t), m ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case we output $\perp$.
 The probability of failure is at most $Q/\sqrt{p}^t$, since the values $j(E)$ are uniformly and independently sampled by the simulator from $\Cl(\OO)$, which has size at least $\sqrt{p}$.
-Note that $Q/\sqrt{p}^t$ since $p$ is exponential in the security parameter and $Q$ is polynomial.
+Note that $Q/\sqrt{p}^t$is negligible since $p$ is exponential in the security parameter and $Q$ is polynomial.
 Assuming the simulation does not fail, the output is a valid signature and is indistinguishable from signatures output by the real scheme in the random oracle model and assuming the statistical distances in Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} are negligible.
 
 To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
 
 Eventually $A$ outputs a forgery $(m, b_1\cdots b_t, \c_1, \dots, \c_t)$ that passes the verification equation.
-The proof now evokes the Forking Lemma. The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
+The proof now invokes the Forking Lemma. The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
 With non-neglible probability the adversary outputs a forgery with the same message $m$ and the same input $(j(E_1), \dots, j(E_t), m)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance.
 \end{proof}
 
@@ -330,7 +336,7 @@ Rather than storing all the private keys $\a_i$ one could have generated them us
 The prover only needs to store $\seed$ and can then recompute the private keys as needed.
 Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $t \approx 8$ private keys.
 
-Could also use a Merkle tree for the private keys, but not sure if this saves anything?
+
 
 
 
