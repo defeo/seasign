@@ -131,8 +131,7 @@ Define $L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} = 1 \}$.
 Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
 We call this the \emph{relation lattice}.
 
-A basis for this lattice can be constructed in subexponential time using classical algorithms (Ref) or in probabilistic polynomial time using quantum algorithms (generate random $\b = \prod_{i=1}^n \l_i^{x_i} $ and solve the discrete logarithm problem $\b = \l_i^{y}$ for a random $i$, if a solution exists, using Shor's algorithm) 
-or as a hidden subgroup problem in $\Z^n$ (??????).
+A basis for this lattice can be constructed in subexponential time using classical algorithms~\cite{hafner1989rigorous,biasse_fieker_jacobson_2016} or in probabilistic polynomial time using quantum algorithms (define $f:\Z^n\to\Cl(\OO)$ by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalization of Shor's algorithm~\cite{kitaev1995hsp}).
 The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
 The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
 It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficent (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
