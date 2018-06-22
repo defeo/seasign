@@ -2,8 +2,7 @@
 
 \usepackage{amsmath,amssymb,fullpage}
 \usepackage{times}
-
-
+\usepackage{algorithm,algorithmicx,algpseudocode}
 
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\E}{\mathcal{E}}
@@ -102,20 +101,21 @@ For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B
 
 \section{Basic Signature Scheme}
 
-Section XX of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his decription is not complete and he does not give a proof of security).
+Section 2.B of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his decription is not complete and he does not give a proof of security).
 It is a Fiat-Shamir scheme based on an identification protocol.
-Section 4 of Couveignes~\cite{Couv06} also sketches this identification protocol, but does not mention that it can be converted to a signature scheme.
+Section 4 of Couveignes~\cite{Couv06} also sketches the identification protocol, but does not mention that it can be converted to a signature scheme.
 
 
 The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^n \l_i^{e_i}$ is the private key.
-To construct the private key one uniformly chooses an exponent vector $(e_1, \dots, e_n) \in \Z^n$ in some box.
+To construct the private key one uniformly chooses an exponent vector $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for some suitably chosen constant $B$.
 
 In the identification protocol the prover generates $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ for $1 \le k \le t$ and computes $E_k = \b_k * E$.
-Again the exponent vectors are uniformly and independently sampled in some box in $\Z^n$.
+Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and independently sampled in $[-B,B]^n$.
 The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
 The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
-If $b_k = 0$ the prover responds with $( f_{k,i} )$ and the verifier checks that $j(E_k) = j( \prod_{i=1}^n \l_i^{f_{k,i}} * E )$.
-If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$ (Stolbunov notes that sending the vector $(f_{k,i} - e_k )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage) and the verifier checks that $j(E_k) = j( \b_k \a^{-1} * E_A )$.
+If $b_k = 0$ the prover responds with $\f_k = ( f_{k,i} )$ and the verifier checks that $j(E_k) = j( \prod_{i=1}^n \l_i^{f_{k,i}} * E )$.
+If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$. Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_k )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage.
+When $b_k=1$ the verifier checks that $j(E_k) = j( \b_k \a^{-1} * E_A )$.
 
 To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
@@ -124,7 +124,7 @@ The verifier computes, for $1 \le k \le t$, $E_k = \b_k * E$ when $b_k = 0$ and 
 
 In the following two subsections we propose two solutions to the problem of representing $\b_k \a^{-1}$ without leaking the private key. One solution requires knowledge of a relation lattice in the ideal class group. The other solution uses ideas from lattice cryptography.
 
-\subsection{Using the relation lattice}
+\subsection{Using the relation lattice}\label{sec:sig-relation-lattice}
 
 Let $\{ \l_1, \dots, \l_n \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
 Define $L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} = 1 \}$.
@@ -143,13 +143,13 @@ Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$
 $(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
 In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
 
-Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method.
+Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method~\cite{Bab86}.
 
 
 
 Returning to Stolbunov's signature scheme, the solution to the problem is then straightforward:
 Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
-a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = (f_{k,i} - e_k)$
+a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e = (f_{k,i} - e_k)$
 and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
 The vector $\z$ is sent as the response to the $k$-th challenge.
 Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
@@ -190,9 +190,11 @@ They are the same thing.
 
 
 
-\subsection{Using rejection sampling}
+\subsection{Using rejection sampling}\label{sec:sig-reject-sample}
 
-The approach in the previous section is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
+
+
+The approach in Section~\ref{sec:sig-relation-lattice} is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
 Hence this section contains our main solution to the problem of representing the ideal class $\b_k \a^{-1}$.
 The idea is to use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
 
@@ -200,11 +202,12 @@ Let $B > 0$ be a constant. Suppose when generating the private key we sample uni
 The value $B$ is chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ is close to uniformly distributed in $\Cl(\OO)$.
 
 The idea is to sample the exponents $ f_{k,i} $ uniformly in $[-(t+1)B, (t+1)B]$, where $t$ is the number of parallel rounds of the identification protocol.
-Let $\f_k = (f_{k,1}, \dots, f_{k,t} )$.
+Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$.
 It is certainly the case that $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ is close to uniformly distributed.
 
 If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_n) $ so that $z_k = f_{k,i} - e_k $.
 Now, if all $|z_k| \le tB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
+We give the signature scheme in Figure~\ref{fig:sig-scheme}.
 It remains to show that in the accepting case the vector leaks no information about the private key, and that the rejecting case occurs with low probability. We do this in the following two lemmas.
 
 \begin{lemma}
@@ -241,6 +244,76 @@ blah blah
 Parameters for the scheme in this case would be ****
 
 
+%\begin{figure}
+
+
+
+%If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_n) $ so that $z_k = f_{k,i} - e_k $.
+%Now, if all $|z_k| \le tB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
+%
+%f $E$ and $E_A = \a * E$, where $\a = $ is the private key.
+%To construct the private key one unif
+%
+% $1 \le k \le t$ and computes $E_k = \b_k * E$.
+%Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and independently sampled in $[-B,B]^n$.
+
+\begin{algorithm}[H]
+	\caption{KeyGen \label{alg:KeyGen}}
+	\textbf{Input:} $B$, $\l_1, \dots. \l_n$, $E$
+
+	\textbf{Output:} $sk =\e$ and $pk = E_A$
+
+	\begin{algorithmic}[1]
+		\State $\e \leftarrow [-B,B]^n$ 
+		\State $E_A = ( \prod_{i=1}^n \l_i^{e_i} ) * E$
+		\State \Return $sk= \e$, $pk = E_A$
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{Sign \label{alg:Sign}}
+	\textbf{Input:} $m$, $(E,E_A)$, $\e$
+	\textbf{Output:} $(\z_1, \dots, \z_t)$, $(b_1 , \dots, b_t)$
+	\begin{algorithmic}[1]
+		\For {$k=1 , \dots , t$}
+		\State $\f_k \leftarrow [-(t+1)B,(t+1)B]^n$ 
+		\State $E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
+		\EndFor
+		\State $b_1 \Vert \cdots \Vert b_t = H( j(E_1) , \dots, j(E_t), m )$
+		\For {$k=1, \dots, t$}
+		\If{$b_k=0$}
+		\State $\z_k = \f_k$
+		\Else
+		\State $\z_k = \f_k - \e$
+		\EndIf
+		\If{$\z_k \not\in [-tB,tB]^n$} \State \Return $\bot$ \EndIf
+		\EndFor
+		\State \Return $\sigma = (\z_1, \dots, \z_t, b_1 , \dots, b_t)$
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+	\caption{Verify \label{alg:Verify}}
+	\textbf{Input:} $m$, $(E,E_A)$, $\sigma$
+
+	\textbf{Output:} Valid/Invalid
+
+	\begin{algorithmic}[1]
+		\State Parse $\sigma$ as $(\z_1, \dots, \z_t, b_1 , \dots, b_t)$
+		\For {$k=1 , \dots , t$}
+		\If{$b_k=0$}
+		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E$
+		\Else
+		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E_A$
+		\EndIf
+		\EndFor
+		\State $b_1' \Vert \cdots \Vert b_t' = H( j(E_1) , \dots, j(E_t), m )$
+		\If{$(b_1', \dots, b_t') = (b_1 , \dots, b_t)$} \State \Return Valid
+		\Else \State \Return Invalid \EndIf
+	\end{algorithmic}
+\end{algorithm}
+
+%\end{figure}
 
 
 \subsection{identification protocols and signature schemes}
