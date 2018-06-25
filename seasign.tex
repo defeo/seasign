@@ -235,10 +235,10 @@ The probability that the signing algorithm does not output $\bot$ is at least $1
 Let notation be as in the proof of Lemma~\ref{lem:sim2}.
 For fixed $e \in [-B, B]$ and uniformly sampled $f \in U$, the probability that a value $f-e$ lies in $[-ntB, ntB]$ is
 \[
-   \frac{2ntB + 1}{2(nt+1)B + 1}  = 1 - \frac{2B}{2(nt+1)B + 1} \le 1 - \frac{1}{nt+1}.
+   \frac{2ntB + 1}{2(nt+1)B + 1}  = 1 - \frac{2B}{2(nt+1)B + 1} \ge 1 - \frac{1}{nt+1}.
 \]
 Hence, the probability that all of the values $z_{k,i}$ over $1 \le k \le t, 1 \le i \le n$ lie in $[-ntB, ntB]$ is at least $(1 - 1/(nt+1))^{nt}$.
-Using the inequality $1 - 1/(nt+1) \ge e^{-1/nt}$ for $nt \ge 1$ we have that the probability that all values are in the correct range is at least
+Using the inequality $1 - 1/(nt+1) \ge e^{-1/nt}$ for $nt \ge 1$ it follows that the probability that all values are in the desired range is at least
 \[
    \left( e^{-1/nt} \right)^{nt} = e^{-1}.
 \]
@@ -255,6 +255,7 @@ The quadratic dependence on $nt$ is going to be a big pain in practice.
 For example, taking $t=128, n = 50, B = 6$ gives around $2^{27}$ isogeny computations in verification!
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
 
+It might be worth to consider different shaped boxes (i.e., favouring smaller prime isogeny degrees) like done by Stolbunov. But it won't bypass the $nt$ issue
 
 %\begin{figure} 
 
