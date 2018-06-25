@@ -113,9 +113,9 @@ In the identification protocol the prover generates $t$ random ideals $\b_k = \p
 Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and independently sampled in $[-B,B]^n$.
 The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
 The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
-If $b_k = 0$ the prover responds with $\f_k = ( f_{k,i} )$ and the verifier checks that $j(E_k) = j( \prod_{i=1}^n \l_i^{f_{k,i}} * E )$.
+If $b_k = 0$ the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$.
 If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$. Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_k )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage.
-When $b_k=1$ the verifier checks that $j(E_k) = j( \b_k \a^{-1} * E_A )$.
+When $b_k=1$ the verifier checks that $j(E_k) = j( (\b_k \a^{-1}) * E_A )$.
 
 To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
@@ -201,50 +201,62 @@ The idea is to use rejection sampling in exactly the way proposed by Lyubashevsk
 Let $B > 0$ be a constant. Suppose when generating the private key we sample uniformly $e_k \in [-B, B]$. Let $\e = ( e_1, \dots, e_n )$.
 The value $B$ is chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ is close to uniformly distributed in $\Cl(\OO)$.
 
-The idea is to sample the exponents $ f_{k,i} $ uniformly in $[-(t+1)B, (t+1)B]$, where $t$ is the number of parallel rounds of the identification protocol.
+The idea is to sample the exponents $f_{k,i}$ uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is the number of parallel rounds of the identification protocol and $n$ is the number of primes.
 Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$.
 It is certainly the case that $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ is close to uniformly distributed.
 
-If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_n) $ so that $z_k = f_{k,i} - e_k $.
-Now, if all $|z_k| \le tB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
+If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z_k = (z_{k,1}, \dots, z_{k,n}) $ defined by $z_{k,i} = f_{k,i} - e_i $ for $1 \le i \le n$.
+As already noted, outputting $\z$ directly would potentially leak the secret.
+To prevent this leakage we only output $\z_k$ if all its entries satisfy $| z_{k,i} | \le nt B$.
 We give the signature scheme in Figure~\ref{fig:sig-scheme}.
 It remains to show that in the accepting case the vector leaks no information about the private key, and that the rejecting case occurs with low probability. We do this in the following two lemmas.
 
-\begin{lemma}
-An accepted vector is independent of $\e$.
-\end{lemma}
-
-\begin{proof}
-Since $\f_k$ is uniform and independent of $\e$ and not known to verifier.
-\end{proof}
-
-
 \begin{lemma} \label{lem:sim2}
-The  distribution of vectors $\z = (z_1, \dots, z_n) $ output by the signing algorithm is the uniform distribution on $[-tB,tB]^n$.
+The distribution of vectors $\z_k$ output by the signing algorithm is the uniform distribution and therefore is independent of the private key $\e$.
 \end{lemma}
 
 \begin{proof}
-Standard rejection sampling.
+Let $U = [-(nt+1)B, (nt+1)B]$. Then $\#U = 2(nt + 1)B + 1$.
+If $e \in [-B, B]$ then 
+\[
+    [-ntB, ntB] \subseteq  U - e = \{ f - e : f \in U \} \subseteq [-(nt+2)B, (nt+2)B ].
+\]
+Hence, when rejection sampling (only outputting values $f_{k,i} - e_i$ in the range $[-ntB, ntB]$) is applied then the output distribution of $\z_k$ is the uniform distribution $[-ntB, ntB]^n$.
+This argument does not depend on the choice of $\e$, so the output distribution is independent of $\e$.
 \end{proof}
+
 
 
 \begin{lemma}
-The probability that a vector is rejected is at most $1/t$.
-The probability that $t$ such vectors are accepted is at least $ \approx 1/e$.
+The probability that the signing algorithm does not output $\bot$ is at least $1/e > 1/3$.
 \end{lemma}
 
 \begin{proof}
-Each entry $e_k$ lies in $[-B,B]$ and each entry of $f_{k,i}$ lies in $[-(t+1)B, (t+1)B]$,
-so $z_k = f_{k,i} - e_k \in [-(t+2)B, (t+2)B]$.
-
-blah blah
+Let notation be as in the proof of Lemma~\ref{lem:sim2}.
+For fixed $e \in [-B, B]$ and uniformly sampled $f \in U$, the probability that a value $f-e$ lies in $[-ntB, ntB]$ is
+\[
+   \frac{2ntB + 1}{2(nt+1)B + 1}  = 1 - \frac{2B}{2(nt+1)B + 1} \le 1 - \frac{1}{nt+1}.
+\]
+Hence, the probability that all of the values $z_{k,i}$ over $1 \le k \le t, 1 \le i \le n$ lie in $[-ntB, ntB]$ is at least $(1 - 1/(nt+1))^{nt}$.
+Using the inequality $1 - 1/(nt+1) \ge e^{-1/nt}$ for $nt \ge 1$ we have that the probability that all values are in the correct range is at least
+\[
+   \left( e^{-1/nt} \right)^{nt} = e^{-1}.
+\]
+This completes the proof.
 \end{proof}
 
 
-Parameters for the scheme in this case would be ****
+We can therefore get a rough idea of parameters and efficiency for the scheme.
+For security we need a large enough set of private keys. So we need $(2B+1)^n$ large enough.
+We need $t$ at least 128 so that an attacker cannot guess the hash value or invert the hash function.
+The vectors $\z_k$ have entries of size bounded by $ntB$, which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
+This means that the total number of isogeny computations is upper bounded by $(nt)^2 B$.
+The quadratic dependence on $nt$ is going to be a big pain in practice.
+For example, taking $t=128, n = 50, B = 6$ gives around $2^{27}$ isogeny computations in verification!
+We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
 
 
-%\begin{figure}
+%\begin{figure} 
 
 
 
@@ -286,7 +298,7 @@ Parameters for the scheme in this case would be ****
 		\Else
 		\State $\z_k = \f_k - \e$
 		\EndIf
-		\If{$\z_k \not\in [-tB,tB]^n$} \State \Return $\bot$ \EndIf
+		\If{$\z_{k} \not\in [-tB,tB]^n$} \State \Return $\bot$ \EndIf
 		\EndFor
 		\State \Return $\sigma = (\z_1, \dots, \z_t, b_1 , \dots, b_t)$
 	\end{algorithmic}
