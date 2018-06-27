@@ -64,6 +64,7 @@
 Stolbunov~\cite{Sto12} was the first to give a signature scheme based on isogeny problems.
 Due to renewed interest in this problem, especially CSIDH~\cite{CLMPR18} and the scheme by De Feo et al~\cite{DFKS18}.
 
+For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
 
 \section{Background}
 
@@ -77,9 +78,13 @@ The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \co
 General references for all this are Couveignes~\cite{Couv06}
 and Stolbunov~\cite{Sto12}.
 
-To make this action efficient one must work with ideals $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are prime $\OO$-ideals of small norm $\ell_i$.
-Throughout the paper we assume that $\{ \l_1, \dots, \l_n \}$ is a set of split prime ideals in $\OO$ of norm polynomial in the size of the class group.
+Given a generic ideal $\a\subset\OO$, the best known algorithm to compute $\a*E$ has subexponential complexity in $\log(\#\Cl(\OO))$~\cite{JS10}.
+To make this action efficient one must work instead with ideals $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are prime $\OO$-ideals of small norm $\ell_i$.
+Then, the action of $\a$ can be computed as a composition of isogenies of degree $\ell_i$.
+Throughout the paper we assume that $\{ \l_1, \dots, \l_n \}$ is a set of non-principal prime ideals in $\OO$, generating $\Cl(\OO)$, of norm polynomial in the size of the class group.
 Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assuming a generalised Riemann hypothesis, $\ell_i = O( \log(p)^2 )$.
+% NdL: Is #Cl(O) = O(..) really what we want to say? ≈ seems more appropriate
+In practice one usually takes $\ell_i=O(\log(p))$ for efficiency reasons; heuristically, this is more than enough to generate the class group.
 
 The basic computational assumption is the ideal action problem:
 
@@ -87,16 +92,34 @@ The basic computational assumption is the ideal action problem:
 Given $E$ and $E_A$ to find an ideal $\a$, if it exists, such that $j( E_A ) = j( \a * E )$.
 \end{definition}
 
-The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-etc).
+The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-etc).
 
-Note that this problem admits a random self-reduction: Given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
+Note that this problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
 If $\a'$ is the solution to the instance $(E_1, E_2)$ then $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
 
+When instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
+In the ordinary case, De Feo, Kieffer and Smith~\cite{DFKS18} introduced a method to use the more efficient V\'elu's formulas~\cite{velu71} for some primes $\ell_i$, but were unable to generalize it for sufficiently many.
+By using supersingular curves over a field $\F_p$ with $p+1 = 4\prod_{i=1}^n\ell_i$, CSIDH~\cite{CLMPR18} manages to apply V\'elu's formulas to all primes $\ell_i$.
+For key exchange, CSIDH samples the exponent vectors $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for a constant $B$ such that $(2B+1)^n\ge\#\Cl(\OO)\approx p\log p$; this ensures that, heuristically, the key space covers all of $\Cl(\OO)$.
 
-CSIDH parameters here ***
+By taking into account the best known attacks, the CSIDH authors propose parameters for the three NIST categories~\cite{NIST2016}, as summarized in Table~\ref{tab:csidh-parms}.
+Their implementation of the smallest parameter size CSIDH-1 computes one class group action in under 100ms on a 3.5GHz processor.
 
 
-For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
+\begin{table}
+  \centering
+  \begin{tabular}{l | r | r | r | r | r | r | r | r}
+    & $n$ & $\log_2 p$ & $B$ & NIST level & classical security & quantum security & curve size & exponent size \\
+    \hline
+    CSIDH-1 &  74 &  500 &  5 & 1 & 125 bits &  61 qbits &  63B &  32B\\
+    CSIDH-3 & 131 & 1020 &  7 & 3 & 255 bits &  93 qbits & 128B &  64B\\
+    CSIDH-5 & 208 & 1787 & 10 & 5 & 447 bits & 129 qbits & 224B & 115B
+  \end{tabular}
+  \caption{Proposed parameters for CSIDH~\cite{CLMPR18}.  Effective
+    parameters $p$, $n$ and $B$ for CSIDH-3 and CSIDH-5 were not given
+    in the paper, and are produced here following their methodology.}
+  \label{tab:csidh-parms}
+\end{table}
 
 
 \section{Basic Signature Scheme}
@@ -186,7 +209,6 @@ Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
 \begin{proof}
 They are the same thing.
 \end{proof}
-
 
 
 
@@ -338,7 +360,7 @@ We focus in this paper on classical adversaries and therefore use the Fiat-Shami
 
 
 \section{Security proof}
-
+\label{sec:security-proof}
 
 We now prove security of the basic scheme in the random oracle model against a classical adversary. The proof covers both cases.
 The proof technique is the standard approach that uses the forking lemma.
@@ -432,6 +454,66 @@ Public key is now just a hash value.
 
 Signature increases to have 
 
+
+\begin{table}
+  \centering
+  \begin{tabular}{l | c | c | c | c |}
+    & Basic scheme
+    & Rejection sampling
+    & Parallel proof
+    & Compressed keys\\
+    \hline
+    \hspace{1em}\textbf{Exact} &&&&\\
+    Sig size
+    & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
+    & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
+    & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
+    & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + (s+1)\lambda$\\
+    PK size
+    & $\log p$ & $\log p$ & $2^s\log p$ & $\lambda$ \\
+    SK size
+    & $n\log(2B+1)$ & $n\log(2B+1)$ & $2^s n\log(2B+1)$ & $(2^s+1) \lambda$\\
+    $\Cl(\OO)$ actions &&&&\\
+    $\to$ keygen
+    & 1 & 1 & $2^s$ & $2^s$\\
+    $\to$ sig/verify
+    & $\lambda$ & $n\lambda^2$ & $n(\lambda/s)^2$ & $n(\lambda/s)^2$\\
+    \hline
+    \hspace{1em}\textbf{Asymptotic} &&&&\\
+    Sig size
+    & $O(\lambda^3)$ & $O(\lambda^3)$ & $O(\lambda^3/s)$ & $O(\lambda^3/s)$\\
+    PK size
+    & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $\lambda$\\
+    SK size
+    & $\lambda^2$ & $\lambda^2$ & $2^s\lambda^2$ & $(2^s+1)\lambda$\\
+    $\Cl(\OO)$ actions &&&&\\
+    $\to$ keygen
+    & 1 & 1 & $2^s$ & $2^s$\\
+    $\to$ sig/verify
+    & $\lambda$ & $\lambda^4/\log(\lambda)$
+    & $(\lambda^2/s)^2/\log(\lambda)$ & $(\lambda^2/s)^2/\log(\lambda)$\\
+    \hline
+    \hspace{1em}\textbf{CSIDH(128,16)} &&&&\\
+    Sig size
+    & 4112 B & 19600 B & 944 B & 1209 B\\
+    PK size
+    & 63 B & 63 B & 4032 KB & 16 B\\
+    SK size
+    & 32 B & 32 B & 2048 KB & 1024.02 KB \\
+    Est. sig/verify time
+    & 13 s & 122000 s & 474 s & 474 s\\
+    Est. keygen time
+    & 0.1 s & 0.1 s & 6554 s & 6554 s
+  \end{tabular}
+  \caption{Parameter size and performance of the various signature
+    protocols.
+    Equivalences used for asymptotic analysis are:
+    $\log p \sim 2\lambda^2$, $n\log B\sim \lambda^2$,
+    $n\log n \sim 2\lambda^2$.
+    All logarithms are in base 2. % NdL: this is probably wrong
+  }
+  \label{tab:comparison}
+\end{table}
 
 \bibliographystyle{plain}
 \bibliography{biblio}
