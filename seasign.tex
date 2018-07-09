@@ -68,11 +68,18 @@ For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B
 
 \section{Background}
 
+Notation:
+\begin{itemize}
+\item For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
+\item Given two $\OO$-ideals $\a, \b$ we write $\a \cong \b$ if $\a$ and $\b$ are equivalent (meaning that $\a \b^{-1}$ is a principal fractional $\OO$-ideal). 
+\end{itemize}
+
+
 Let $p$ be a prime.
 Let $E$ be an ordinary elliptic curve over $\F_p$ with $\End(E) \cong \OO$ or $E$ a supersingular curve over $\F_p$ with $\End_{\F_p}(E) \cong \OO$ where $\OO$ is an order in an imaginary quadratic field.
 Let $\Cl(\OO )$ be the ideal class group of $\OO$.
 One can define the action of an $\OO$-ideal $\a$ on the curve $E$ as the image curve $E'$ under the isogeny $\phi : E \to E'$ whose kernel is equal to the kernel ideal $E[ \a ] = \{ P \in E( \Fpbar ) : \alpha(P) = 0 \; \forall \alpha \in \a \}$.
-We denote this action as $\a * E$.
+We denote $E'$ by $\a * E$.
 
 The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \cong \OO$ is a principal homogenous space for $\Cl(\OO )$.
 General references for all this are Couveignes~\cite{Couv06}
@@ -95,7 +102,7 @@ Given $E$ and $E_A$ to find an ideal $\a$, if it exists, such that $j( E_A ) = j
 The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-etc).
 
 Note that this problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
-If $\a'$ is the solution to the instance $(E_1, E_2)$ then $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
+If $\a'$ is a solution to the instance $(E_1, E_2)$ then any ideal equivalent to the fractional ideal $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
 
 When instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
 In the ordinary case, De Feo, Kieffer and Smith~\cite{DFKS18} introduced a method to use the more efficient V\'elu's formulas~\cite{velu71} for some primes $\ell_i$, but were unable to generalize it for sufficiently many.
@@ -122,6 +129,17 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
 \end{table}
 
 
+
+\subsection{Identification protocols and signature schemes}
+
+Do we need to recall the definitions of id-protocols and sig schemes.
+
+There are various transforms to turn an ID protocol into a sig scheme for classical or post-quantum security~\cite{AABN02,DFG13,GCZ16,Katz10,Un15,Un17}.
+We focus in this paper on classical adversaries and therefore use the Fiat-Shamir scheme.
+
+
+
+
 \section{Basic Signature Scheme}
 
 Section 2.B of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his decription is not complete and he does not give a proof of security).
@@ -140,94 +158,35 @@ If $b_k = 0$ the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and t
 If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$. Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_k )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage.
 When $b_k=1$ the verifier checks that $j(E_k) = j( (\b_k \a^{-1}) * E_A )$.
 
-To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , m )$ where $H$ is a cryptographic hash function and $m$ is the message to be signed.
+To obtain a signature scheme one applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , m )$ where $H$ is a cryptographic hash function with $t$-bit output and $m$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
 
 The verifier computes, for $1 \le k \le t$, $E_k = \b_k * E$ when $b_k = 0$ and $E_k = \b_k \a^{-1} * E_A$ when $b_k = 1$. The verifier then computes $H( j( E_1), \dots, j(E_t), m )$ and checks whether this is equal to the binary string $b_1\cdots b_t$, and accepts the signature if and only if the strings agree.
 
-In the following two subsections we propose two solutions to the problem of representing $\b_k \a^{-1}$ without leaking the private key. One solution requires knowledge of a relation lattice in the ideal class group. The other solution uses ideas from lattice cryptography.
-
-\subsection{Using the relation lattice}\label{sec:sig-relation-lattice}
-
-Let $\{ \l_1, \dots, \l_n \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
-Define $L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} = 1 \}$.
-Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
-We call this the \emph{relation lattice}.
-
-A basis for this lattice can be constructed in subexponential time using classical algorithms~\cite{hafner1989rigorous,biasse_fieker_jacobson_2016} or in probabilistic polynomial time using quantum algorithms (define $f:\Z^n\to\Cl(\OO)$ by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalization of Shor's algorithm~\cite{kitaev1995hsp}).
-The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
-The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
-It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficent (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
-
-For the remainder of this section we assume that the relation lattice is known.
-Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$
-Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
-Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$ by
-$(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
-In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
-
-Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method~\cite{Bab86}.
 
 
 
-Returning to Stolbunov's signature scheme, the solution to the problem is then straightforward:
-Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
-a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e = (f_{k,i} - e_k)$
-and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
-The vector $\z$ is sent as the response to the $k$-th challenge.
-Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
 
-\begin{lemma}
-If $\b_k$ is a uniformly chosen ideal class then the vector 
-$\z \in \FF \cap \Z^n$ corresponding to $\f_k - \e$ is uniformly distributed.
-\end{lemma}
-
-\begin{proof}
-For fixed $\e$ the vector $\z$ depends only on the ideal class of $\b_k$.
-But $\b_k$ is uniform and independent of $\e$ and not known to verifier.
-\end{proof}
-
-
-
-If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$.
-
-One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^n$.
-The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^n$ and then apply Babai rounding as above.
-
-
-\begin{lemma} \label{lem:sim1}
-Let $B \in \N$. Let $D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
-Suppose the statistical distance between $D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
-Let $D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
-Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
-Then the statistical distance between $D_2$ and $U$ is at most $\epsilon$.
-\end{lemma}
-
-Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
-
-
-\begin{proof}
-They are the same thing.
-\end{proof}
-
+In this paper we propose two solutions to the problem of representing $\b_k \a^{-1}$ without leaking the private key.
+Our main solution uses ideas from lattice cryptography and we describe this in the remainder of the section.
+An alternative solution requires knowledge of a relation lattice in the ideal class group, which can be computed efficiently using a quantum computer. We describe this alternative solution in an appendix.
 
 
 \subsection{Using rejection sampling}\label{sec:sig-reject-sample}
 
-
-
-The approach in Section~\ref{sec:sig-relation-lattice} is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
-Hence this section contains our main solution to the problem of representing the ideal class $\b_k \a^{-1}$.
+% The approach in Section~\ref{sec:sig-relation-lattice} is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
+%Hence this section contains our main solution to the problem of representing the ideal class $\b_k \a^{-1}$.
 The idea is to use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
 
-Let $B > 0$ be a constant. Suppose when generating the private key we sample uniformly $e_k \in [-B, B]$. Let $\e = ( e_1, \dots, e_n )$.
-The value $B$ is chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ is close to uniformly distributed in $\Cl(\OO)$.
+Let $B > 0$ be a constant. When generating the private key we sample uniformly $e_i \in [-B, B]$ for $1 \le i \le n$. Let $\e = ( e_1, \dots, e_n )$.
+The value $B$ is presumably chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ covers most ideal classes and so that the output distribution is close to uniformly distributed in $\Cl(\OO)$, but we try to avoid any explicit requirement or assumption that this distribution is uniform.
 
 The idea is to sample the exponents $f_{k,i}$ uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is the number of parallel rounds of the identification protocol and $n$ is the number of primes.
 Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$.
-It is certainly the case that $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ is close to uniformly distributed.
+It is certainly the case that $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ is likely to be close to uniformly distributed, but we shouldn't need to make any assumption about it.
 
-If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z_k = (z_{k,1}, \dots, z_{k,n}) $ defined by $z_{k,i} = f_{k,i} - e_i $ for $1 \le i \le n$.
+If the $k$-th challenge bit $b_k$ is zero then the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$ as in the basic scheme above.\footnote{In the scheme and analysis I actually apply rejection sampling to the case $b_k = 0$. It doesn't really matter one way or the other.}
+If $b_k = 1$ then the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z_k = (z_{k,1}, \dots, z_{k,n}) $ defined by $z_{k,i} = f_{k,i} - e_i $ for $1 \le i \le n$.
 As already noted, outputting $\z$ directly would potentially leak the secret.
 To prevent this leakage we only output $\z_k$ if all its entries satisfy $| z_{k,i} | \le nt B$.
 We give the signature scheme in Figure~\ref{fig:sig-scheme}.
@@ -351,42 +310,51 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 %\end{figure}
 
 
-\subsection{identification protocols and signature schemes}
-
-Various transforms to turn an ID protocol into a sig scheme.
-REFS.
-We focus in this paper on classical adversaries and therefore use the Fiat-Shamir scheme.
 
 
-
-\section{Security proof}
+\subsection{Security proof}
 \label{sec:security-proof}
 
-We now prove security of the basic scheme in the random oracle model against a classical adversary. The proof covers both cases.
+We now prove security of the basic scheme in the random oracle model against a classical adversary. 
+%The proof covers both cases.
 The proof technique is the standard approach that uses the forking lemma.
 
 
+\begin{definition} \label{defn:ass1p}
+Let notation be as in the key generation protocol of the scheme.
+Given $(E, E_A)$, where $E_A = \a * E$ for some ideal $\a = \prod_{i=1}^n \l_i^{e_i}$ and the exponent vector $\e = (e_1, \dots, e_n)$ is uniformly sampled in $[-B,B]^n \subseteq \Z^n$, to compute any ideal equivalent to $\a$.
+\end{definition}
+
+Depending on how close to uniform is the output of the public key generation, this problem may or may not be equivalent to Definition~\ref{defn:ass1} and may or may not have a random self-reduction.
+Since understanding the distributions is non-trivial, we do not consider such issues further in this paper.
+
+
 \begin{theorem}\label{thm:security}
-In random oracle model, the basic signature scheme is unforgeable under a chosen message attack under the assumption of Definition~\ref{defn:ass1}.
+In the random oracle model, the basic signature scheme is unforgeable under a chosen message attack under the assumption of Definition~\ref{defn:ass1p}.
 \end{theorem}
 
 \begin{proof}
-Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
+Consider a polynomial-time adversary $A$ against the signature scheme. So $A$ takes a public key, makes queries to the hash function $H$ and the signing oracle, and outputs a forgery of a signature for the public key.
+
+Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1p}.
 We assume that $\#\Cl(\OO) \ge \sqrt{p}$.
-Let $A$ be a polynomial-time adversary against the signature scheme.
-Run $A$ with public key $(E, E_A)$ (or apply the random self-reduction mentioned earlier) in the random oracle model.
+Run the adversary $A$ with public key $(E, E_A)$.
+% (or apply the random self-reduction mentioned earlier) in the random oracle model.
 
 Suppose the adversary $A$ makes at most $Q$ (polynomial in the security parameter) queries in total to either the random oracle $H$ or the signing oracle. We now explain how the simulator responds to these queries. The simulator maintains a list, initially empty, of pairs $(x, H(x))$ for each value of the random oracle that has been defined.
 
+\noindent \textbf{Sign queries:}
 To answer a Sign query on message $m$ the simulator chooses 
 $t$ uniformly chosen bits $b_1, \dots, b_t \in \{0,1\}$.
 When $b_k = 0$ the simulator chooses a random ideal $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ as in the real protocol and computes $E_k = \b_k * E$.
-When $b_k = 1$ the simulator chooses a random representation of an ideal $\c_k$ (consistent with the protocol under consideration; so using Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} as appropriate) and computes $E_k = \c_k * E_A$.
+When $b_k = 1$ the simulator chooses a random representation of an ideal $\c_k$ (consistent with the protocol under consideration; so using Lemma~\ref{lem:sim2}) and computes $E_k = \c_k * E_A$.
 We define $H( j( E_1), \dots, j(E_t), m ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case we output $\perp$.
+((*****)) NEED TO WORK ON THIS ((****))
 The probability of failure is at most $Q/\sqrt{p}^t$, since the values $j(E)$ are uniformly and independently sampled by the simulator from $\Cl(\OO)$, which has size at least $\sqrt{p}$.
 Note that $Q/\sqrt{p}^t$is negligible since $p$ is exponential in the security parameter and $Q$ is polynomial.
 Assuming the simulation does not fail, the output is a valid signature and is indistinguishable from signatures output by the real scheme in the random oracle model and assuming the statistical distances in Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} are negligible.
 
+\noindent \textbf{Hash queries:}
 To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
 
 Eventually $A$ outputs a forgery $(m, b_1\cdots b_t, \c_1, \dots, \c_t)$ that passes the verification equation.
@@ -517,6 +485,80 @@ Signature increases to have
 
 \bibliographystyle{plain}
 \bibliography{biblio}
+
+
+
+\appendix
+
+
+
+\section{Using the relation lattice}\label{sec:sig-relation-lattice}
+
+This section explains a solution to the problem of representing an ideal class without leaking the private key of the signature scheme.
+
+Let $\{ \l_1, \dots, \l_n \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
+Define $L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} \cong (1) \}$.
+Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
+We call this the \emph{relation lattice}.
+
+A basis for this lattice can be constructed in subexponential time using classical algorithms~\cite{hafner1989rigorous,biasse_fieker_jacobson_2016} or in probabilistic polynomial time using quantum algorithms (define $f:\Z^n\to\Cl(\OO)$ by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalization of Shor's algorithm~\cite{kitaev1995hsp}).
+The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
+The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
+It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficent (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
+
+For the remainder of this section we assume that the relation lattice is known.
+Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$
+Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
+Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$ by
+$(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
+In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
+
+Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method~\cite{Bab86}.
+
+
+
+Returning to Stolbunov's signature scheme, the solution to the problem is then straightforward:
+Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
+a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e = (f_{k,i} - e_k)$
+and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
+The vector $\z$ is sent as the response to the $k$-th challenge.
+Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
+
+\begin{lemma}
+If $\b_k$ is a uniformly chosen ideal class then the vector 
+$\z \in \FF \cap \Z^n$ corresponding to $\f_k - \e$ is uniformly distributed.
+\end{lemma}
+
+\begin{proof}
+For fixed $\e$ the vector $\z$ depends only on the ideal class of $\b_k$.
+But $\b_k$ is uniform and independent of $\e$ and not known to verifier.
+\end{proof}
+
+
+
+If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$.
+
+One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^n$.
+The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^n$ and then apply Babai rounding as above.
+Proving anything about this seems to be hard: How large is the box? How close to uniform?
+This ended up in the ``too hard'' pile.
+
+
+\begin{lemma} \label{lem:sim1}
+Let $B \in \N$. Let $D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
+Suppose the statistical distance between $D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
+Let $D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
+Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
+Then the statistical distance between $D_2$ and $U$ is at most $\epsilon$.
+\end{lemma}
+
+Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
+
+
+\begin{proof}
+They are the same thing.
+\end{proof}
+
 
 
 \end{document}
