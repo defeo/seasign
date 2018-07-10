@@ -440,7 +440,11 @@ Of course, during key generation one needs to compute all the public keys, but d
 Use a Merkle tree to compress the public key.
 Public key is now just a hash value.
 
-Signature increases to have 
+
+
+Below table gives some estimates of cost.
+Some of the parameter constraints may not be necessary.
+
 
 
 \begin{table}
@@ -502,6 +506,16 @@ Signature increases to have
   }
   \label{tab:comparison}
 \end{table}
+
+
+\section{Conclusions}
+
+
+We have given a signature scheme suitable for the CSIDH isogeny setting.
+This solves an unresolved problem in Stolbunov's thesis.
+We have also shown how to get shorter signatures by increasing the public key size.
+It seems that a similar tradeoff between public key size and signature size cannot be done in the schemes of Yoo et al or Galbraith et al, based on the SIDH setting.
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}
