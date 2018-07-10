@@ -5,6 +5,7 @@
 \usepackage{algorithm,algorithmicx,algpseudocode}
 
 \newcommand{\C}{\mathcal{C}}
+\newcommand{\D}{\mathcal{C}}
 \newcommand{\E}{\mathcal{E}}
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\Fpbar}{\overline{\mathbb{F}}_p}
@@ -270,7 +271,7 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 	\textbf{Output:} $(\z_1, \dots, \z_t)$, $(b_1 , \dots, b_t)$
 	\begin{algorithmic}[1]
 		\For {$k=1 , \dots , t$}
-		\State $\f_k \leftarrow [-(t+1)B,(t+1)B]^n$ 
+		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ 
 		\State $E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
 		\EndFor
 		\State $b_1 \Vert \cdots \Vert b_t = H( j(E_1) , \dots, j(E_t), m )$
@@ -280,7 +281,7 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 		\Else
 		\State $\z_k = \f_k - \e$
 		\EndIf
-		\If{$\z_{k} \not\in [-tB,tB]^n$} \State \Return $\bot$ \EndIf
+		\If{$\z_{k} \not\in [-ntB,ntB]^n$} \State \Return $\bot$ \EndIf
 		\EndFor
 		\State \Return $\sigma = (\z_1, \dots, \z_t, b_1 , \dots, b_t)$
 	\end{algorithmic}
@@ -326,7 +327,12 @@ Given $(E, E_A)$, where $E_A = \a * E$ for some ideal $\a = \prod_{i=1}^n \l_i^{
 \end{definition}
 
 Depending on how close to uniform is the output of the public key generation, this problem may or may not be equivalent to Definition~\ref{defn:ass1} and may or may not have a random self-reduction.
-Since understanding the distributions is non-trivial, we do not consider such issues further in this paper.
+Define $\D_B$ to be the distribution on $\Cl( \OO )$ corresponding to the ideal class of $\prod_{i=1}^n \l_i^{e_i}$ over uniformly sampling $\e \in [-B,B]^n$.
+Understanding the distribution $\D_B$is non-trivial.
+For small $B$ and $n$ we expect $\D_B$ to be the uniform distirbution on a subset of $\Cl(\OO)$ of size $(2B+1)^n$. For fixed $n$ and large enough $B$ it should be the case that $\D_B$ is very close to the uniform distribution.
+But a full study of the distribution is beyond the scope of this paper.
+We define $M$ to be an upper bound on the probability, over $\a, \b$ sampled from $\D_B$, that $\a \cong \b$.
+We will always assume that the parameters are chosen such that $M \le 1/2^\lambda$, where $\lambda$ is the security parameter.
 
 
 \begin{theorem}\label{thm:security}
@@ -347,22 +353,25 @@ Suppose the adversary $A$ makes at most $Q$ (polynomial in the security paramete
 To answer a Sign query on message $m$ the simulator chooses 
 $t$ uniformly chosen bits $b_1, \dots, b_t \in \{0,1\}$.
 When $b_k = 0$ the simulator chooses a random ideal $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ as in the real protocol and computes $E_k = \b_k * E$.
-When $b_k = 1$ the simulator chooses a random representation of an ideal $\c_k$ (consistent with the protocol under consideration; so using Lemma~\ref{lem:sim2}) and computes $E_k = \c_k * E_A$.
+When $b_k = 1$ the simulator chooses a random ideal $\c_k = \prod_{i=1}^n \l_i^{g_i}$ for $g_i \in [-ntB, ntB]$.
+%(consistent with the protocol under consideration; so using Lemma~\ref{lem:sim2}) 
+and computes $E_k = \c_k * E_A$.
 We define $H( j( E_1), \dots, j(E_t), m ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case we output $\perp$.
-((*****)) NEED TO WORK ON THIS ((****))
-The probability of failure is at most $Q/\sqrt{p}^t$, since the values $j(E)$ are uniformly and independently sampled by the simulator from $\Cl(\OO)$, which has size at least $\sqrt{p}$.
-Note that $Q/\sqrt{p}^t$is negligible since $p$ is exponential in the security parameter and $Q$ is polynomial.
+The probability of failure is at most $Q/M^t$, 
+where $M$ is defined above to be an upper bound on the probability of a collision in the sampling of ideal classes.
+Note that $Q/M^t$is negligible.
 Assuming the simulation does not fail, the output is a valid signature and is indistinguishable from signatures output by the real scheme in the random oracle model and assuming the statistical distances in Lemma~\ref{lem:sim1} or Lemma~\ref{lem:sim2} are negligible.
 
 \noindent \textbf{Hash queries:}
 To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
 
 Eventually $A$ outputs a forgery $(m, b_1\cdots b_t, \c_1, \dots, \c_t)$ that passes the verification equation.
-The proof now invokes the Forking Lemma. The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
-With non-neglible probability the adversary outputs a forgery with the same message $m$ and the same input $(j(E_1), \dots, j(E_t), m)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance.
+The proof now invokes the Forking Lemma (see Bellare-Neven~\cite{BN06}). The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
+With non-negligible probability the adversary outputs a forgery with the same message $m$ and the same input $(j(E_1), \dots, j(E_t), m)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance.
 \end{proof}
 
-Due to the forking lemma, this proof is not tight. We could give an exact formula for the success probability of the reduction.
+Due to the forking lemma, this proof is not tight.
+(**) We could give an exact formula for the success probability of the reduction.
 
 
 
@@ -378,7 +387,7 @@ In this section we sketch an approach to obtain larger sets of challenge values,
 The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
 In the identification protocol one chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $E_k = \b_k * E$.
 Now the verifier responds with $t$ uniformly chosen challenges $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
-For each $k$ the prover responds with a representation $\c_k$ of the ideal class $\a_{b_k} \b_k^{-1}$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
+For each $k$ the prover responds with a representation $\c_k$ of the ideal class $\a_{b_k}^{-1} \b_k$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
 
 For security we now only require $ts \ge 128$. Taking, say, $s = 16$ can mean $t$ as low as 8, and so only 8 ideal classes need to be transmitted as part of the signature.
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes.
@@ -394,15 +403,26 @@ Hence the computational assumption underlying the scheme is:
 Given $(E_{A,1}, \dots, E_{A,2^s} )$ to find an isogeny between any pair of the elliptic curves.
 If this assumption is hard then one can immediately apply Theorem~\ref{thm:security} to obtain a secure signature scheme.
 
-Since this assumption seems a bit un-natural, we show how to give a signature scheme based on some more natural problems.
+Since this assumption seems a bit un-natural, it is natural to try to prove security based on the problems in Definition~\ref{defn:ass1} or~\ref{defn:ass1p}.
+One can try to prove security based on the problem in Definition~\ref{defn:ass1}, but it requires an assumption about uniform sampling of ideal classes.
+So let $B$ be smallish and $\a = \prod_{i=1}^n \l_i^{e_i}$ where the exponent vector $\e = (e_1, \dots, e_n)$ is chosen in $[-B,B]^n \subseteq \Z^n$.
+Now let $B'$ be much larger than $B$ 
 
-Version 1: We can reduce to the standard problem of Definition~\ref{defn:ass1} with a extra $1/2$ factor in the success probability (which is not a big issue since the security proof isn't tight anyway).
-Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}. Choose random ideal classes $\b_1, \dots, \b_{2^s}$ and compute $E_k = \b_k * E$ for $1 \le k \le 2^{s-1}$ and $E_k = \b_k * E_A$ for $2^{s-1} < k \le 2^s$. Choose a random permutation $\pi$ on $\{ 1, 2, \dots, 2^s \}$ and set the public key to be the sequence $E_{A,k} = E_{\pi(k)}$.
+Proof: We can reduce to the standard problem of Definition~\ref{defn:ass1} with an extra $1/2$ factor in the success probability (which is not a big issue since the security proof isn't tight anyway).
+Let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}. Choose random ideal classes $\b_1, \dots, \b_{2^s}$
+(chosen as $\b_m = \prod_{i=1}^n \l_i^{u_{i,m}}$ for $1 \le m \le 2^s$ and $u_{i,m} \in [-B,B]$)
+ and compute $E_m = \b_m * E$ for $1 \le m \le 2^{s-1}$ and $E_m = \b_m * E_A$ for $2^{s-1} < m \le 2^s$. Choose a random permutation $\pi$ on $\{ 1, 2, \dots, 2^s \}$ and set the public key to be the sequence $E_{A,m} = E_{\pi(m)}$.
 Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether the curve has been generated from $E$ or $E_A$.
+
+The subtle issue is in the signing protocol; when the $k$-th block of challenge bits corresponds to $m$ we need to output a representation of an ideal that gives an isogeny from the public key curve $E_m$ to the ephemeral signing curve $E_t$.
+(** BAD NOTATION CLASH **)
+This will be done using rejection sampling as before.
+But keep in mind that , but the ideal $\b_m$ was used to construct an isogey from $E_A$ to $E_m$, not an isogeny from $E$ to $E_m$; so the simulation is only correct if the distributions of ideal classes arising are close to uniform.
+
 When the forking lemma is applied we have, for some index $k$, two different ideals $\c_k, \c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$.
 With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simulator as  $\b * E$ and the other is known as $\b' * E_A$. If this event occurs then one solves the original instance as $\b' \b^{-1}$.
 
-Version 2: Have a computational assumption $(E, \a * E, \a^2 * E, \a^3 * E , \dots, a^{2^s - 1} * E )$ and 3-special soundness implies can get $\a$ with a good probability. This is cute but ultimately pointless.
+%Version 2: Have a computational assumption $(E, \a * E, \a^2 * E, \a^3 * E , \dots, a^{2^s - 1} * E )$ and 3-special soundness implies can get $\a$ with a good probability. This is cute but ultimately pointless.
 
 
 \subsection{Reducing storage for private keys}
