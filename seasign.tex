@@ -70,6 +70,17 @@ Due to renewed interest in this problem, especially CSIDH~\cite{CLMPR18} and the
 
 For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
 
+
+
+Currently it is a major problem to get practical signatures from isogeny problems.
+Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilo-bytes.
+This can be reduced a small amount using some optimisations (e.g., see~\cite{GPS17}), but will still be in the tens of kilobytes.
+In contrast, in this paper we should be able to get signatures smaller than a kilobyte, which is better than lattice signatures!!!
+Unfortunately, signing and verification are very slow, but we might just about be able to live with that in certain applications.
+
+
+
+
 \section{Background}
 
 Notation:
@@ -103,7 +114,7 @@ The basic computational assumption is the ideal action problem:
 Given $E$ and $E_A$ to find an ideal $\a$, if it exists, such that $j( E_A ) = j( \a * E )$.
 \end{definition}
 
-The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-etc).
+The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain- Schrottenloher (eprint 2018/537), Biasse-Iezzi-Jacobson (arXiv:1806.03656)).
 
 Note that this problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
 If $\a'$ is a solution to the instance $(E_1, E_2)$ then any ideal equivalent to the fractional ideal $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
@@ -255,8 +266,12 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 % $1 \le k \le t$ and computes $E_k = \b_k * E$.
 %Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and independently sampled in $[-B,B]^n$.
 
+%\begin{figure}[!htb]
+\begin{figure}
+\begin{minipage}{.45\textwidth}
 \begin{algorithm}[H]
 	\caption{KeyGen \label{alg:KeyGen}}
+%	\caption{KeyGen}
 	\textbf{Input:} $B$, $\l_1, \dots. \l_n$, $E$
 
 	\textbf{Output:} $sk =\e$ and $pk = E_A$
@@ -268,10 +283,14 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 	\end{algorithmic}
 \end{algorithm}
 
+\vskip -1.2cm
+
 \begin{algorithm}[H]
 	\caption{Sign \label{alg:Sign}}
 	\textbf{Input:} $m$, $(E,E_A)$, $\e$
+
 	\textbf{Output:} $(\z_1, \dots, \z_t)$, $(b_1 , \dots, b_t)$
+
 	\begin{algorithmic}[1]
 		\For {$k=1 , \dots , t$}
 		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ 
@@ -289,7 +308,9 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 		\State \Return $\sigma = (\z_1, \dots, \z_t, b_1 , \dots, b_t)$
 	\end{algorithmic}
 \end{algorithm}
-
+\end{minipage}
+ \ \ \ \ \ \ \ \ \ \ \ \ 
+\begin{minipage}{0.45\textwidth}
 \begin{algorithm}[H]
 	\caption{Verify \label{alg:Verify}}
 	\textbf{Input:} $m$, $(E,E_A)$, $\sigma$
@@ -310,8 +331,9 @@ It might be worth to consider different shaped boxes (i.e., favouring smaller pr
 		\Else \State \Return Invalid \EndIf
 	\end{algorithmic}
 \end{algorithm}
-
-%\end{figure}
+\end{minipage}
+\caption{The basic signature scheme using rejection sampling.\label{fig:sig-scheme}}
+\end{figure}
 
 
 
@@ -332,7 +354,7 @@ Given $(E, E_A)$, where $E_A = \a * E$ for some ideal $\a = \prod_{i=1}^n \l_i^{
 Depending on how close to uniform is the output of the public key generation, this problem may or may not be equivalent to Definition~\ref{defn:ass1} and may or may not have a random self-reduction.
 Define $\D_B$ to be the distribution on $\Cl( \OO )$ corresponding to the ideal class of $\prod_{i=1}^n \l_i^{e_i}$ over uniformly sampling $\e \in [-B,B]^n$.
 Understanding the distribution $\D_B$is non-trivial.
-For small $B$ and $n$ we expect $\D_B$ to be the uniform distirbution on a subset of $\Cl(\OO)$ of size $(2B+1)^n$. For fixed $n$ and large enough $B$ it should be the case that $\D_B$ is very close to the uniform distribution.
+For small $B$ and $n$ we expect $\D_B$ to be the uniform distribution on a subset of $\Cl(\OO)$ of size $(2B+1)^n$. For fixed $n$ and large enough $B$ it should be the case that $\D_B$ is very close to the uniform distribution.
 But a full study of the distribution is beyond the scope of this paper.
 We define $M$ to be an upper bound on the probability, over $\a, \b$ sampled from $\D_B$, that $\a \cong \b$.
 We will always assume that the parameters are chosen such that $M \le 1/2^\lambda$, where $\lambda$ is the security parameter.
@@ -449,6 +471,8 @@ Below table gives some estimates of cost.
 Some of the parameter constraints may not be necessary.
 
 
+QUESTION: I guess the costs of sign/verify time are really the cost of computing the isogeny of that size. Sign time is potentially worse due to the rejection sampling. We need to compute a bunch of $f_{k,i}$ and then compute the isogenies and then possibly throw it all away and start again. (!!!!!!)
+
 
 \begin{table}
   \centering
@@ -526,6 +550,60 @@ It seems that a similar tradeoff between public key size and signature size cann
 
 
 \appendix
+
+
+\section{Variants}
+
+One can consider various ideas to get more efficient (i.e., faster signing and verification) or more compact signatures.
+
+\begin{enumerate}
+\item Following Stolbunov one could use higher powers for the smaller primes.
+
+This is definitely worth looking at. We could take $B=1$ for some of the larger primes (e.g., the ones bigger than 50), and then use much larger values for $B$ for the primes $3, 5, 7$ etc. If $B_i$ is the bound used for $\l_i$ then the full key space is $\prod_i (2B_i + 1)$.
+
+The main problem is that a change to a single $B_i$ makes very little difference to the key size. For example, doubling $B_1$ only adds roughly $+1$ to the logarithm of the product, which is the security parameter.
+Hence the main factor in having a large security parameter is using lots of distinct primes $\l_i$, which automatically means a high cost for signing and verification since almost all $f_{k,i}$ will be non-zero.
+
+
+
+\item Could sample the exponents $e_i$ from a discrete Gaussian distribution (or perhaps some other distribution) as has been done with lattice signatures.
+
+Suppose the $e_i$ are sampled from a discrete Gaussian distribution with parameter $\sigma$, so that the standard deviation is close to $\sigma$. The entropy of the continuous Gaussian distribution with standard deviation $\sigma$ is $\log( 2 \pi e \sigma^2 )/2$.
+% so we need the $n$-th multiple of this to be larger than the security parameter.
+
+For example, take $n=70$, $s = 16, t = 8$ and choose $\sigma = 5$ (so almost all values $e_{i}$ will lie in $[-15,15]$ but occasionally one is larger than this. Then
+\[
+   n \log( 2 \pi e \sigma^2 )/2 \approx 212
+\]
+so determining the $e_i$ using a meet-in-the-middle strategy should require at least $2^{106}$ iterations, and realistically much more than this since organising a search based on the entropy is hard to do. For post-quantum security we might want to replace $2 \lambda$ with $3\lambda$ in the above.
+
+We following the methods and results of Lyubashevsky~\cite{Lyu12}. Lemma 4.3(3) of~\cite{Lyu12} shows we can bound the norm $\Vert \e \Vert$ by $T = 2 \sigma \sqrt{n}$.
+Now we need to choose the $f_{k,i}$ from a discrete Gaussian with parameter $\sigma'$, so that the distribution of $f_{k,i} + e_i$ is close (within statistical distance, though we could use Renyi divergence to get better results) to the discrete Gaussian with parameter $\sigma'$.
+Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficient. Since we need to repeat this $t$ times we suggest $\sigma' = T \sqrt{\log(nt)}$.
+
+For our choices $n=70, t = 8, \sigma = 5$ this gives $\sigma' \approx 210$.
+If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log( 2 \pi e (\sigma')^2 )/2$ bits.
+For our example parameters this would be 3790 bits, or around 474 bytes.
+
+More work needed to work out the exact details and determine the rejection sampling probabilities. ***
+
+\end{enumerate}
+
+
+\section{Tight security reduction based on lossy keys}
+
+I've had a quick look at: Eike Kiltz, Vadim Lyubashevsky, Christian Schaffner (A Concrete Treatment of Fiat-Shamir Signatures in the Quantum Random-Oracle Model. EUROCRYPT (3) 2018: 552-586)
+
+I think we can use these ideas. Here's the way to get a lossy scheme:
+Take a very large class group, but use a small $n$, $B$ so that $\{ \a = \prod_{i=1}^n \l_i^{e_i} : e_i \in [-B,B] \}$ is a very small subset of the class group.\footnote{Might even be able to consider working with subgroups, in the quantum case where the class group structure is known.}
+The real key is $(E, E_A = \a*E )$ for such an $\a$.
+The lossy key is $(E, E_A )$ where $E_A$ is a uniformly random curve in the isogeny class.
+Further, chooose parameters so that the $f_{k,i}$ are also such that $\{ \b = \prod_{i=1}^n \l_i^{f_{k,i}} : |f_{k,i}| \le (nt+1)B \}$ is a small subset.
+In the case of a real key, the signatures include ideals that correspond to paths from $E$ or $E_A$ to a  curve.
+In the case of a lossy key, then such ideals do not exist as for a curve $E'$ it is not the case that there is a short path from $E$ to $E'$ AND a short path from $E_A$ to $E'$.
+But we can simulate the signatures in the ROM by choosing $E'$ appropriately.
+
+I'll need to check the details of this paper to see if this works out.
 
 
 
