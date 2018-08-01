@@ -6,6 +6,10 @@
 \usepackage{algorithm,algorithmicx,algpseudocode}
 \usepackage[utf8]{inputenc}
 \usepackage[OT1]{fontenc}
+\usepackage{pdflscape}
+\usepackage{fp}
+\usepackage{tikz}
+\usepgflibrary{fpu,fixedpointarithmetic}
 
 \newcommand{\C}{\mathcal{C}}
 \newcommand{\D}{\mathcal{D}}
@@ -632,67 +636,99 @@ Some of the parameter constraints may not be necessary.
 
 QUESTION: I guess the costs of sign/verify time are really the cost of computing the isogeny of that size. Sign time is potentially worse due to the rejection sampling. We need to compute a bunch of $f_{k,i}$ and then compute the isogenies and then possibly throw it all away and start again. (!!!!!!)
 
-
-\begin{table}
-  \centering
-  \begin{tabular}{l | c | c | c | c |}
-    & Basic scheme
-    & Reject. sampl. (Section~\ref{sec:basic-scheme})
-    & Parallel proof (Section~\ref{sec:smaller-sigs})
-    & Compressed public keys (Section~\ref{sec:smaller-keys}) \\
-    \hline
-    \hspace{1em}\textbf{Exact} &&&&\\
-    Sig size
-    & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
-    & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
-    & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
-    & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + (s+1)\lambda$\\
-    PK size
-    & $\log p$ & $\log p$ & $2^s\log p$ & $\lambda$ \\
-    SK size
-    & $n\log(2B+1)$ & $n\log(2B+1)$ & $2^s n\log(2B+1)$ & $(2^s+1) \lambda$\\
-    $\Cl(\OO)$ actions &&&&\\
-    $\to$ keygen
-    & 1 & 1 & $2^s$ & $2^s$\\
-    $\to$ sig/verify
-    & $\lambda$ & $n\lambda^2$ & $n(\lambda/s)^2$ & $n(\lambda/s)^2$\\
-    \hline
-    \hspace{1em}\textbf{Asymptotic} &&&&\\
-    Sig size
-    & $O(\lambda^3)$ & $O(\lambda^3)$ & $O(\lambda^3/s)$ & $O(\lambda^3/s)$\\
-    PK size
-    & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $\lambda$\\
-    SK size
-    & $\lambda^2$ & $\lambda^2$ & $2^s\lambda^2$ & $(2^s+1)\lambda$\\
-    $\Cl(\OO)$ actions &&&&\\
-    $\to$ keygen
-    & 1 & 1 & $2^s$ & $2^s$\\
-    $\to$ sig/verify
-    & $\lambda$ & $\lambda^4/\log(\lambda)$
-    & $(\lambda^2/s)^2/\log(\lambda)$ & $(\lambda^2/s)^2/\log(\lambda)$\\
-    \hline
-    \hspace{1em}\textbf{CSIDH(128,16)} &&&&\\
-    Sig size
-    & 4112 B & 19600 B & 944 B & 1209 B\\
-    PK size
-    & 63 B & 63 B & 4032 KB & 16 B\\
-    SK size
-    & 32 B & 32 B & 2048 KB & 1024.02 KB \\
-    Est. sig/verify time
-    & 13 s & 122000 s & 474 s & 474 s\\
-    Est. keygen time
-    & 0.1 s & 0.1 s & 6554 s & 6554 s
-  \end{tabular}
-  \caption{Parameter size and performance of the various signature
-    protocols.
-    Equivalences used for asymptotic analysis are:
-    $\log p \sim 2\lambda^2$, $n\log B\sim \lambda^2$,
-    $n\log n \sim 2\lambda^2$.
-    All logarithms are in base 2. % NdL: this is probably wrong
-  }
-  \label{tab:comparison}
-\end{table}
-
+\begin{landscape}
+  \begin{table}
+    \pgfkeys{/pgf/fixed point arithmetic}
+    \def\lam{128}
+    \def\n{74}
+    \def\B{5}
+    \def\logp{500}
+    \def\s{16}
+    \def\CSIDHsecs{0.1}
+    % Sig size
+    \pgfmathtruncatemacro{\BasSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8} 
+    \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*\n*\lam*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\ParSig}{round(\lam / \s * ceil(\n * log2(2*\n*\lam/\s*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (\lam / \s * \logp  + \lam^2) / 8)}
+    % PK size
+    \pgfmathtruncatemacro{\BasPK}{ceil(\logp / 8)}
+    \pgfmathtruncatemacro{\RejPK}{\BasPK}
+    \pgfmathtruncatemacro{\ParPK}{round(2^\s * \RejPK / 1024)}
+    \pgfmathtruncatemacro{\ComPK}{\lam / 8}
+    % SK size
+    \pgfmathtruncatemacro{\BasSK}{ceil(\n * log2(2*\B + 1)) / 8}
+    \pgfmathtruncatemacro{\RejSK}{\BasSK}
+    \pgfmathtruncatemacro{\ParSK}{round(2^\s * \RejSK / 1024)}
+    \pgfmathtruncatemacro{\ComSK}{(2^\s + 1) * \lam / 8 / 1024}
+    % keygen time
+    \pgfmathsetmacro{\BasKG}{\CSIDHsecs}
+    \pgfmathsetmacro{\RejKG}{\BasKG}
+    \pgfmathtruncatemacro{\ParKG}{round(2^\s * \BasKG)}
+    \pgfmathtruncatemacro{\ComKG}{\ParKG}
+    % sig time
+    \pgfmathtruncatemacro{\BasTime}{round(\lam * \CSIDHsecs)}
+    \pgfmathtruncatemacro{\RejTime}{\n * \lam * \BasTime}
+    \pgfmathtruncatemacro{\ParTime}{round(\n * (\lam / \s)^2 * \CSIDHsecs)}
+    \pgfmathtruncatemacro{\ComTime}{\ParTime}
+    \centering
+    \begin{tabular}{l | c | c | c | c |}
+      & Basic scheme
+      & Reject. sampl. (Section~\ref{sec:basic-scheme})
+      & Parallel proof (Section~\ref{sec:smaller-sigs})
+      & Compressed public keys (Section~\ref{sec:smaller-keys}) \\
+      \hline
+      \hspace{1em}\textbf{Exact} &&&&\\
+      Sig size
+      & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
+      & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
+      & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
+      & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda^2$\\
+      PK size
+      & $\log p$ & $\log p$ & $2^s\log p$ & $\lambda$ \\
+      SK size
+      & $n\log(2B+1)$ & $n\log(2B+1)$ & $2^s n\log(2B+1)$ & $(2^s+1) \lambda$\\
+      $\Cl(\OO)$ actions &&&&\\
+      $\to$ keygen
+      & 1 & 1 & $2^s$ & $2^s$\\
+      $\to$ sig/verify
+      & $\lambda$ & $n\lambda^2$ & $n(\lambda/s)^2$ & $n(\lambda/s)^2$\\
+      \hline
+      \hspace{1em}\textbf{Asymptotic} &&&&\\
+      Sig size
+      & $O(\lambda^3)$ & $O(\lambda^3)$ & $O(\lambda^3/s)$ & $O(\lambda^3/s)$\\
+      PK size
+      & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $\lambda$\\
+      SK size
+      & $\lambda^2$ & $\lambda^2$ & $2^s\lambda^2$ & $(2^s+1)\lambda$\\
+      $\Cl(\OO)$ actions &&&&\\
+      $\to$ keygen
+      & 1 & 1 & $2^s$ & $2^s$\\
+      $\to$ sig/verify
+      & $\lambda$ & $\lambda^4/\log(\lambda)$
+      & $(\lambda^2/s)^2/\log(\lambda)$ & $(\lambda^2/s)^2/\log(\lambda)$\\
+      \hline
+      \hspace{1em}\textbf{CSIDH(128,16)} &&&&\\
+      Sig size
+      & \BasSig{} B & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
+      PK size
+      & \BasPK{} B & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
+      SK size
+      & \BasSK{} 32 B & \RejSK{} 32 B & \ParSK{} 2048 KB & \ComSK{} 1024.02 KB \\
+      Est. keygen time
+      & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
+      Est. sig/verify time
+      & \BasTime{} s & \RejTime{} s & \ParTime{} s & \ComTime{} s
+    \end{tabular}
+    \caption{Parameter size and performance of the various signature
+      protocols.
+      Equivalences used for asymptotic analysis are:
+      $\log p \sim 2\lambda^2$, $n\log B\sim \lambda^2$,
+      $n\log n \sim 2\lambda^2$.
+      All logarithms are in base 2. % NdL: this is probably wrong
+    }
+    \label{tab:comparison}
+  \end{table}
+\end{landscape}
 
 \section{Conclusions}
 
