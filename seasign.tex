@@ -94,7 +94,7 @@ Notation:
 \begin{itemize}
 \item For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
 
-\item For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
+\item For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to be the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
 \item Given two $\OO$-ideals $\a, \b$ we write $\a \equiv \b$ if $\a$ and $\b$ are equivalent (meaning that $\a \b^{-1}$ is a principal fractional $\OO$-ideal). 
 \end{itemize}
 
@@ -381,7 +381,7 @@ We now prove security of the basic scheme in the random oracle model against a c
 %The proof covers both cases.
 The proof technique is the standard approach that uses the forking lemma.
 In this section we do not consider quantum adversaries, or give a proof in the quantum random oracle model (QROM).
-A proof in the QROM follows from the approach in Section~\ref{sec:lossy-keys}.
+A proof in the QROM follows from the approach in Appendix~\ref{sec:lossy-keys}.
 
 First we need to discuss some subtleties about the distribution of ideal classes coming from the key generation and signing algorithms.
 
@@ -498,7 +498,7 @@ As far as we can tell, this idea cannot be applied to the schemes of Yoo et al~\
 
 \subsection{Security}
 
-A trivial modifucation to the proof of Theorem~\ref{thm:security-basic} can be applied in this setting. But note that the forking lemma produces two signatures such that $b_k \ne b_k'$ for some index $k$.
+A trivial modification to the proof of Theorem~\ref{thm:security-basic} can be applied in this setting. But note that the forking lemma produces two signatures such that $b_k \ne b_k'$ for some index $k$.
 Hence from a successful forger we derive two ideal classes $\c_k$ and $\c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$. It follows that $(\c_k')^{-1} \c_k$ is an ideal class corresponding to an isogeny $E_{A,b_k} \to E_{A,b_k'}$.
 Hence the computational assumption underlying the scheme is the following.
 
@@ -700,7 +700,7 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
 We have given a signature scheme suitable for the CSIDH isogeny setting.
 This solves an unresolved problem in Stolbunov's thesis.
 We have also shown how to get shorter signatures by increasing the public key size.
-We do not know how to obtain s similar tradeoff between public key size and signature size for the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17} based on the SIDH setting.
+We do not know how to obtain a similar tradeoff between public key size and signature size for the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17} based on the SIDH setting.
 
 
 \bibliographystyle{plain}
