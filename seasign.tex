@@ -39,6 +39,13 @@
 \newcommand{\x}{\textbf{x}}
 \newcommand{\z}{\textbf{z}}
 
+\newcommand{\IGen}{\textsf{IGen}}
+\newcommand{\PP}{\textsf{P}}
+\newcommand{\VV}{\textsf{V}}
+\newcommand{\ChSet}{\textsf{ChSet}}
+\newcommand{\St}{\textsf{St}}
+
+
 % THEOREM ENVIRONMENTS
 %\newtheorem{definition}{Definition}
 %\newtheorem{example}{Example}
@@ -787,21 +794,231 @@ More work needed to work out the exact details and determine the rejection sampl
 
 \section{Tight security reduction based on lossy keys}\label{sec:lossy-keys}
 
-I've had a quick look at: Eike Kiltz, Vadim Lyubashevsky, Christian Schaffner (A Concrete Treatment of Fiat-Shamir Signatures in the Quantum Random-Oracle Model. EUROCRYPT (3) 2018: 552-586)
-This paper discusses signatures from lossy identification schemes (following Abdalla, Fouque, Lyubashevsky and Tibouchi). In particular this approach gives \emph{tight reductions} in the classical random oracle model and also proofs in the \emph{quantum random oracle model}.
 
+We now explain how to implement lossy keys in our setting.
+This allows us to use the methods of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (themselves based on work of Abdalla, Fouque, Lyubashevsky and Tibouchi~\cite{AFLT12}) to obtain signatures from lossy identification schemes. This approach gives \emph{tight reductions} in the classical random oracle model and also proofs in the \emph{quantum random oracle model}.
 
-
-I think we can use these ideas. Here's the way to get a lossy scheme:
+Here's the basic idea to get a lossy scheme:
 Take a very large class group, but use a small $n$, $B$ so that $\{ \a = \prod_{i=1}^n \l_i^{e_i} : e_i \in [-B,B] \}$ is a very small subset of the class group.\footnote{Might even be able to consider working with subgroups, in the quantum case where the class group structure is known.}
 The real key is $(E, E_A = \a*E )$ for such an $\a$.
 The lossy key is $(E, E_A )$ where $E_A$ is a uniformly random curve in the isogeny class.
 Further, chooose parameters so that the $f_{k,i}$ are also such that $\{ \b = \prod_{i=1}^n \l_i^{f_{k,i}} : |f_{k,i}| \le (nt+1)B \}$ is a small subset.
 In the case of a real key, the signatures include ideals that correspond to paths from $E$ or $E_A$ to a  curve.
 In the case of a lossy key, then such ideals do not exist as for a curve $E'$ it is not the case that there is a short path from $E$ to $E'$ AND a short path from $E_A$ to $E'$.
-But we can simulate the signatures in the ROM by choosing $E'$ appropriately.
 
-I'll need to check the details of this paper to see if this works out.
+In the remainder of this section we develop these ideas.
+
+
+\subsection{Background definitions}
+
+We closely follow Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}.
+A \emph{canonical identification scheme} consists of algorithms $(\IGen, \PP_1, \PP_2, \VV)$ and a set $\ChSet$. The randomised algorithm $\IGen$ outputs a key pair $(pk,sk)$.
+The deterministic algorithm $\PP_1$ takes $sk$ and randomness $r_1$ and computes $(W, \St) = P_1( sk, r_1 )$. 
+Here $\St$ denotes state information to be passed to $P_2$.
+A challenge $c$ is sampled uniformly from $\ChSet$. The deterministic algorithm $P_2$ then computes $Z = P_2( sk, W, c, \St, r_2 )$ or $\perp$, where $r_2$ is the randomness.
+The output $\perp$ corresponds to an abort in the Fiat-Shamir with aborts paradigm.
+We require that $\VV( pk, W, c, Z ) = 1$ for a correctly formed transcript $(W,c,Z)$.
+The scheme is \emph{commitment recoverable} if, given $c$ and $Z = P_2( sk, W, c, \St )$, there is a unique $W$ such that $\VV( pk, W, c, Z ) = 1$ and this $W$ can be efficiently computed from $(pk, c, Z)$
+
+A canonical identification scheme is $\epsilon_{zk}$-naHVZK \emph{non-abort honest verifier zero knowledge} if there is a simulator that given only $pk$ outputs $(W, c, Z)$ whose distribution has statistical distance at most $\epsilon_{zk}$ from the output distribution of the real protocol conditioned on $P_2( sk, W, c, \St, r_2 ) \ne \perp$.
+
+***We say $W$ has $\alpha$ \emph{bits of min entropy} if the probability any -- not needed
+
+*** Computational unique responses (Defn 2.7 of KLS ) -- needed?
+
+Lossy key -- definition 2.8 of KLS
+
+
+\subsection{Scheme}
+
+We can re-write our scheme in this setting, see Figure~\ref{fig:id-scheme}.
+Here we are assuming that $E$ is a supersingular elliptic curve with $j(E) \in \F_p$ where $p$ satisfies the constraint
+\begin{equation} \label{eq:lossy-p-bound}
+  \sqrt{p} > (2(nt+1)B + 1)^{2n} 2^\lambda
+\end{equation}
+This bound is sufficient for the keys to be lossy.
+
+
+\begin{figure}
+\begin{minipage}{.45\textwidth}
+\begin{algorithm}[H]
+	\caption{$\IGen$}
+%	\caption{KeyGen}
+	\textbf{Input:} $B$, $\l_1, \dots. \l_n$, $E$
+
+	\textbf{Output:} $sk =\e$ and $pk = E_A$
+
+	\begin{algorithmic}[1]
+		\State $\e \leftarrow [-B,B]^n$ 
+		\State $E_A = ( \prod_{i=1}^n \l_i^{e_i} ) * E$
+		\State \Return $sk= \e$, $pk = E_A$
+	\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+ \ \ \ \ \ \ \ \ \ \ \ \ 
+\begin{minipage}{0.45\textwidth}
+\begin{algorithm}[H]
+	\caption{$\PP_1$}
+	\textbf{Input:} $(E,E_A)$,  $r_1$
+
+	\textbf{Output:} $W = ( j(E_1) , \dots, j(E_t) )$, $\St = (\f_1, \dots, \f_t )$
+
+	\begin{algorithmic}[1]
+		\For {$k=1 , \dots , t$}
+		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ using $PRF( r_1 )$
+		\State $E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
+		\EndFor
+		\State \Return $( j(E_1) , \dots, j(E_t) )$, $(\f_1, \dots, \f_t )$
+	\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+
+
+
+\begin{minipage}{0.45\textwidth}
+\begin{algorithm}[H]
+	\caption{$\PP_2$}
+	\textbf{Input:} $(E,E_A)$, $\e$, $W$, $c$, $\St$, $r_2$
+
+	\textbf{Output:} $Z = (\z_1, \dots, \z_t)$
+
+	\begin{algorithmic}[1]
+		\State Parse $c$ as $b_1 \Vert \cdots \Vert b_t$
+		\For {$k=1, \dots, t$}
+		\If{$b_k=0$}
+		\State $\z_k = \f_k$
+		\Else
+		\State $\z_k = \f_k - \e$
+		\EndIf
+		\If{$\z_{k} \not\in [-ntB,ntB]^n$} \State \Return $\bot$ \EndIf
+		\EndFor
+		\State \Return $\sigma = (\z_1, \dots, \z_t)$
+	\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+ \ \ \ \ \ \ \ \ \ \ \ \ 
+\begin{minipage}{0.45\textwidth}
+% \vskip -1.2cm
+\begin{algorithm}[H]
+	\caption{$\VV$}
+	\textbf{Input:} $(E,E_A)$, $(W,c,Z)$
+
+	\textbf{Output:} Valid/Invalid
+
+	\begin{algorithmic}[1]
+		\State Parse $W$ as $(j_1 , \dots, j_t)$
+		\State Parse $c$ as $b_1 \Vert \cdots \Vert b_t$
+		\State Parse $Z$ as $(\z_1, \dots, \z_t)$
+		\For {$k=1 , \dots , t$}
+		\If{$b_k=0$}
+		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E$
+		\Else
+		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E_A$
+		\EndIf
+		\EndFor
+		\If{$(j_1, \dots, j_t) = (j(E_1) , \dots, j(E_t))$} \State \Return Valid
+		\Else \State \Return Invalid \EndIf
+	\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\caption{The identification protocol. Note that $P_1$ does not need $sk$, while $P_2$ does not use $r_2$ (it really is deterministic) and does not use $W$. Also note that the scheme is commitment recoverable. \label{fig:id-scheme}}
+\end{figure}
+
+
+Now we state the generic deterministic signature construction from Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}:
+The key generation and signing algorithms are the same as Figure~\ref{fig:id-scheme}. The signing algorithm is given in Figure~\ref{fig:sign}. 
+
+\begin{figure}
+\begin{algorithm}[H]
+	\caption{Deterministic Signing algorithm}
+	\textbf{Input:} $(pk,sk)$, $K$, $\msg$
+
+	\textbf{Output:} $\sigma$
+
+	\begin{algorithmic}[1]
+		\State $k = 0$, $Z = \perp$
+		\While{$Z = \perp$ and $k \le k_0$}
+		\State $(W,\St) = P_1( sk, PRF_K( 0, \msg, k ))$
+		\State $c = H( W, \msg )$ 
+		\State $Z = P_2( sk, W, c, \St, PRF_K( 1, \msg, k ))$
+		\EndWhile
+		\If{$Z = \perp$}
+		\State \Return $\perp$
+		\Else
+		\State \Return $(W,Z)$
+		\EndIf
+	\end{algorithmic}
+\end{algorithm}
+\caption{The deterministic signature scheme. Here $K$ is a PRF key that is internal to the signing algorithm and is not required for verification. \label{fig:sign}}
+\end{figure}
+
+
+\subsection{Proofs}
+
+We now explain that our identification scheme satisfies the required properties, from which the security of the signature scheme will follow from Theorem 3.1 of~\cite{KLS18}.
+
+We make some heuristic assumptions.
+(I'm not sure if all these are needed)
+\begin{description}
+\item[Heuristic 1:] There are at least $\sqrt{p}$ supersingular elliptic curves with $j$-invariant in $\F_p$.
+
+This assumption, combined with the bound $\sqrt{p} \gg (2(nt+1)B)^n $ of equation~(\ref{eq:lossy-p-bound}), implies that the curves $E_k$ constructed by algorithm $\PP_1$ are a negligibly small proportion of all such curves.
+
+\item[Heuristic 2:] Each choice of $\f_k \in [-(nt+1)B,(nt+1)B]^n$ gives a unique value for $j(E_k)$.
+
+This is extremely plausible given equation~(\ref{eq:lossy-p-bound}). It implies that the min-entropy of the values $W$ output by $\PP_1$ is extremely high (more than sufficient for the security proofs).
+
+\item[Heuristic 3:] For each choice of $\f_k \in [-(nt+1)B,(nt+1)B]^{2n}$ except $\f_k = 0$, the ideal class of $\prod_{i=1}^n \l_i^{f_{k,i}}$ is non-trivial.
+
+This is also a reasonable assumption given equation~(\ref{eq:lossy-p-bound}).
+\end{description}
+
+Under heuristic assumption 1, we now show that the keys are lossy.
+The lossy key generator outputs a pair $(E,E_A$ where $E$ and $E_A$ are randomly sampled supersingular elliptic curves with $j(E), j(E_A) \in \F_p$.
+To implement this one constructs a supersingular curve with $j$-invariant in $\F_p$ using Br{\" o}ker's algorithm~\cite{Bro09} and then runs long pseudorandom walks in the isogeny graph until the uniform mixing bounds have applied.
+
+\begin{lemma}
+Let parameters satisfy the bound of equation~(\ref{eq:lossy-p-bound}). Assume heuristic 1. Let $(E,E_A)$ be a key output by the lossy key generator. Then with overwhelming probability there is no ideal $\a = \prod_{i=1}^n \l_i^{f_{i}}$ such that $\f \in [-(nt+1)B,(nt+1)B]^{2n}$ and $j(E_A) = j( \a * E )$.
+\end{lemma}
+
+\begin{proof}
+Given $E$ there are at most $(2 (nt+1)B + 1)^{2n}$ choices for $\a$ and hence at most that many $j( \a * E )$. Since $E_A$ is uniformly and independently sampled from a set of size at least $\sqrt{p}$, the probability that $j(E_A)$ lies in the set of all possible $j( \a * E )$ is at most $1/2^\lambda$, which is negligible.
+\end{proof}
+
+We make the following decisional assumption.
+I guess one can show, using a hybrid argument, that ability to solve the decisional assumption implies ability to solve the computational assumption of Definition~\ref{defn:ass1p}. So it is not a ``new'' assumption.
+
+\begin{definition}
+Consider two distributions on pairs $(E, E_A)$ of supersingular ellptic curves over $\F_p$.
+Let $D_1$ be the output distribution of the algorithm $\IGen$.
+Let $D_2$ be the uniform distribution (i.e., output distribution of the lossy key generation algorithm).
+The \emph{decisional short isogeny problem} is to distinguish the two distributions when given one sample.
+\end{definition}
+
+This result shows that the lossy keys give secutity..
+
+\begin{lemma}
+The lossy thing.
+\end{lemma}
+
+\begin{proof}
+Fix $W$.
+Suppose there are responses $Z$ and $Z'$ valid for challenges $c, c'$ respectively.
+Since $c \ne c'$ there is some index $k$ such that $c_k \ne c_k'$. 
+Wolog $c_k = 0$ and $c_k' = 1$. 
+So $Z$ contains $\z_k$ giving an ideal $\b = \prod_i \l_i^{z_{k,i}}$ corresponding to an isogeny $E$ to $E_k$, and $Z'$ contains $z_k'$ giving an ideal $\b'$ and an isogeny from $E_A$ to $E_k$. 
+Hence there is an isogeny from $E$ to $E_A$ given by $(\b')^{-1} \b$.
+But by Heuristic 3 it is unlikely there exists any such ideal. 
+\end{proof}
+
+- no abort HVZK
+
+
+State secutrity theoerem
+
+Proof: Theorem 3.1 of KLS.
+
+
 
 
 
