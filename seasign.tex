@@ -39,11 +39,19 @@
 \newcommand{\x}{\textbf{x}}
 \newcommand{\z}{\textbf{z}}
 
+\newcommand{\Adv}{\text{Adv}}
+
+\newcommand{\KeyGen}{\textsf{KeyGen}}
+\newcommand{\Sign}{\textsf{Sign}}
+\newcommand{\Verify}{\textsf{Verify}}
 \newcommand{\IGen}{\textsf{IGen}}
 \newcommand{\PP}{\textsf{P}}
 \newcommand{\VV}{\textsf{V}}
+\newcommand{\Wset}{\mathcal{W}}
+\newcommand{\Zset}{\mathcal{Z}}
 \newcommand{\ChSet}{\textsf{ChSet}}
 \newcommand{\St}{\textsf{St}}
+\newcommand{\LossIGen}{\textsf{LossIGen}}
 
 
 % THEOREM ENVIRONMENTS
@@ -101,7 +109,10 @@ The name: The name ``SeaSign'' is a joke on the name CSIDH, which is pronounced 
 
 \section{Background}
 
-Notation:
+\subsection{Elliptic curves, isogenies, ideal class groups, class group actions}
+
+We recall some standard facts and fix our notation.
+
 \begin{itemize}
 \item For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
 
@@ -188,19 +199,45 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
   \label{tab:csidh-parms}
 \end{table}
 
+NOTE: do the ``quantum security'' columns need to be updated due to the Bonnetain-Schrottenloher paper?
 
 
-\subsection{Identification protocols and signature schemes}
 
-Do we need to recall the definitions of id-protocols and sig schemes.
+\subsection{Public key signature schemes}
 
-There are various transforms to turn an ID protocol into a sig scheme for classical or post-quantum security~\cite{AABN02,DFG13,GCZ16,Katz10,Un15,Un17}.
-We focus in this paper on classical adversaries and therefore use the Fiat-Shamir scheme.
+One can discuss Fiat-Shamir-type signatures in various ways, including the language of sigma protocols or identification schemes.
+In the main body of our paper we work directly with the language of signatures, and give proofs directly in this formulation.
+In Section~ref{sec:KLS-defns} we use the language of identification schemes, and introduce the terminology there.
+
+
+A \emph{public key signature scheme} consists of algorithms $\KeyGen, \Sign, \Verify$.
+The randomised algorithm $\KeyGen( 1^\lambda )$ outputs a pair $(pk,sk)$, where $\lambda$ is a security parameter.
+The randomised algorithm $\Sign$ takes input the private key $sk$ and a message $\msg$, and  outputs $\sigma = \Sign( sk, \msg )$.
+The verification algorithm $\Verify( pk, \msg, \sigma )$ returns $0$ or $1$.
+We require $\Verify( pk, \msg, \Sign( sk, \msg )) = 1$.
+
+
+The standard notion of security is unforgeability against chosen-message attack (UF-CMA).
+A UF-CMA adversary against the signature scheme is a randomised polynomial-time algorithm $A$ that plays the following game against a challenger.
+The challenger runs $\KeyGen$ to get $(pk,sk)$ and runs $A( pk )$.
+The adversary $A$ sends messages $\msg$ to the challenger, and receives $\sigma = \Sign(sk, \msg)$ in return.
+The adversary outputs $(\msg^*, \sigma^*)$ and wins if $\Verify( pk, \msg^*, \sigma^* ) = 1$ and if $\msg^*$ was not one of the messages previously sent by the adversary to the challenger.
+A signature scheme is UF-CMA secure if there is no polynomial-time adversary that wins with non-negligible probability.
+
+
+
+%There are various transforms to turn an ID protocol into a sig scheme for classical or post-quantum security~\cite{AABN02,DFG13,GCZ16,Katz10,Un15,Un17}.
 
 
 
 
 \section{Basic Signature Scheme}\label{sec:basic-scheme}
+
+This section contains our main ideas and presents a basic signature scheme.
+We focus in this section on classical adversaries and proofs in the random oracle model.
+Hence our signature is based on the traditional Fiat-Shamir transform.
+For schemes and analysis against a post-quantum adversary see Section~ref{sec:KLS-defns}.
+
 
 Section 2.B of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his description is not complete and he does not give a proof of security).
 It is a Fiat-Shamir scheme based on an identification protocol.
@@ -270,7 +307,7 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 
 
 
-\begin{lemma}
+\begin{lemma}\label{lem:rejection}
 The probability that the signing algorithm does not output $\bot$ is at least $1/e > 1/3$.
 \end{lemma}
 
@@ -281,6 +318,7 @@ For fixed $e \in [-B, B]$ and uniformly sampled $f \in U = [-(nt+1)B, (nt+1)B]$,
    \frac{2ntB + 1}{2(nt+1)B + 1}  = 1 - \frac{2B}{2(nt+1)B + 1} \ge 1 - \frac{1}{nt+1}.
 \]
 Hence, the probability that all of the values $z_{k,i}$ over $1 \le k \le t, 1 \le i \le n$ lie in $[-ntB, ntB]$ is at least $(1 - 1/(nt+1))^{nt}$.
+% Proof of the inequality: graph the functions
 Using the inequality $1 - 1/(x+1) \ge e^{-1/x}$ for $x \ge 1$ it follows that the probability that all values are in the desired range is at least
 \[
    \left( e^{-1/nt} \right)^{nt} = e^{-1}.
@@ -289,16 +327,33 @@ This completes the proof. \qed
 \end{proof}
 
 
+
+
+
 We can therefore get a rough idea of parameters and efficiency for the scheme.
 For security we need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
 We need $t$ at least 128 so that an attacker cannot guess the hash value or invert the hash function.
 The vectors $\z_k$ have entries of size bounded by $ntB$, which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
 This means that the total number of isogeny computations is upper bounded by $(nt)^2 B$.
 The quadratic dependence on $nt$ is a major inconvenience.
-For example, taking $t=128, n = 50, B = 6$ gives around $2^{27}$ isogeny computations in verification.
+For example, taking $t=128, n = 74, B = 5$ gives around $2^{28}$ isogeny computations in verification.
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
+The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
 
 We discuss some possible optimisations in Appendix~\ref{sec:variants}.
+
+
+% NOTE: $n=50, B=6$ is too small, as $(2B+1)^n \approx 2^{185}$. So I updated the above.
+Here is a table, for various $n$, of the smallest $B$ such that $(2B+1)^n > 2^{255}$.
+Maybe it would be better the other way around: smallest $n$ for various values of $B$.
+
+\begin{center}
+\begin{tabular}{c||c|c|c|c|c|c|c|c|c|c}
+ $n$     & 50 & 55 & 60 & 65 & 70 & 75 & 80 & 85 & 90 & 95 \\
+\hline
+ min $B$ & 17 & 12 & 10 &  8 &  6 &  5 &  5 &  4 &  4 &  3 \\
+\end{tabular}
+\end{center}
 
 %\begin{figure} 
 
@@ -731,6 +786,7 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
       Equivalences used for asymptotic analysis are:
       $\log p \sim 2\lambda^2$, $n\log B\sim \lambda^2$,
       $n\log n \sim 2\lambda^2$.
+The entry CSIDH(128,16) is for parameters $(n,B,t,s,\log_2(p)) = (74, 5, 8, 16, 500)$.
       All logarithms are in base 2. % NdL: this is probably wrong
     }
     \label{tab:comparison}
@@ -809,24 +865,38 @@ In the case of a lossy key, then such ideals do not exist as for a curve $E'$ it
 In the remainder of this section we develop these ideas.
 
 
-\subsection{Background definitions}
+\subsection{Background definitions} \label{sec:KLS-defns}
 
 We closely follow Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}.
-A \emph{canonical identification scheme} consists of algorithms $(\IGen, \PP_1, \PP_2, \VV)$ and a set $\ChSet$. The randomised algorithm $\IGen$ outputs a key pair $(pk,sk)$.
+A \emph{canonical identification scheme} consists of algorithms $(\IGen, \PP_1, \PP_2, \VV)$ and a set $\ChSet$. The randomised algorithm $\IGen( 1^\lambda )$ outputs a key pair $(pk,sk)$.
 The deterministic algorithm $\PP_1$ takes $sk$ and randomness $r_1$ and computes $(W, \St) = P_1( sk, r_1 )$. 
 Here $\St$ denotes state information to be passed to $P_2$.
 A challenge $c$ is sampled uniformly from $\ChSet$. The deterministic algorithm $P_2$ then computes $Z = P_2( sk, W, c, \St, r_2 )$ or $\perp$, where $r_2$ is the randomness.
 The output $\perp$ corresponds to an abort in the Fiat-Shamir with aborts paradigm.
 We require that $\VV( pk, W, c, Z ) = 1$ for a correctly formed transcript $(W,c,Z)$.
-The scheme is \emph{commitment recoverable} if, given $c$ and $Z = P_2( sk, W, c, \St )$, there is a unique $W$ such that $\VV( pk, W, c, Z ) = 1$ and this $W$ can be efficiently computed from $(pk, c, Z)$
+
+We assume, for each value of $\lambda$, there are well-defined sets $\Wset$ and $\Zset$, such that $\Wset$ contains all $W$ output by $\PP_1$ and $\Zset$ contains all $Z$ output by $\PP_2$. 
+The scheme is \emph{commitment recoverable} if, given $c$ and $Z = P_2( sk, W, c, \St )$, there is a unique $W \in \Wset$ such that $\VV( pk, W, c, Z ) = 1$ and this $W$ can be efficiently computed from $(pk, c, Z)$
 
 A canonical identification scheme is $\epsilon_{zk}$-naHVZK \emph{non-abort honest verifier zero knowledge} if there is a simulator that given only $pk$ outputs $(W, c, Z)$ whose distribution has statistical distance at most $\epsilon_{zk}$ from the output distribution of the real protocol conditioned on $P_2( sk, W, c, \St, r_2 ) \ne \perp$.
 
-***We say $W$ has $\alpha$ \emph{bits of min entropy} if the probability any -- not needed
 
-*** Computational unique responses (Defn 2.7 of KLS ) -- needed?
+***We say $W$ has $\alpha$ \emph{bits of min entropy} if the probability any -- not needed to define
 
-Lossy key -- definition 2.8 of KLS
+A \emph{lossy identification scheme} is a canonical identification scheme as above together with a lossy key generation algorithm $\LossIGen$, which is a randomised algorithm that on input $1^\lambda$ outputs $pk$.
+An adversary against a lossy identification scheme is a randomised algorithm $A$ that takes an input $pk$ and returns $0$ or $1$.
+The advantage of an adversary against a lossy identification scheme is 
+\[
+   \Adv^{\textsf{LOSS}}(A) = \left|
+   \Pr\left( A( pk ) = 1 : pk \leftarrow \LossIGen(1^\lambda) \right) - \Pr\left( A( pk ) = 1 : pk \leftarrow \IGen( 1^\lambda ) \right) \right|.
+\]
+The two security properties of a lossy identification scheme are:
+\begin{enumerate}
+\item There is no polynomial-time adversary that has non-negligible advantage $\Adv^{\textsf{LOSS}}$ in distinguishing real and lossy keys.
+\item The probability, over $(pk, W, c)$ where $pk$ is an output of the lossy key generation algorithm $\LossIGen$, $W \leftarrow \Wset$ and $c \leftarrow \ChSet$, that there is some $Z \in \Zset$ with $\VV( pk, W, c, Z ) = 1$, is negligible.
+
+This will allow to show that no unbounded quantum adversary can pass the identification protocol (or, once we have applied Fiat-Shamir, forge a signature) with respect to a lossy public key, because with overwhelming probability no such signature exists.
+\end{enumerate}
 
 
 \subsection{Scheme}
@@ -1010,6 +1080,10 @@ So $Z$ contains $\z_k$ giving an ideal $\b = \prod_i \l_i^{z_{k,i}}$ correspondi
 Hence there is an isogeny from $E$ to $E_A$ given by $(\b')^{-1} \b$.
 But by Heuristic 3 it is unlikely there exists any such ideal. 
 \end{proof}
+
+
+Note that Heuristic 2 also shows that there are ``unique responses'' in the sense of Definition 2.7 of~\cite{KLS18} (not just computationally unique, but actually unique). But we won't need this for the result we state.
+
 
 - no abort HVZK
 
