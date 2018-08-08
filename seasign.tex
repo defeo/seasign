@@ -52,7 +52,7 @@
 \newcommand{\ChSet}{\textsf{ChSet}}
 \newcommand{\St}{\textsf{St}}
 \newcommand{\LossIGen}{\textsf{LossIGen}}
-
+\newcommand{\PRF}{\textsf{PRF}}
 
 % THEOREM ENVIRONMENTS
 %\newtheorem{definition}{Definition}
@@ -836,7 +836,7 @@ For example, take $n=70$, $s = 16, t = 8$ and choose $\sigma = 5$ (so almost all
 so determining the $e_i$ using a meet-in-the-middle strategy should require at least $2^{106}$ iterations, and realistically much more than this since organising a search based on the entropy is hard to do. For post-quantum security we might want to replace $2 \lambda$ with $3\lambda$ in the above.
 
 We following the methods and results of Lyubashevsky~\cite{Lyu12}. Lemma 4.3(3) of~\cite{Lyu12} shows we can bound the norm $\Vert \e \Vert$ by $T = 2 \sigma \sqrt{n}$.
-Now we need to choose the $f_{k,i}$ from a discrete Gaussian with parameter $\sigma'$, so that the distribution of $f_{k,i} + e_i$ is close (within statistical distance, though we could use Renyi divergence to get better results) to the discrete Gaussian with parameter $\sigma'$.
+Now we need to choose the $f_{k,i}$ from a discrete Gaussian with parameter $\sigma'$, so that the distribution of $f_{k,i} - e_i$ is close (within statistical distance, though we could probably use Renyi divergence to get better results) to the discrete Gaussian with parameter $\sigma'$.
 Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficient. Since we need to repeat this $t$ times we suggest $\sigma' = T \sqrt{\log(nt)}$.
 
 For our choices $n=70, t = 8, \sigma = 5$ this gives $\sigma' \approx 210$.
@@ -854,7 +854,8 @@ More work needed to work out the exact details and determine the rejection sampl
 We now explain how to implement lossy keys in our setting.
 This allows us to use the methods of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (themselves based on work of Abdalla, Fouque, Lyubashevsky and Tibouchi~\cite{AFLT12}) to obtain signatures from lossy identification schemes. This approach gives \emph{tight reductions} in the classical random oracle model and also proofs in the \emph{quantum random oracle model}.
 
-Here's the basic idea to get a lossy scheme:
+
+Here's the basic idea to get a lossy scheme, using uniform distributions for simplicity (one can also use discrete Gaussians in this setting):
 Take a very large class group, but use a small $n$, $B$ so that $\{ \a = \prod_{i=1}^n \l_i^{e_i} : e_i \in [-B,B] \}$ is a very small subset of the class group.\footnote{Might even be able to consider working with subgroups, in the quantum case where the class group structure is known.}
 The real key is $(E, E_A = \a*E )$ for such an $\a$.
 The lossy key is $(E, E_A )$ where $E_A$ is a uniformly random curve in the isogeny class.
@@ -872,7 +873,7 @@ A \emph{canonical identification scheme} consists of algorithms $(\IGen, \PP_1, 
 The deterministic algorithm $\PP_1$ takes $sk$ and randomness $r_1$ and computes $(W, \St) = P_1( sk, r_1 )$. 
 Here $\St$ denotes state information to be passed to $P_2$.
 A challenge $c$ is sampled uniformly from $\ChSet$. The deterministic algorithm $P_2$ then computes $Z = P_2( sk, W, c, \St, r_2 )$ or $\perp$, where $r_2$ is the randomness.
-The output $\perp$ corresponds to an abort in the Fiat-Shamir with aborts paradigm.
+The output $\perp$ corresponds to an abort in the ``Fiat-Shamir with aborts'' paradigm.
 We require that $\VV( pk, W, c, Z ) = 1$ for a correctly formed transcript $(W,c,Z)$.
 
 We assume, for each value of $\lambda$, there are well-defined sets $\Wset$ and $\Zset$, such that $\Wset$ contains all $W$ output by $\PP_1$ and $\Zset$ contains all $Z$ output by $\PP_2$. 
@@ -880,8 +881,8 @@ The scheme is \emph{commitment recoverable} if, given $c$ and $Z = P_2( sk, W, c
 
 A canonical identification scheme is $\epsilon_{zk}$-naHVZK \emph{non-abort honest verifier zero knowledge} if there is a simulator that given only $pk$ outputs $(W, c, Z)$ whose distribution has statistical distance at most $\epsilon_{zk}$ from the output distribution of the real protocol conditioned on $P_2( sk, W, c, \St, r_2 ) \ne \perp$.
 
-
-***We say $W$ has $\alpha$ \emph{bits of min entropy} if the probability any -- not needed to define
+% Don't need this:
+% ***We say $W$ has $\alpha$ \emph{bits of min entropy} if the probability any -- not needed to define
 
 A \emph{lossy identification scheme} is a canonical identification scheme as above together with a lossy key generation algorithm $\LossIGen$, which is a randomised algorithm that on input $1^\lambda$ outputs $pk$.
 An adversary against a lossy identification scheme is a randomised algorithm $A$ that takes an input $pk$ and returns $0$ or $1$.
@@ -904,7 +905,7 @@ This will allow to show that no unbounded quantum adversary can pass the identif
 We can re-write our scheme in this setting, see Figure~\ref{fig:id-scheme}.
 Here we are assuming that $E$ is a supersingular elliptic curve with $j(E) \in \F_p$ where $p$ satisfies the constraint
 \begin{equation} \label{eq:lossy-p-bound}
-  \sqrt{p} > (2(nt+1)B + 1)^{2n} 2^\lambda
+  \sqrt{p} > (4(nt+1)B + 1)^{n} 2^\lambda
 \end{equation}
 This bound is sufficient for the keys to be lossy.
 
@@ -935,7 +936,7 @@ This bound is sufficient for the keys to be lossy.
 
 	\begin{algorithmic}[1]
 		\For {$k=1 , \dots , t$}
-		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ using $PRF( r_1 )$
+		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ using $\PRF( r_1 )$
 		\State $E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
 		\EndFor
 		\State \Return $( j(E_1) , \dots, j(E_t) )$, $(\f_1, \dots, \f_t )$
@@ -1008,9 +1009,9 @@ The key generation and signing algorithms are the same as Figure~\ref{fig:id-sch
 	\begin{algorithmic}[1]
 		\State $k = 0$, $Z = \perp$
 		\While{$Z = \perp$ and $k \le k_0$}
-		\State $(W,\St) = P_1( sk, PRF_K( 0, \msg, k ))$
+		\State $(W,\St) = \PP_1( sk, \PRF_K( 0, \msg, k ))$
 		\State $c = H( W, \msg )$ 
-		\State $Z = P_2( sk, W, c, \St, PRF_K( 1, \msg, k ))$
+		\State $Z = \PP_2( sk, W, c, \St, \PRF_K( 1, \msg, k ))$
 		\EndWhile
 		\If{$Z = \perp$}
 		\State \Return $\perp$
@@ -1047,12 +1048,13 @@ Under heuristic assumption 1, we now show that the keys are lossy.
 The lossy key generator outputs a pair $(E,E_A$ where $E$ and $E_A$ are randomly sampled supersingular elliptic curves with $j(E), j(E_A) \in \F_p$.
 To implement this one constructs a supersingular curve with $j$-invariant in $\F_p$ using Br{\" o}ker's algorithm~\cite{Bro09} and then runs long pseudorandom walks in the isogeny graph until the uniform mixing bounds have applied.
 
-\begin{lemma}
-Let parameters satisfy the bound of equation~(\ref{eq:lossy-p-bound}). Assume heuristic 1. Let $(E,E_A)$ be a key output by the lossy key generator. Then with overwhelming probability there is no ideal $\a = \prod_{i=1}^n \l_i^{f_{i}}$ such that $\f \in [-(nt+1)B,(nt+1)B]^{2n}$ and $j(E_A) = j( \a * E )$.
+\begin{lemma}\label{lem:isogeny count}
+Let parameters satisfy the bound of equation~(\ref{eq:lossy-p-bound}). Assume heuristic 1. Let $(E,E_A)$ be a key output by the lossy key generator. Then with overwhelming probability there is no ideal $\a = \prod_{i=1}^n \l_i^{f_{i}}$ such that $\f \in [-2(nt+1)B,2(nt+1)B]^{n}$ and $j(E_A) = j( \a * E )$.
 \end{lemma}
 
 \begin{proof}
-Given $E$ there are at most $(2 (nt+1)B + 1)^{2n}$ choices for $\a$ and hence at most that many $j( \a * E )$. Since $E_A$ is uniformly and independently sampled from a set of size at least $\sqrt{p}$, the probability that $j(E_A)$ lies in the set of all possible $j( \a * E )$ is at most $1/2^\lambda$, which is negligible.
+If $f_i \in [-2(nt+1)B,2(nt+1)B]$ then there are $4(nt+1)B + 1$ choices for each $f_i$ and so at most $(4 (nt+1)B + 1)^{n}$ choices for $\a$.
+Given $E$ it means there are at most that many $j( \a * E )$. Since $E_A$ is uniformly and independently sampled from a set of size at least $\sqrt{p} > (4 (nt+1)B + 1)^{n} 2^\lambda$, the probability that $j(E_A)$ lies in the set of all possible $j( \a * E )$ is at most $1/2^\lambda$, which is negligible. \qed
 \end{proof}
 
 We make the following decisional assumption.
@@ -1065,32 +1067,59 @@ Let $D_2$ be the uniform distribution (i.e., output distribution of the lossy ke
 The \emph{decisional short isogeny problem} is to distinguish the two distributions when given one sample.
 \end{definition}
 
-This result shows that the lossy keys give secutity..
+The next result shows the second part of the security property for lossy keys.
 
 \begin{lemma}
-The lossy thing.
+Let $pk$ be an output of the lossy key generation algorithm $\LossIGen$.
+Let $W \leftarrow \Wset$ be an output of $\PP_1$.
+Let $c \leftarrow \ChSet$ be a uniformly chosen challenge.
+Then the probability that there is some $Z \in \Zset$ with $\VV( pk, W, c, Z ) = 1$, is negligible.
 \end{lemma}
 
 \begin{proof}
-Fix $W$.
-Suppose there are responses $Z$ and $Z'$ valid for challenges $c, c'$ respectively.
-Since $c \ne c'$ there is some index $k$ such that $c_k \ne c_k'$. 
-Wolog $c_k = 0$ and $c_k' = 1$. 
-So $Z$ contains $\z_k$ giving an ideal $\b = \prod_i \l_i^{z_{k,i}}$ corresponding to an isogeny $E$ to $E_k$, and $Z'$ contains $z_k'$ giving an ideal $\b'$ and an isogeny from $E_A$ to $E_k$. 
-Hence there is an isogeny from $E$ to $E_A$ given by $(\b')^{-1} \b$.
-But by Heuristic 3 it is unlikely there exists any such ideal. 
+Let $pk = (E, E_A )$ be an output of $\LossIGen( 1^\lambda )$.
+By Lemma~\ref{lem:isogeny count} we have that with overwhelming probability $j(E_A) \ne j( \a * E )$ for all ideals $\a$ of the form in Lemma~\ref{lem:isogeny count}.
+Let $W = (j(E_1), \dots, j(E_t) )$ be an element of $\Wset$, so that each $E_k$ is of the form $\a_k * E$ where $\a_k = \prod_i \l_i^{f_{k,i}}$ for $f_{k,i} \in [-(nt+1)B, (nt+1)B ]$.
+
+
+Let $c \leftarrow \ChSet$ be a uniformly chosen challenge, which means that $c \ne 0$ with overwhelming probability.
+Then there is some $k$ with $c_k \ne 0$ and so if $Z$ was to satisfy the verification algorithm
+$\VV( pk, W, c, Z ) = 1$ then it would follow that $\z_k$ gives an ideal $\c_k$ such that $j(E_k) = j( \c_k * E_A )$.
+From $\a_k * E  \cong E_k \cong \c_k * E_A$ it follows that $E_A \cong (\c_k^{-1} \a_k ) * E$.
+But $\c_k^{-1} \a_k = \prod_i \l_i^{f_{k,i} - z_{k,i}}$, which violates the claim about $E_A$ corresponding to Lemma~\ref{lem:isogeny count}. Hence $Z$ does not exist and the result is proved. \qed
 \end{proof}
 
 
 Note that Heuristic 2 also shows that there are ``unique responses'' in the sense of Definition 2.7 of~\cite{KLS18} (not just computationally unique, but actually unique). But we won't need this for the result we state.
 
 
-- no abort HVZK
+We now discuss \emph{no-abort honest verifier zero-knowledge} (naHVZK).
+This is simply the requirement that there is a simulator that produces transcripts $(W,c,Z)$ that are statistically close to real transcripts output by the protocol.
 
 
-State secutrity theoerem
+\begin{lemma}
+Our scheme has no-abort honest verifier zero-knowledge.
+\end{lemma}
 
-Proof: Theorem 3.1 of KLS.
+\begin{proof}
+This is simple to show in our setting (due to the rejection sampling): Instead of choosing $W = ( j(\prod_i \l_i^{f_{1,i}} * E) \dots, j( \prod_i \l_i^{f_{k,i}} * E ))$, then $c$ and then $Z = (\z_1, \dots, \z_k)$ the simulator chooses $Z$ first, then $c$, and then sets, for $1 \le k \le t$, $j_k = j( \prod_i \l_i^{z_{k,i}} * E )$ when $c_k=0$ and $j_k = j( \prod_i \l_i^{z_{k,i}} * E_A )$ when $c_k = 1$.
+Setting $W = (j_1,\dots, j_k)$ it follows that $(W, c, Z )$ is a transcript that satisfies the verification algorith.
+Further, the distribution of triples $(W,c,Z)$ is identical to the distribution from the real protocol since, for any choice of the private key, this choice of $W$ would have arisen for some choice of the original vectors $\f_k$. \qed
+\end{proof}
+
+
+
+
+\begin{theorem}
+Under Heuristics 1, 2, 3 and the restricted class group action problem of Definition~\ref{defn:ass1p}.
+The signature scheme has UF-CMA security in the quantum random oracle, with a tight security reduction.
+\end{theorem}
+ 
+
+\begin{proof}
+See Theorem 3.1 of~\cite{KLS18}.
+In particular this theorem gives a precise statement of the advantage .
+\end{proof}
 
 
 
