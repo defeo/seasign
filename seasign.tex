@@ -147,7 +147,7 @@ The CSIDH paper speaks of hard homogenous spaces and calls the below problem ``K
 Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End(E_A) = \OO$. Find an ideal $\a$ such that $j( E_A ) = j( \a * E )$.
 \end{definition}
 
-The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain- Schrottenloher (eprint 2018/537), Biasse-Iezzi-Jacobson (arXiv:1806.03656)).
+The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-Schrottenloher (eprint 2018/537), Biasse-Iezzi-Jacobson (arXiv:1806.03656)).
 
 Note that this problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
 If $\a'$ is a solution to the instance $(E_1, E_2)$ then any ideal equivalent to the fractional ideal $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
@@ -159,7 +159,9 @@ For key exchange, CSIDH samples the exponent vectors $\e = (e_1, \dots, e_n) \in
 % such that $(2B+1)^n\ge\#\Cl(\OO)\approx p\log p$; this ensures that, heuristically, the key space covers all of $\Cl(\OO)$.
 
 
+
 An issue that arises in our security arguments is whether or not we are sampling ideal classes uniformly during key generation and signing (for precise details see Definition~\ref{defn:sampling-distributions} and the discussion that follows it).
+
 Recall there is a straightforward meet-in-the-middle attack when given $E$ and $\a * E$ for $\a = \prod_{i=1}^n \l_i^{e_i}$ over $e_i \in [-B, B]$.
 We compute lists (assume $n$ is even)
 \[
@@ -169,8 +171,8 @@ We compute lists (assume $n$ is even)
 If $L_1 \cap L_2 \ne \varnothing$ then we have solved the isogeny problem.
 This attack can be used even when the set of ideal classes generated is a small subset of $\Cl( \OO )$.
 Hence for security we require $(2B+1)^n > 2^{2 \lambda}$, where $\lambda$ is the security parameter.
-
-(** CHECK **) There is a quantum variant of this algorithm using Tani, which means we need $3 \lambda$ bits to have post-quantum security.
+Further, there is a quantum algorithm due to Tani, which is straightforward to adapt to this problem (we refer to Section~5.2 of  De Feo, Jao and Pl{\^{u}}t~\cite{FJP14} for details).
+This means we need $(2B+1)^n > 2^{3 \lambda}$ bits to have post-quantum security.
 
 Note that Kuperberg's algorithm uses the entire class group, and so there seems to be no improvement to the subexponential attack even if we only sample a subset of the class group, or if the sampling of ideal classes is biased from the uniform distribution.
 
@@ -200,6 +202,11 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
 \end{table}
 
 NOTE: do the ``quantum security'' columns need to be updated due to the Bonnetain-Schrottenloher paper?
+
+
+
+For our signature schemes we may work with less specific primes than considered in CSIDH~\cite{CLMPR18}. For example, CSIDH takes $p+1 = 4\prod_{i=1}^n\ell_i$, whereas we may be able to use fewer primes and need a larger $p$.
+
 
 
 
@@ -696,7 +703,26 @@ The below table gives some estimates of cost.
 Some of the parameter constraints may not be necessary.
 
 
+Here is the justification for the parameter restrictions in terms of the security parameter $\lambda$:
+\begin{enumerate}
+\item Kuperberg's algorithm is believed to have complexity at least $\tilde{O}( 2^{\sqrt{\log(N)}} )$ in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
+\[
+   \sqrt{ \log(N)} > \sqrt{ \tfrac{1}{2} \log(p) } > \sqrt{ \tfrac{1}{2} 2 \lambda^2 } = \lambda.
+\]
+\item Tani's algorithm requires $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$.
+
+The table below states  $n\log B\sim \lambda^2$, which is not relevant in our situation as we base our security on a differnt assumption to other works.
+
+
+\item If one is choosing primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}, then one is restricted to taking $n$ not too large compared with $p$.
+Approximating $\ell_i \approx n \log(n)$ it follows that $p \approx (n \log(n))^n$ and so we must have $n \log(n) < \log(p)$.
+
+In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
+\end{enumerate}
+
+
 QUESTION: I guess the costs of sign/verify time are really the cost of computing the isogeny of that size. Sign time is potentially worse due to the rejection sampling. We need to compute a bunch of $f_{k,i}$ and then compute the isogenies and then possibly throw it all away and start again. (!!!!!!)
+
 
 \begin{landscape}
   \begin{table}
