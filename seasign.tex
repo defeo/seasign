@@ -259,7 +259,7 @@ Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and
 The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
 The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
 If $b_k = 0$ the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$.
-If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$. Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_k )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage.
+If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$. Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage.
 When $b_k=1$ the verifier checks that $j(E_k) = j( (\b_k \a^{-1}) * E_A )$.
 A cheating prover (who does not know the private key) can succeed with probability $1/2^t$.
 
@@ -863,11 +863,11 @@ so determining the $e_i$ using a meet-in-the-middle strategy should require at l
 
 We following the methods and results of Lyubashevsky~\cite{Lyu12}. Lemma 4.3(3) of~\cite{Lyu12} shows we can bound the norm $\Vert \e \Vert$ by $T = 2 \sigma \sqrt{n}$.
 Now we need to choose the $f_{k,i}$ from a discrete Gaussian with parameter $\sigma'$, so that the distribution of $f_{k,i} - e_i$ is close (within statistical distance, though we could probably use Renyi divergence to get better results) to the discrete Gaussian with parameter $\sigma'$.
-Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficient. Since we need to repeat this $t$ times we suggest $\sigma' = T \sqrt{\log(nt)}$.
+Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficient. Since we need to repeat this $t$ times we suggest $\sigma' = \alpha T $ where $\alpha \approx 10$.
 
-For our choices $n=70, t = 8, \sigma = 5$ this gives $\sigma' \approx 210$.
+For our choices $n=70, t = 8, \sigma = 5$ this gives $\sigma' \approx 210$ (NO: 900?).
 If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log( 2 \pi e (\sigma')^2 )/2$ bits.
-For our example parameters this would be 3790 bits, or around 474 bytes.
+For our example parameters this would be 3790 bits (NO 6000), or around 474 bytes (NO: 900).
 
 More work needed to work out the exact details and determine the rejection sampling probabilities. ***
 
