@@ -752,14 +752,19 @@ Both proofs are straightforward adaptations, and we omit them for conciseness.
 As already noted, the proofs are not tight, however the part concerned with the second-preimage resistance of $M$ is.
 
 
-\section{Conclusion}
+\section{Performance}
 
 
-The below table gives some estimates of cost.
-Some of the parameter constraints may not be necessary.
+Table~\ref{tab:comparison} gives some estimates of cost for the schemes presented in Sections~\ref{sec:basic-scheme},~\ref{sec:smaller-sigs},~\ref{sec:smaller-keys}, plus the original insecure scheme.
+It is divided in three sections.
 
+Section ``Exact'' reports the parameter sizes, as a number of bits, already computed in each section.
+$\lambda$ is the security parameter, $n,B$ and $s$ are as described previously.
+To simplify the expressions we assume that all hash functions have $\lambda$-bit outputs, and we set the parameter $t=\lambda/s$.
 
-Here is the justification for the parameter restrictions in terms of the security parameter $\lambda$:
+Section ``Asymptotic'' gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
+The constraints on the parameters $p,n,B$ are determined following the methodology in CSIDH~\cite{CLMPR18}, and may not be necessary.
+Here is the justification for the parameter restrictions in terms of $\lambda$:
 \begin{enumerate}
 \item Kuperberg's algorithm is believed to have complexity at least $\tilde{O}( 2^{\sqrt{\log(N)}} )$ in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
 \[
@@ -767,8 +772,9 @@ Here is the justification for the parameter restrictions in terms of the securit
 \]
 \item Tani's algorithm requires $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$.
 
-The table below states  $n\log B\sim \lambda^2$, which is not relevant in our situation as we base our security on a differnt assumption to other works.
+The table below states  $n\log B\sim \lambda^2$, which is not relevant in our situation as we base our security on a different assumption to other works.
 
+(*** So, do we abandon approximating the uniform distribution or not? This only affects the ``Asymptotic'' part of the table, of course, but then we should say that Theorem 3 does not apply.)
 
 \item If one is choosing primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}, then one is restricted to taking $n$ not too large compared with $p$.
 Approximating $\ell_i \approx n \log(n)$ it follows that $p \approx (n \log(n))^n$ and so we must have $n \log(n) < \log(p)$.
@@ -776,8 +782,17 @@ Approximating $\ell_i \approx n \log(n)$ it follows that $p \approx (n \log(n))^
 In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
 \end{enumerate}
 
+Finally, section ``CSIDH'' gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
+We estimate these parameters to correspond to the NIST-1 security level.
 
-QUESTION: I guess the costs of sign/verify time are really the cost of computing the isogeny of that size. Sign time is potentially worse due to the rejection sampling. We need to compute a bunch of $f_{k,i}$ and then compute the isogenies and then possibly throw it all away and start again. (!!!!!!)
+In each section, we also give a very rough estimate of the expected running time for key generation and for signature/verification.
+We measure this as a multiple of the ``unit'' $\Cl(\OO)$ action, i.e., as the equivalent number of computations of the action $(\prod_{i=1}^n\l_i^B)*E$.
+We feel this is a better measure than the number of individual isogeny computations, because those are highly dependent on the isogeny degree $\ell_i$.
+A second reason for using this measure is that it estimates the running time as a number of applications of the CSIDH primitive; indeed, in the last section we obtain our numerical estimates by multiplting this number by $0.1$ seconds, the worst-case time reported in~\cite{CLMPR18} for one isogeny action.
+
+Note that these estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
+However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees, much larger than ours, can be computed in a fraction of the time we need to compute isogenies.
+On the other hand, rejections that happen during signing multiply the running time by a small constant, tipically less than $3$ on average.
 
 
 \begin{landscape}
