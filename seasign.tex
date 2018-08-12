@@ -120,6 +120,7 @@ We recall some standard facts and fix our notation.
 
 \begin{itemize}
 \item For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
+\item We use the symbol $\log$ for the logarithm in base $2$.
 
 \item For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to be the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
 \item Given two $\OO$-ideals $\a, \b$ we write $\a \equiv \b$ if $\a$ and $\b$ are equivalent (meaning that $\a \b^{-1}$ is a principal fractional $\OO$-ideal). 
@@ -148,11 +149,11 @@ The basic computational assumption is the ideal action problem.
 Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
 The CSIDH paper speaks of hard homogenous spaces and calls the below problem ``Key recovery''.
 
-\begin{definition}\label{defn:ass1} (GAIP ??)
+\begin{definition}\label{defn:ass1} (GAIP ?? ClAP (Cl Action Problem) ??)
 Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End(E_A) = \OO$. Find an ideal $\a$ such that $j( E_A ) = j( \a * E )$.
 \end{definition}
 
-The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-Schrottenloher (eprint 2018/537), Biasse-Iezzi-Jacobson (arXiv:1806.03656)).
+The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013} (Kuperberg, Regev, Childs-Jao-Soukharev, Bonnetain-Schrottenloher (eprint 2018/537), Biasse-Iezzi-Jacobson (arXiv:1806.03656), Jao-LeGrow-Leonardi-Ruiz-Lopez (MathCrypt 2018)).
 
 Note that this problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
 If $\a'$ is a solution to the instance $(E_1, E_2)$ then any ideal equivalent to the fractional ideal $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
@@ -219,7 +220,7 @@ For our signature schemes we may work with less specific primes than considered 
 
 One can discuss Fiat-Shamir-type signatures in various ways, including the language of sigma protocols or identification schemes.
 In the main body of our paper we work directly with the language of signatures, and give proofs directly in this formulation.
-In Section~ref{sec:KLS-defns} we use the language of identification schemes, and introduce the terminology there.
+In Section~\ref{sec:KLS-defns} we use the language of identification schemes, and introduce the terminology there.
 
 
 A \emph{public key signature scheme} consists of algorithms $\KeyGen, \Sign, \Verify$.
@@ -343,12 +344,16 @@ This completes the proof. \qed
 
 
 We can therefore get a rough idea of parameters and efficiency for the scheme.
-For security we need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
-We need $t$ at least 128 so that an attacker cannot guess the hash value or invert the hash function.
-The vectors $\z_k$ have entries of size bounded by $ntB$, which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
-This means that the total number of isogeny computations is upper bounded by $(nt)^2 B$.
+Let $\lambda$ be a security parameter (e.g., $\lambda=128$ or $\lambda=256$), for security
+we need at least $t=\lambda$ so that an attacker cannot guess the hash value or invert the hash function (see also the proof of Theorem~\ref{thm:security-basic}).
+We also need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
+The signature contains one hash value of $\lambda$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-1, we obtain signatures of 19.6 kilobytes (see also Table~\ref{tab:comparison}).
+
+To sign/verify one needs to evaluate the action of either of $\b_k$ and $\b_k\a^{-1}$ for every $1\le k\le t$,
+which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
+Hence, the total number of isogeny computations is upper bounded by $(nt)^2 B$.
 The quadratic dependence on $nt$ is a major inconvenience.
-For example, taking $t=128, n = 74, B = 5$ gives around $2^{28}$ isogeny computations in verification.
+For example, taking again $(t,n,B)=(128,74,5)$ gives around $2^{28}$ isogeny computations in signature/verification.
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
 The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
 
@@ -358,6 +363,8 @@ We discuss some possible optimisations in Appendix~\ref{sec:variants}.
 % NOTE: $n=50, B=6$ is too small, as $(2B+1)^n \approx 2^{185}$. So I updated the above.
 Here is a table, for various $n$, of the smallest $B$ such that $(2B+1)^n > 2^{255}$.
 Maybe it would be better the other way around: smallest $n$ for various values of $B$.
+
+TODO: do we need this table? It's complicated going beyond $n\ge 74$, because then we have to take a larger $p$ and we're out of the CSIDH setting. And, among the other pairs, (74,5) is the optimum in terms of computation time (the worst in terms of sig size, though).
 
 \begin{center}
 \begin{tabular}{c||c|c|c|c|c|c|c|c|c|c}
@@ -518,7 +525,7 @@ Suppose the adversary $A$ makes at most $Q$ (polynomial in the security paramete
 To answer a Sign query on message $\msg$ the simulator chooses 
 $t$ uniformly chosen bits $b_1, \dots, b_t \in \{0,1\}$.
 When $b_k = 0$ the simulator randomly samples $z_k \leftarrow [-ntB,ntB]^n$ and sets $\b_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ and computes $E_k = \b_k * E$, just like in the real signing algorithm.
-When $b_k = 1$ the simulator chooses a random ideal $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ for $z_{k,i} \in [-ntB, ntB]$.
+When $b_k = 1$ the simulator chooses a random ideal $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ for $z_{k,i} \in [-ntB, ntB]$
 %(consistent with the protocol under consideration; so using Lemma~\ref{lem:sim2}) 
 and computes $E_k = \c_k * E_A$.
 By Lemma~\ref{lem:sim2}, the values $j( E_k )$ and $\z_k$ are distributed exactly as in the real signing algorithm.
@@ -566,8 +573,10 @@ The signing algorithm for user A chooses $t$ random ideals $\b_k = \prod_{i=1}^n
 Now we have $s$-bit challenges $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
 For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which corresponds to the ideal class $\c_k := \a_{b_k}^{-1} \b_k$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
 
-For security we now only require $ts \ge \lambda$. Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 ideal classes need to be transmitted as part of the signature.
-Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes.
+A signature is still made of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
+But now for security we now only require $ts \ge \lambda$.
+Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of only 944 bytes!
+Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes, and key generation is also $2^{16}$ times slower.
 
 
 As far as we can tell, this idea cannot be applied to the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17}.
@@ -619,6 +628,8 @@ In the random oracle model, the signature scheme of this section is unforgeable 
 
 
 (***) Just noticed notation clash $E_A$ for public key of A = Alice; A = adversary against scheme. Could use $\FF$ for forger?  Probably doesn't matter.
+%
+Luca: it's not as much the clash as the fact that I keep confusing the public curves $E_{A,k}$ and the commitments $E_k$. I wonder if it wouldn't be more readable to use a different letter altogether for the public curves, e.g., $P_k$.
 
 \begin{proof}
 Let $A$ be an adversary against the scheme and $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
@@ -648,7 +659,7 @@ With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simul
 
 \subsection{Reducing storage for private keys}\label{sec:private-key-compress}
 
-Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom generator as $\PRF( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
+Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom function as $\PRF( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
 The prover only needs to store $\seed$ and can then recompute the private keys as needed.
 Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $t \approx 8$ private keys (although this adds a cost to the signing algorithm).
 
@@ -670,12 +681,12 @@ Let the following (public) functions be given:
 \begin{itemize}
 \item $\PRFs: \{0,1\}^\lambda \times \{0,1\}^s \to [-B,B]^n$,
 \item $\PRFk: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^\lambda$,
-\item $\PRFm: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^{\lceil\log p\rceil}$ pseudo-random functions, and
+\item $\PRFm: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^{\lceil\log p\rceil}$ three pseudo-random functions, and
 \item $M: \{0,1\}^\lambda \times \{0,1\}^{\lceil\log p\rceil} \to \{0,1\}^\lambda$ a keyed hash function.
 \end{itemize}
 
 Finally, let $\PK.\seed$ and $\SK.\seed$ be two random seeds; as the names suggest, $\PK.\seed$ is part of the public key, while $\SK.\seed$ is part of the secret key.
-Like in Section~\ref{sec:private-key-compress}, we define the secret ideals $\a_u = \PRFs(\SK.\seed, u)$ and the public curves $E_{A,u}=\a_u*E$, for $1\le u\le 2^s$.
+Like in Section~\ref{sec:private-key-compress}, we define the secret ideals $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$, where $\e_m=\PRFs(\SK.\seed, m)$, and the public curves $E_{A,m}=\a_m*E$, for $1\le m\le 2^s$.
 
 We set up a hash tree by defining $h_{l,u}$ for $0 \le l \le s$ and $1 \le u \le 2^{s-l}$.
 First we set
@@ -690,10 +701,11 @@ Finally, the public key is set to the pair $(\PK.\seed, h_{0,1})$.
 
 To prove that a value $E_{A,u}$ is in the hash tree, we use its \emph{authentication path}.
 That is the list of the hash values $h_{l,u'}$, for $1\le l \le s$, occurring as siblings of the nodes on the path from $h_{s,u}$ to the root.
+The proof in~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} shows that having $M$ output $\lambda$-bit hashes gives a (classical) security of approximately $2^\lambda$.
 See~\cite{10.1007/978-3-662-49384-7_15,sphincs+} for more details.
 
 Typically, in hash-based signatures the secret key would only contain $\SK.\seed$, since all secret and public values can be reconstructed from it at an acceptable cost.
-Mowever, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,1},\dots,h_{s,2^s})$.
+However, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s-1$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,1},\dots,h_{s,2^s})$.
 This is a considerably large secret key, e.g., around $1$ megabyte when $\lambda=128$ and $s=16$, but it is offset by a more than tenfold gain in signing time.
 Also note than the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
 
@@ -701,30 +713,32 @@ To sign we proceed like in Section~\ref{sec:smaller-sigs}, but the signature now
 The signer computes the random ideals $\b_1,\dots,\b_t$ and the associated curves $E_1,\dots,E_t$ to obtain the challenges $b_1,\dots,b_t$.
 Then, using $\PRFs$, they obtain the secrets $\a_{b_1},\dots,\a_{b_t}$, recompute the public curves $E_{A,b_1},\dots,E_{A,b_t}$, and the ideals $\c_i=\a_{b_i}^{-1}\b_i$.
 The signature is made of the ideals $\c_1,\dots,\c_t$, the curves $E_{A,b_1},\dots,E_{A,b_t}$, and their authentication paths in the hash tree.
-The verifier computes $E_i$ as $\c_i * E_{A,b_i}$, obtains the challenges $b_1,\dots,b_t$, and uses them to verify the authentication path.
-
+The verifier computes $E_i$ as $\c_i * E_{A,b_i}$, obtains the challenges $b_1,\dots,b_t$, and uses them to verify the authentication paths.
 Hence, the signature contains $t$ ideals represented as vectors in $[-ntB,ntB]^n$, $t$ curves represented by their $j$-invariants, and $t$ authentication paths of length $s$.
 The $t$ authentication paths eventually merge before the root, thus some hash values will be repeated.
-We can save some space by only sending the hash values once, in some standardized order, the worst case happening when no path merges before level $\log(t)$, thus no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
+We can save some space by only sending the hash values once, in some standardized order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
 For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 kilobytes to the signature of Section~\ref{sec:smaller-sigs}.
 Note that this is still an order of magnitude smaller than the best hash-based signature schemes, while being stateless.
 
-Concerning security, the proofs of the previous sections, and that of~\cite[Appendix B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
+Concerning security, the proofs of the previous sections, and that of~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
 \begin{theorem}
-  In the random oracle model, the signature scheme of this section is
-  unforgeable under a chosen message attack under the following assumptions:
+  The signature scheme of this section is unforgeable under a chosen
+  message attack under the following assumptions:
   \begin{itemize}
   \item The \emph{one out of $2^s$ ideal action} of Definition~\ref{defn:one-out-of-2s-problem};
   \item The \emph{multi-function multi-target second-preimage resistance} of
-    the keyed hash function $M$,
-  \item The pseudo-randomness of $\PRFs$, $\PRFk$ and $\PRFm$.
+    the keyed hash function $M$;
+  \item The pseudo-randomness of $\PRFs$;
   \end{itemize}
+  when the hash function $H$ and the pseudo-random functions $\PRFk$
+  and $\PRFm$ are modeled as random oracles.
 \end{theorem}
 
 Like in the previous section, it is possible to replace the assumption of Definition~\ref{defn:one-out-of-2s-problem} with that of Defintion~\ref{defn:ass1}, modulo some additional assumptions.
 Both proofs are straightforward adaptations, and we omit them for conciseness.
+As already noted, the proofs are not tight, however the part concerned with the second-preimage resistance of $M$ is.
 
 
 \section{Conclusion}
@@ -767,9 +781,9 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
     \pgfmathtruncatemacro{\t}{\lam / \s}
     % Sig size
     \pgfmathtruncatemacro{\BasSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8} 
-    \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*\n*\lam*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*(\n*\lam+1)*\B + 1)) + \lam) / 8}
     \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\n*\t*\B + 1)) + \lam) / 8}
-    \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (\t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
+    \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
     % PK size
     \pgfmathtruncatemacro{\BasPK}{ceil(\logp / 8)}
     \pgfmathtruncatemacro{\RejPK}{\BasPK}
@@ -792,15 +806,15 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
     \pgfmathtruncatemacro{\ComTime}{\ParTime}
     \centering
     \begin{tabular}{l | c | c | c | c |}
-      & Basic scheme
-      & Reject. sampl. (Section~\ref{sec:basic-scheme})
-      & Parallel proof (Section~\ref{sec:smaller-sigs})
-      & Compressed public keys (Section~\ref{sec:smaller-keys}) \\
+      & Basic scheme (not secure)
+      & Rejection sampling (Section~\ref{sec:sig-reject-sample})
+      & Shorter signatures (Section~\ref{sec:smaller-sigs})
+      & Smaller public keys (Section~\ref{sec:smaller-keys}) \\
       \hline
       \hspace{1em}\textbf{Exact} &&&&\\
       Sig size
       & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
-      & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
+      & $\lambda\lceil n\log (2(n\lambda + 1) B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
       PK size
