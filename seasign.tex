@@ -28,6 +28,8 @@
 \newcommand{\Cl}{\text{Cl}}
 \newcommand{\seed}{\textsf{seed}}
 \newcommand{\msg}{\textsf{msg}}
+\newcommand{\PK}{\textsf{PK}}
+\newcommand{\SK}{\textsf{SK}}
 
 \renewcommand{\a}{\mathfrak{a}}
 \renewcommand{\b}{\mathfrak{b}}
@@ -53,6 +55,9 @@
 \newcommand{\St}{\textsf{St}}
 \newcommand{\LossIGen}{\textsf{LossIGen}}
 \newcommand{\PRF}{\textsf{PRF}}
+\newcommand{\PRFk}{\PRF_{\mathrm{key}}}
+\newcommand{\PRFm}{\PRF_{\mathrm{mask}}}
+\newcommand{\PRFs}{\PRF_{\mathrm{secret}}}
 
 % THEOREM ENVIRONMENTS
 %\newtheorem{definition}{Definition}
@@ -243,7 +248,7 @@ A signature scheme is UF-CMA secure if there is no polynomial-time adversary tha
 This section contains our main ideas and presents a basic signature scheme.
 We focus in this section on classical adversaries and proofs in the random oracle model.
 Hence our signature is based on the traditional Fiat-Shamir transform.
-For schemes and analysis against a post-quantum adversary see Section~ref{sec:KLS-defns}.
+For schemes and analysis against a post-quantum adversary see Section~\ref{sec:KLS-defns}.
 
 
 Section 2.B of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his description is not complete and he does not give a proof of security).
@@ -557,7 +562,7 @@ In this section we sketch an approach to obtain $s$-bit challenge values for any
 
 The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
 For each $1 \le m \le 2^s$ we choose $\e_m \leftarrow [-B,B]^n$ and set $E_{A,m} = ( \prod_{i=1}^n \l_i^{e_{m,i}} ) * E$.
-The signing algorithm for user A chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $E_{A,k} = \b_k * E$, as before.
+The signing algorithm for user A chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $E_k = \b_k * E$, as before.
 Now we have $s$-bit challenges $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
 For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which corresponds to the ideal class $\c_k := \a_{b_k}^{-1} \b_k$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
 
@@ -643,7 +648,7 @@ With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simul
 
 \subsection{Reducing storage for private keys}\label{sec:private-key-compress}
 
-Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom generator as $PRG( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
+Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom generator as $\PRF( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
 The prover only needs to store $\seed$ and can then recompute the private keys as needed.
 Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $t \approx 8$ private keys (although this adds a cost to the signing algorithm).
 
@@ -654,46 +659,72 @@ Of course, during key generation one needs to compute all the public keys, but d
 \section{Smaller public keys} \label{sec:smaller-keys}
 
 The approach of Section~\ref{sec:smaller-sigs} gives signatures that are potentially quite small, but at the expense of very large public keys. In some settings (e.g., software signing) large public keys can be easily accommodated, while in other settings (e.g., certificate chains) it makes no sense to shorten signatures at the expense of public key size.
-In this section we explain how to use a Merkle trees to compress the public key while also maintaining compact signatures.
-The public key is now just a hash value.
+In this section we explain how to use techniques from hash-based signatures to compress the public key while also maintaining compact signatures.
+The key idea is to use a Merkle tree~\cite{10.1007/0-387-34805-0_21} with leaves the public curves $E_{A,1}, \dots, E_{A,2^s}$, and use the tree root (a single hash value) as public key.
+However, the security of plain Merkle trees depends on collision resistance of the underlying hash function, thus requiring hashes of size at least twice the security parameter.
+Instead, we use a modified Merkle tree, as introduced in the hash-based signatures XMSS-T~\cite{10.1007/978-3-662-49384-7_15} and SPHINCS+~\cite{sphincs+}, whose security relies on the second preimage resistance of a keyed hash function.
 
-Let $E_{A,1}, \dots, E_{A,2^s}$ be the curves in the public key.
-Recall from Section~\ref{sec:private-key-compress} that the public keys can be recomputed on-the-fly if needed.
+Let $\lambda$ be a security parameter, and let $n,B,s,t,p$ be as in the previous sections; we assume that $\lceil\log p\rceil > 2\lambda$, as this is the case in any secure instantiation.
+Let the following (public) functions be given:
 
+\begin{itemize}
+\item $\PRFs: \{0,1\}^\lambda \times \{0,1\}^s \to [-B,B]^n$,
+\item $\PRFk: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^\lambda$,
+\item $\PRFm: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^{\lceil\log p\rceil}$ pseudo-random functions, and
+\item $M: \{0,1\}^\lambda \times \{0,1\}^{\lceil\log p\rceil} \to \{0,1\}^\lambda$ a keyed hash function.
+\end{itemize}
+
+Finally, let $\PK.\seed$ and $\SK.\seed$ be two random seeds; as the names suggest, $\PK.\seed$ is part of the public key, while $\SK.\seed$ is part of the secret key.
+Like in Section~\ref{sec:private-key-compress}, we define the secret ideals $\a_u = \PRFs(\SK.\seed, u)$ and the public curves $E_{A,u}=\a_u*E$, for $1\le u\le 2^s$.
 
 We set up a hash tree by defining $h_{l,u}$ for $0 \le l \le s$ and $1 \le u \le 2^{s-l}$.
-First set $h_{0,u} = j( E_{A,u} )$ for $1 \le u \le 2^s$.
-%The first row is defined as
-%\[
-%   h_{1,1} = H( j( E_{A,1}) , j(E_{A,2} ), \dots,  h_{1,u} = H( j( E_{A,2u-1}), j( E_{A, 2u} ) ),
-% \dots,  h_{1,2^{s-1}} = H( j( E_{A,2^s-1}), j( E_{A, 2^s} ) ).
-%\]
-Now, for any $1 \le l \le s$, the rows of the hash tree are defined as
+First we set
+\[h_{s,u} = M\bigl( \PRFk(\PK.\seed,2^s+u-1),\; j( E_{A,u} ) \oplus \PRFm(\PK.\seed,2^s+u-1) \bigr)\]
+for $1 \le u \le 2^s$, where $\oplus$ denotes bitwise XOR.
+Now, for any $0 \le l < s$, the rows of the hash tree are defined as
 \[
-   h_{l,u} = H( h_{l-1,2u-1}, h_{l-1,2u} ).
+  h_{l,u} = M\bigl( \PRFk(\PK.\seed, 2^l+u-1),\;
+  (h_{l+1,2u-1}\Vert h_{l+1,2u}) \oplus \PRFm(\PK.\seed, 2^l+u-1) \bigr).
 \]
-The public key is the final value $h_{s,1}$.
+Finally, the public key is set to the pair $(\PK.\seed, h_{0,1})$.
 
+To prove that a value $E_{A,u}$ is in the hash tree, we use its \emph{authentication path}.
+That is the list of the hash values $h_{l,u'}$, for $1\le l \le s$, occurring as siblings of the nodes on the path from $h_{s,u}$ to the root.
+See~\cite{10.1007/978-3-662-49384-7_15,sphincs+} for more details.
 
-A signature now needs to contain additional information.
-The signature contains ideals $\c_1, \dots, \c_t$ that relate to public keys $E_{A,b_1}, \dots, E_{A,b_t}$. It is necessary for the signature to now contain these $t$ curves (represented using $j$-invariants) and also enough of the hash values $h_{l,u}$ to allow the verifier to confirm that these curves correspond to leaves of the Merkle tree.
-Hence the signature also includes up to $t$ values $h_{0,u}$ that correspond to ``neighbours'' of $E_{A,b_1}$.
-Then, as usual, we provide the hash values coming off the path to the root.
+Typically, in hash-based signatures the secret key would only contain $\SK.\seed$, since all secret and public values can be reconstructed from it at an acceptable cost.
+Mowever, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,1},\dots,h_{s,2^s})$.
+This is a considerably large secret key, e.g., around $1$ megabyte when $\lambda=128$ and $s=16$, but it is offset by a more than tenfold gain in signing time.
+Also note than the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
 
-In the worst case (????)
-it is necessary to send around $ts$ hash values as part of the signature.
-(** TO DO: Work out exactly **)
-For our parameters $t=8, s=16$ and 128-bit hash values, this adds about 16384 bits to the signature (2kb).
+To sign we proceed like in Section~\ref{sec:smaller-sigs}, but the signature now needs to contain additional information.
+The signer computes the random ideals $\b_1,\dots,\b_t$ and the associated curves $E_1,\dots,E_t$ to obtain the challenges $b_1,\dots,b_t$.
+Then, using $\PRFs$, they obtain the secrets $\a_{b_1},\dots,\a_{b_t}$, recompute the public curves $E_{A,b_1},\dots,E_{A,b_t}$, and the ideals $\c_i=\a_{b_i}^{-1}\b_i$.
+The signature is made of the ideals $\c_1,\dots,\c_t$, the curves $E_{A,b_1},\dots,E_{A,b_t}$, and their authentication paths in the hash tree.
+The verifier computes $E_i$ as $\c_i * E_{A,b_i}$, obtains the challenges $b_1,\dots,b_t$, and uses them to verify the authentication path.
 
+Hence, the signature contains $t$ ideals represented as vectors in $[-ntB,ntB]^n$, $t$ curves represented by their $j$-invariants, and $t$ authentication paths of length $s$.
+The $t$ authentication paths eventually merge before the root, thus some hash values will be repeated.
+We can save some space by only sending the hash values once, in some standardized order, the worst case happening when no path merges before level $\log(t)$, thus no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
+In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
+For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 kilobytes to the signature of Section~\ref{sec:smaller-sigs}.
+Note that this is still an order of magnitude smaller than the best hash-based signature schemes, while being stateless.
 
+Concerning security, the proofs of the previous sections, and that of~\cite[Appendix B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
+\begin{theorem}
+  In the random oracle model, the signature scheme of this section is
+  unforgeable under a chosen message attack under the following assumptions:
+  \begin{itemize}
+  \item The \emph{one out of $2^s$ ideal action} of Definition~\ref{defn:one-out-of-2s-problem};
+  \item The \emph{multi-function multi-target second-preimage resistance} of
+    the keyed hash function $M$,
+  \item The pseudo-randomness of $\PRFs$, $\PRFk$ and $\PRFm$.
+  \end{itemize}
+\end{theorem}
 
-NOTE: Boneh tells me Merkle-tree approaches are asymptotically not very beneficial, so we should put some thought into that. But it seems to have benefits in practice for certain security levels anyway.
-
-
-
-Note: This may seem close to hash-based signatures and so one might ask why to use isogenies rather than just using hash-based signatures. The answer is that our scheme is stateless and does not leak information over time. It is just a compression technique.
-
+Like in the previous section, it is possible to replace the assumption of Definition~\ref{defn:one-out-of-2s-problem} with that of Defintion~\ref{defn:ass1}, modulo some additional assumptions.
+Both proofs are straightforward adaptations, and we omit them for conciseness.
 
 
 \section{Conclusion}
@@ -733,20 +764,21 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
     \def\logp{500}
     \def\s{16}
     \def\CSIDHsecs{0.1}
+    \pgfmathtruncatemacro{\t}{\lam / \s}
     % Sig size
     \pgfmathtruncatemacro{\BasSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8} 
     \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*\n*\lam*\B + 1)) + \lam) / 8}
-    \pgfmathtruncatemacro{\ParSig}{round(\lam / \s * ceil(\n * log2(2*\n*\lam/\s*\B + 1)) + \lam) / 8}
-    \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (\lam / \s * \logp  + \lam^2) / 8)}
+    \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\n*\t*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (\t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
     % PK size
     \pgfmathtruncatemacro{\BasPK}{ceil(\logp / 8)}
     \pgfmathtruncatemacro{\RejPK}{\BasPK}
     \pgfmathtruncatemacro{\ParPK}{round(2^\s * \RejPK / 1024)}
-    \pgfmathtruncatemacro{\ComPK}{\lam / 8}
+    \pgfmathtruncatemacro{\ComPK}{2 * \lam / 8}
     % SK size
     \pgfmathtruncatemacro{\BasSK}{ceil(\n * log2(2*\B + 1)) / 8}
     \pgfmathtruncatemacro{\RejSK}{\BasSK}
-    \pgfmathtruncatemacro{\ParSK}{round(2^\s * \RejSK / 1024)}
+    \pgfmathtruncatemacro{\ParSK}{\lam / 8}
     \pgfmathtruncatemacro{\ComSK}{(2^\s + 1) * \lam / 8 / 1024}
     % keygen time
     \pgfmathsetmacro{\BasKG}{\CSIDHsecs}
@@ -756,7 +788,7 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
     % sig time
     \pgfmathtruncatemacro{\BasTime}{round(\lam * \CSIDHsecs)}
     \pgfmathtruncatemacro{\RejTime}{\n * \lam * \BasTime}
-    \pgfmathtruncatemacro{\ParTime}{round(\n * (\lam / \s)^2 * \CSIDHsecs)}
+    \pgfmathtruncatemacro{\ParTime}{round(\n * \t^2 * \CSIDHsecs)}
     \pgfmathtruncatemacro{\ComTime}{\ParTime}
     \centering
     \begin{tabular}{l | c | c | c | c |}
@@ -770,11 +802,11 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
       & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
       & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
-      & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda^2$\\
+      & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
       PK size
-      & $\log p$ & $\log p$ & $2^s\log p$ & $\lambda$ \\
+      & $\log p$ & $\log p$ & $2^s\log p$ & $2\lambda$ \\
       SK size
-      & $n\log(2B+1)$ & $n\log(2B+1)$ & $2^s n\log(2B+1)$ & $(2^s+1) \lambda$\\
+      & $n\log(2B+1)$ & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
       $\Cl(\OO)$ actions &&&&\\
       $\to$ keygen
       & 1 & 1 & $2^s$ & $2^s$\\
@@ -787,7 +819,7 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
       PK size
       & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $\lambda$\\
       SK size
-      & $\lambda^2$ & $\lambda^2$ & $2^s\lambda^2$ & $(2^s+1)\lambda$\\
+      & $\lambda^2$ & $\lambda^2$ & $\lambda$ & $(2^s+1)\lambda$\\
       $\Cl(\OO)$ actions &&&&\\
       $\to$ keygen
       & 1 & 1 & $2^s$ & $2^s$\\
@@ -801,7 +833,7 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
       PK size
       & \BasPK{} B & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
       SK size
-      & \BasSK{} B & \RejSK{} B & \ParSK{} KB & \ComSK{} KB \\
+      & \BasSK{} B & \RejSK{} B & \ParSK{} B & \ComSK{} KB \\
       Est. keygen time
       & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
       Est. sig/verify time
@@ -812,7 +844,7 @@ QUESTION: I guess the costs of sign/verify time are really the cost of computing
       Equivalences used for asymptotic analysis are:
       $\log p \sim 2\lambda^2$, $n\log B\sim \lambda^2$,
       $n\log n \sim 2\lambda^2$.
-The entry CSIDH(128,16) is for parameters $(n,B,t,s,\log_2(p)) = (74, 5, 8, 16, 500)$.
+The entry CSIDH(128,16) is for parameters $(\lambda,n,B,s,\log_2(p)) = (128, 74, 5, 16, 500)$ and $t=\frac{\lambda}{s}=8$.
       All logarithms are in base 2. % NdL: this is probably wrong
     }
     \label{tab:comparison}
