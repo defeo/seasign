@@ -11,9 +11,20 @@
 \usepackage{tikz}
 \usepgflibrary{fpu,fixedpointarithmetic}
 
-\newcommand{\C}{\mathcal{C}}
+\usepackage{hyperref}
+\hypersetup{
+	unicode=true,
+	colorlinks=true,
+	citecolor=blue!70!black,
+	filecolor=black,
+	linkcolor=red!70!black,
+	urlcolor=blue,
+	pdfstartview={FitH},
+}
+
+%\renewcommand{\C}{\mathcal{C}}
 \newcommand{\D}{\mathcal{D}}
-\newcommand{\E}{\mathcal{E}}
+%\newcommand{\E}{\mathcal{E}}
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\Fpbar}{\overline{\mathbb{F}}_p}
 \newcommand{\Fqbar}{\overline{\mathbb{F}}_q}
@@ -23,38 +34,38 @@
 \newcommand{\Q}{\mathbb{Q}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Z}{\mathbb{Z}}
-\newcommand{\ch}{\text{ch}}
-\newcommand{\End}{\text{End}}
-\newcommand{\Cl}{\text{Cl}}
-\newcommand{\seed}{\textsf{seed}}
-\newcommand{\msg}{\textsf{msg}}
-\newcommand{\PK}{\textsf{PK}}
-\newcommand{\SK}{\textsf{SK}}
+%\newcommand{\ch}{\text{ch}}
+\DeclareMathOperator{\End}{End}
+\DeclareMathOperator{\Cl}{Cl}
+\newcommand{\seed}{\mathsf{seed}}
+\newcommand{\msg}{\mathsf{msg}}
+\newcommand{\PK}{\mathsf{PK}}
+\newcommand{\SK}{\mathsf{SK}}
 
 \renewcommand{\a}{\mathfrak{a}}
 \renewcommand{\b}{\mathfrak{b}}
 \let\cedil\c
 \renewcommand{\c}{\mathfrak{c}}
 \renewcommand{\l}{\mathfrak{l}}
-\newcommand{\e}{\textbf{e}}
-\newcommand{\f}{\textbf{f}}
-\newcommand{\x}{\textbf{x}}
-\newcommand{\z}{\textbf{z}}
+\newcommand{\e}{\mathbf{e}}
+\newcommand{\f}{\mathbf{f}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\z}{\mathbf{z}}
 
-\newcommand{\Adv}{\text{Adv}}
+\DeclareMathOperator{\Adv}{Adv}
 
-\newcommand{\KeyGen}{\textsf{KeyGen}}
-\newcommand{\Sign}{\textsf{Sign}}
-\newcommand{\Verify}{\textsf{Verify}}
-\newcommand{\IGen}{\textsf{IGen}}
-\newcommand{\PP}{\textsf{P}}
-\newcommand{\VV}{\textsf{V}}
+\newcommand{\KeyGen}{\mathsf{KeyGen}}
+\newcommand{\Sign}{\mathsf{Sign}}
+\newcommand{\Verify}{\mathsf{Verify}}
+\newcommand{\IGen}{\mathsf{IGen}}
+\newcommand{\PP}{\mathsf{P}}
+\newcommand{\VV}{\mathsf{V}}
 \newcommand{\Wset}{\mathcal{W}}
 \newcommand{\Zset}{\mathcal{Z}}
 \newcommand{\ChSet}{\textsf{ChSet}}
 \newcommand{\St}{\textsf{St}}
-\newcommand{\LossIGen}{\textsf{LossIGen}}
-\newcommand{\PRF}{\textsf{PRF}}
+\newcommand{\LossIGen}{\mathsf{LossIGen}}
+\newcommand{\PRF}{\mathsf{PRF}}
 \newcommand{\PRFk}{\PRF_{\mathrm{key}}}
 \newcommand{\PRFm}{\PRF_{\mathrm{mask}}}
 \newcommand{\PRFs}{\PRF_{\mathrm{secret}}}
