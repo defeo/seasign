@@ -24,7 +24,7 @@
 
 %\renewcommand{\C}{\mathcal{C}}
 \newcommand{\D}{\mathcal{D}}
-%\newcommand{\E}{\mathcal{E}}
+\newcommand{\E}{\mathcal{E}}
 \newcommand{\F}{\mathbb{F}}
 \newcommand{\Fpbar}{\overline{\mathbb{F}}_p}
 \newcommand{\Fqbar}{\overline{\mathbb{F}}_q}
@@ -277,19 +277,19 @@ Section 4 of Couveignes~\cite{Couv06} also sketches the identification protocol,
 The public key consists of $E$ and $E_A = \a * E$, where $\a = \prod_{i=1}^n \l_i^{e_i}$ is the private key.
 To construct the private key one uniformly chooses an exponent vector $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for some suitably chosen constant $B$.
 
-In the identification protocol the prover generates $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ for $1 \le k \le t$ and computes $E_k = \b_k * E$.
+In the identification protocol the prover generates $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ for $1 \le k \le t$ and computes $\E_k = \b_k * E$.
 Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and independently sampled in $[-B,B]^n$.
-The prover sends $(j( E_k ) : 1 \le k \le t )$ to the verifier.
+The prover sends $(j( \E_k ) : 1 \le k \le t )$ to the verifier.
 The verifier responds with $t$ uniformly chosen challenge bits $b_1, \dots, b_t \in \{0,1\}$.
-If $b_k = 0$ the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$.
+If $b_k = 0$ the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(\E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$.
 If $b_k = 1$ the prover responds with a representation of $\b_k \a^{-1}$. Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key; but neither he nor Couveignes explains how to prevent this leakage.
-When $b_k=1$ the verifier checks that $j(E_k) = j( (\b_k \a^{-1}) * E_A )$.
+When $b_k=1$ the verifier checks that $j(\E_k) = j( (\b_k \a^{-1}) * E_A )$.
 A cheating prover (who does not know the private key) can succeed with probability $1/2^t$.
 
-To obtain a signature scheme Stolbunov applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(E_1), \dots, j(E_t) , \msg )$ where $H$ is a cryptographic hash function with $t$-bit output and $\msg$ is the message to be signed.
+To obtain a signature scheme Stolbunov applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(\E_1), \dots, j(\E_t) , \msg )$ where $H$ is a cryptographic hash function with $t$-bit output and $\msg$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
 
-The verifier computes, for $1 \le k \le t$, $E_k = \b_k * E$ when $b_k = 0$ and $E_k = \b_k \a^{-1} * E_A$ when $b_k = 1$. The verifier then computes $H( j( E_1), \dots, j(E_t), \msg )$ and checks whether this is equal to the binary string $b_1\cdots b_t$, and accepts the signature if and only if the strings agree.
+The verifier computes, for $1 \le k \le t$, $\E_k = \b_k * E$ when $b_k = 0$ and $\E_k = \b_k \a^{-1} * E_A$ when $b_k = 1$. The verifier then computes $H( j( \E_1), \dots, j(\E_t), \msg )$ and checks whether this is equal to the binary string $b_1\cdots b_t$, and accepts the signature if and only if the strings agree.
 
 
 We stress that neither Couveignes nor Stolbunov give a secure signature scheme as they do not explain how to prevent leakage of the private key. The main contribution of this paper is to give two solutions to the problem of representing $\b_k \a^{-1}$ without leaking the private key.
@@ -311,10 +311,10 @@ The value $B$ is presumably chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ 
 We refer to Definition~\ref{defn:sampling-distributions} for more discussion of this issue.
 
 Exponents $f_{k,i}$ are sampled uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is the number of parallel rounds of the identification protocol and $n$ is the number of primes.
-Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$, $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and define $E_k = \b_k * E $.
+Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$, $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and define $\E_k = \b_k * E $.
 
 
-If the $k$-th challenge bit $b_k$ is zero then the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$ as in the basic scheme above.\footnote{In the scheme and analysis I actually apply rejection sampling to the case $b_k = 0$. It doesn't really matter one way or the other.}
+If the $k$-th challenge bit $b_k$ is zero then the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(\E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$ as in the basic scheme above.\footnote{In the scheme and analysis I actually apply rejection sampling to the case $b_k = 0$. It doesn't really matter one way or the other.}
 If $b_k = 1$ then the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z_k = (z_{k,1}, \dots, z_{k,n}) $ defined by $z_{k,i} = f_{k,i} - e_i $ for $1 \le i \le n$.
 As already noted, outputting $\z$ directly would potentially leak the secret.
 To prevent this leakage we only output $\z_k$ if all its entries satisfy $| z_{k,i} | \le nt B$.
@@ -374,9 +374,9 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 	\begin{algorithmic}[1]
 		\For {$k=1 , \dots , t$}
 		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ 
-		\State $E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
+		\State $\E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
 		\EndFor
-		\State $b_1 \Vert \cdots \Vert b_t = H( j(E_1) , \dots, j(E_t), \msg )$
+		\State $b_1 \Vert \cdots \Vert b_t = H( j(\E_1) , \dots, j(\E_t), \msg )$
 		\For {$k=1, \dots, t$}
 		\If{$b_k=0$}
 		\State $\z_k = \f_k$
@@ -401,12 +401,12 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 		\State Parse $\sigma$ as $(\z_1, \dots, \z_t, b_1 , \dots, b_t)$
 		\For {$k=1 , \dots , t$}
 		\If{$b_k=0$}
-		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E$
+		\State $\E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E$
 		\Else
-		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E_A$
+		\State $\E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E_A$
 		\EndIf
 		\EndFor
-		\State $b_1' \Vert \cdots \Vert b_t' = H( j(E_1) , \dots, j(E_t), \msg )$
+		\State $b_1' \Vert \cdots \Vert b_t' = H( j(\E_1) , \dots, j(\E_t), \msg )$
 		\If{$(b_1', \dots, b_t') = (b_1 , \dots, b_t)$} \State \Return Valid
 		\Else \State \Return Invalid \EndIf
 	\end{algorithmic}
@@ -546,12 +546,12 @@ Suppose the adversary $A$ makes at most $Q$ (polynomial in the security paramete
 \noindent \textbf{Sign queries:}
 To answer a Sign query on message $\msg$ the simulator chooses 
 $t$ uniformly chosen bits $b_1, \dots, b_t \in \{0,1\}$.
-When $b_k = 0$ the simulator randomly samples $z_k \leftarrow [-ntB,ntB]^n$ and sets $\b_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ and computes $E_k = \b_k * E$, just like in the real signing algorithm.
+When $b_k = 0$ the simulator randomly samples $z_k \leftarrow [-ntB,ntB]^n$ and sets $\b_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ and computes $\E_k = \b_k * E$, just like in the real signing algorithm.
 When $b_k = 1$ the simulator chooses a random ideal $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ for $z_{k,i} \in [-ntB, ntB]$
 %(consistent with the protocol under consideration; so using Lemma~\ref{lem:sim2}) 
-and computes $E_k = \c_k * E_A$.
-By Lemma~\ref{lem:sim2}, the values $j( E_k )$ and $\z_k$ are distributed exactly as in the real signing algorithm.
-We program the random oracle (update the hash list) so that $H( j( E_1), \dots, j(E_t), \msg ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case the simulation fails and outputs $\perp$.
+and computes $\E_k = \c_k * E_A$.
+By Lemma~\ref{lem:sim2}, the values $j( \E_k )$ and $\z_k$ are distributed exactly as in the real signing algorithm.
+We program the random oracle (update the hash list) so that $H( j( \E_1), \dots, j(\E_t), \msg ) := b_1 \cdots b_t$, unless the random oracle has already been defined on this input in which case the simulation fails and outputs $\perp$.
 The probability of failure is at most $Q/M_{ntB}^t$, 
 where $M_{ntB}$ is defined in Definition~\ref{defn:sampling-distributions} to be an upper bound on the probability of a collision in the sampling of ideal classes.
 Note that $Q/M_{ntB}^t$ is negligible.
@@ -567,7 +567,7 @@ To answer a random oracle query on input $x$ one checks if $(x,y)$ already appea
 Eventually $A$ outputs a forgery $(\msg, \z_1, \dots, \z_t, b_1\cdots b_t)$ that passes the verification equation.
 Define $\c_k = \prod_i \l_i^{z_{k,i}}$.
 The proof now invokes the Forking Lemma (see Bellare-Neven~\cite{BN06}). The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
-With non-negligible probability the adversary outputs a forgery with the same message $\msg$ and the same input $(j(E_1), \dots, j(E_t), \msg)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance. \qed
+With non-negligible probability the adversary outputs a forgery with the same message $\msg$ and the same input $(j(\E_1), \dots, j(\E_t), \msg)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance. \qed
 \end{proof}
 
 
@@ -591,9 +591,9 @@ In this section we sketch an approach to obtain $s$-bit challenge values for any
 
 The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
 For each $1 \le m \le 2^s$ we choose $\e_m \leftarrow [-B,B]^n$ and set $E_{A,m} = ( \prod_{i=1}^n \l_i^{e_{m,i}} ) * E$.
-The signing algorithm for user A chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $E_k = \b_k * E$, as before.
+The signing algorithm for user A chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $\E_k = \b_k * E$, as before.
 Now we have $s$-bit challenges $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
-For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which corresponds to the ideal class $\c_k := \a_{b_k}^{-1} \b_k$ and the verifier can check that $j( E_k ) = j( \c_k * E_{A, b_k})$.
+For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which corresponds to the ideal class $\c_k := \a_{b_k}^{-1} \b_k$ and the verifier can check that $j( \E_k ) = j( \c_k * E_{A, b_k})$.
 
 A signature is still made of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
 But now for security we now only require $ts \ge \lambda$.
@@ -649,10 +649,6 @@ In the random oracle model, the signature scheme of this section is unforgeable 
 \end{theorem}
 
 
-(***) Just noticed notation clash $E_A$ for public key of A = Alice; A = adversary against scheme. Could use $\FF$ for forger?  Probably doesn't matter.
-%
-Luca: it's not as much the clash as the fact that I keep confusing the public curves $E_{A,k}$ and the commitments $E_k$. I wonder if it wouldn't be more readable to use a different letter altogether for the public curves, e.g., $P_k$.
-
 \begin{proof}
 Let $A$ be an adversary against the scheme and $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
 
@@ -667,8 +663,8 @@ This is where the subtlety about distributions appears: it is crucial that the p
 
 The simulator will handle hash and sign queries similarly to the proof of Theorem~\ref{thm:security-basic}.
 When simulating the sign oracle we first choose the $t$ values $b_1, \dots, b_1 \in \{0,1\}^s$, which are interpreted as the challenge values $1 \le b_k \le 2^s$.
-For each $1 \le k \le t$ we choose a random ideal class $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ by choosing $z_{k,i} \in [-ntB, ntB]$, and then compute $E_k = c_k * E_{A,b_k}$.
-One then defines the hash value $H( j(E_1), \dots, j(E_t), \msg )$ to be $b_1 \Vert b_2 \Vert \cdots \Vert b_t$.
+For each $1 \le k \le t$ we choose a random ideal class $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ by choosing $z_{k,i} \in [-ntB, ntB]$, and then compute $\E_k = c_k * E_{A,b_k}$.
+One then defines the hash value $H( j(\E_1), \dots, j(\E_t), \msg )$ to be $b_1 \Vert b_2 \Vert \cdots \Vert b_t$.
 This simulation is indistinguishable to the real cryptosystem, assuming the distributions on ideal classes have negligible statistical distance.
 
 When the forking lemma is applied we have, for some index $k$, two different ideals $\c_k, \c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$ and $b_k' \ne b_k$
@@ -731,10 +727,10 @@ This is a considerably large secret key, e.g., around $1$ megabyte when $\lambda
 Also note than the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
 
 To sign we proceed like in Section~\ref{sec:smaller-sigs}, but the signature now needs to contain additional information.
-The signer computes the random ideals $\b_1,\dots,\b_t$ and the associated curves $E_1,\dots,E_t$ to obtain the challenges $b_1,\dots,b_t$.
+The signer computes the random ideals $\b_1,\dots,\b_t$ and the associated curves $\E_1,\dots,\E_t$ to obtain the challenges $b_1,\dots,b_t$.
 Then, using $\PRFs$, they obtain the secrets $\a_{b_1},\dots,\a_{b_t}$, recompute the public curves $E_{A,b_1},\dots,E_{A,b_t}$, and the ideals $\c_i=\a_{b_i}^{-1}\b_i$.
 The signature is made of the ideals $\c_1,\dots,\c_t$, the curves $E_{A,b_1},\dots,E_{A,b_t}$, and their authentication paths in the hash tree.
-The verifier computes $E_i$ as $\c_i * E_{A,b_i}$, obtains the challenges $b_1,\dots,b_t$, and uses them to verify the authentication paths.
+The verifier computes $\E_i$ as $\c_i * E_{A,b_i}$, obtains the challenges $b_1,\dots,b_t$, and uses them to verify the authentication paths.
 Hence, the signature contains $t$ ideals represented as vectors in $[-ntB,ntB]^n$, $t$ curves represented by their $j$-invariants, and $t$ authentication paths of length $s$.
 The $t$ authentication paths eventually merge before the root, thus some hash values will be repeated.
 We can save some space by only sending the hash values once, in some standardized order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
@@ -1045,14 +1041,14 @@ This bound is sufficient for the keys to be lossy.
 	\caption{$\PP_1$}
 	\textbf{Input:} $(E,E_A)$,  $r_1$
 
-	\textbf{Output:} $W = ( j(E_1) , \dots, j(E_t) )$, $\St = (\f_1, \dots, \f_t )$
+	\textbf{Output:} $W = ( j(\E_1) , \dots, j(\E_t) )$, $\St = (\f_1, \dots, \f_t )$
 
 	\begin{algorithmic}[1]
 		\For {$k=1 , \dots , t$}
 		\State $\f_k \leftarrow [-(nt+1)B,(nt+1)B]^n$ using $\PRF( r_1 )$
-		\State $E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
+		\State $\E_k = ( \prod_{i=1}^n \l_i^{f_{k,i}} ) * E$
 		\EndFor
-		\State \Return $( j(E_1) , \dots, j(E_t) )$, $(\f_1, \dots, \f_t )$
+		\State \Return $( j(\E_1) , \dots, j(\E_t) )$, $(\f_1, \dots, \f_t )$
 	\end{algorithmic}
 \end{algorithm}
 \end{minipage}
@@ -1095,12 +1091,12 @@ This bound is sufficient for the keys to be lossy.
 		\State Parse $Z$ as $(\z_1, \dots, \z_t)$
 		\For {$k=1 , \dots , t$}
 		\If{$b_k=0$}
-		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E$
+		\State $\E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E$
 		\Else
-		\State $E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E_A$
+		\State $\E_k = ( \prod_{i=1}^n \l_i^{z_{k,i}} ) * E_A$
 		\EndIf
 		\EndFor
-		\If{$(j_1, \dots, j_t) = (j(E_1) , \dots, j(E_t))$} \State \Return Valid
+		\If{$(j_1, \dots, j_t) = (j(\E_1) , \dots, j(\E_t))$} \State \Return Valid
 		\Else \State \Return Invalid \EndIf
 	\end{algorithmic}
 \end{algorithm}
@@ -1146,9 +1142,9 @@ We make some heuristic assumptions.
 \begin{description}
 \item[Heuristic 1:] There are at least $\sqrt{p}$ supersingular elliptic curves with $j$-invariant in $\F_p$.
 
-This assumption, combined with the bound $\sqrt{p} \gg (2(nt+1)B)^n $ of equation~(\ref{eq:lossy-p-bound}), implies that the curves $E_k$ constructed by algorithm $\PP_1$ are a negligibly small proportion of all such curves.
+This assumption, combined with the bound $\sqrt{p} \gg (2(nt+1)B)^n $ of equation~(\ref{eq:lossy-p-bound}), implies that the curves $\E_k$ constructed by algorithm $\PP_1$ are a negligibly small proportion of all such curves.
 
-\item[Heuristic 2:] Each choice of $\f_k \in [-(nt+1)B,(nt+1)B]^n$ gives a unique value for $j(E_k)$.
+\item[Heuristic 2:] Each choice of $\f_k \in [-(nt+1)B,(nt+1)B]^n$ gives a unique value for $j(\E_k)$.
 
 This is extremely plausible given equation~(\ref{eq:lossy-p-bound}). It implies that the min-entropy of the values $W$ output by $\PP_1$ is extremely high (more than sufficient for the security proofs).
 
@@ -1192,13 +1188,13 @@ Then the probability that there is some $Z \in \Zset$ with $\VV( pk, W, c, Z ) =
 \begin{proof}
 Let $pk = (E, E_A )$ be an output of $\LossIGen( 1^\lambda )$.
 By Lemma~\ref{lem:isogeny count} we have that with overwhelming probability $j(E_A) \ne j( \a * E )$ for all ideals $\a$ of the form in Lemma~\ref{lem:isogeny count}.
-Let $W = (j(E_1), \dots, j(E_t) )$ be an element of $\Wset$, so that each $E_k$ is of the form $\a_k * E$ where $\a_k = \prod_i \l_i^{f_{k,i}}$ for $f_{k,i} \in [-(nt+1)B, (nt+1)B ]$.
+Let $W = (j(\E_1), \dots, j(\E_t) )$ be an element of $\Wset$, so that each $\E_k$ is of the form $\a_k * E$ where $\a_k = \prod_i \l_i^{f_{k,i}}$ for $f_{k,i} \in [-(nt+1)B, (nt+1)B ]$.
 
 
 Let $c \leftarrow \ChSet$ be a uniformly chosen challenge, which means that $c \ne 0$ with overwhelming probability.
 Then there is some $k$ with $c_k \ne 0$ and so if $Z$ was to satisfy the verification algorithm
-$\VV( pk, W, c, Z ) = 1$ then it would follow that $\z_k$ gives an ideal $\c_k$ such that $j(E_k) = j( \c_k * E_A )$.
-From $\a_k * E  \cong E_k \cong \c_k * E_A$ it follows that $E_A \cong (\c_k^{-1} \a_k ) * E$.
+$\VV( pk, W, c, Z ) = 1$ then it would follow that $\z_k$ gives an ideal $\c_k$ such that $j(\E_k) = j( \c_k * E_A )$.
+From $\a_k * E  \cong \E_k \cong \c_k * E_A$ it follows that $E_A \cong (\c_k^{-1} \a_k ) * E$.
 But $\c_k^{-1} \a_k = \prod_i \l_i^{f_{k,i} - z_{k,i}}$, which violates the claim about $E_A$ corresponding to Lemma~\ref{lem:isogeny count}. Hence $Z$ does not exist and the result is proved. \qed
 \end{proof}
 
