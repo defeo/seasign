@@ -105,7 +105,7 @@
 Stolbunov~\cite{Sto12} was the first to sketch a signature scheme based on isogeny problems.
 Stolbunov's scheme was in the framework of class group actions.
 However his scheme leaked the private key.
-Due to renewed interest in class group actions, especially CSIDH~\cite{CLMPR18} and the scheme by De Feo et al~\cite{DFKS18}, it is of interest to develop a secure signature scheme in this setting.
+Due to renewed interest in class group actions, especially CSIDH~\cite{CLMPR18} (due to Castryck, Lange, Martindale, Panny and Renes) and the scheme by De Feo, Kieffer and Smith~\cite{DFKS18}, it is of interest to develop a secure signature scheme in this setting.
 Our main contribution is to use Lyubashevsky's ``Fiat-Shamir with aborts'' strategy to obtain a secure signature scheme.
 
 
@@ -114,8 +114,16 @@ Our main contribution is to use Lyubashevsky's ``Fiat-Shamir with aborts'' strat
 Currently it is a major problem to get practical signatures from isogeny problems.
 Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes.
 This can be reduced a small amount using some optimisations (e.g., see~\cite{GPS17}), but will still be in the tens of kilobytes.
-In contrast, in this paper we should be able to get signatures smaller than a kilobyte, which is better than lattice signatures!!!
+In contrast, in this paper we should be able to get signatures smaller than a kilobyte, which is better than lattice signatures.
 Unfortunately, signing and verification are very slow, but we might just about be able to live with that in certain applications.
+
+
+The paper is organised as follows.
+Section~\ref{sec:basic-scheme} gives the basic signature scheme concept, that was proposed by Stolbunov, and our secure variant based on Fiat-Shamir with aborts.
+Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit.
+Section~\ref{sec:smaller-keys} shows how to retain the benefit of shorter signatures, while also having a short public key, by using modified Merkle trees.
+In Appendix~\ref{sec:lossy-keys} we show how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}.
+
 
 
 The name: The name ``SeaSign'' is a joke on the name CSIDH, which is pronounced ``sea-side''.
@@ -254,7 +262,6 @@ A signature scheme is UF-CMA secure if there is no polynomial-time adversary tha
 
 
 
-
 \section{Basic Signature Scheme}\label{sec:basic-scheme}
 
 This section contains our main ideas and presents a basic signature scheme.
@@ -331,72 +338,14 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 
 
 
-\begin{lemma}\label{lem:rejection}
-The probability that the signing algorithm does not output $\bot$ is at least $1/e > 1/3$.
-\end{lemma}
-
-\begin{proof}
-Let notation be as in the proof of Lemma~\ref{lem:sim2}.
-For fixed $e \in [-B, B]$ and uniformly sampled $f \in U = [-(nt+1)B, (nt+1)B]$, the probability that a value $f-e$ lies in $[-ntB, ntB]$ is
-\[
-   \frac{2ntB + 1}{2(nt+1)B + 1}  = 1 - \frac{2B}{2(nt+1)B + 1} \ge 1 - \frac{1}{nt+1}.
-\]
-Hence, the probability that all of the values $z_{k,i}$ over $1 \le k \le t, 1 \le i \le n$ lie in $[-ntB, ntB]$ is at least $(1 - 1/(nt+1))^{nt}$.
-% Proof of the inequality: graph the functions
-Using the inequality $1 - 1/(x+1) \ge e^{-1/x}$ for $x \ge 1$ it follows that the probability that all values are in the desired range is at least
-\[
-   \left( e^{-1/nt} \right)^{nt} = e^{-1}.
-\]
-This completes the proof. \qed
-\end{proof}
 
 
 
 
 
-We can therefore get a rough idea of parameters and efficiency for the scheme.
-Let $\lambda$ be a security parameter (e.g., $\lambda=128$ or $\lambda=256$), for security
-we need at least $t=\lambda$ so that an attacker cannot guess the hash value or invert the hash function (see also the proof of Theorem~\ref{thm:security-basic}).
-We also need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
-The signature contains one hash value of $\lambda$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-1, we obtain signatures of 19.6 kilobytes (see also Table~\ref{tab:comparison}).
-
-To sign/verify one needs to evaluate the action of either of $\b_k$ and $\b_k\a^{-1}$ for every $1\le k\le t$,
-which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
-Hence, the total number of isogeny computations is upper bounded by $(nt)^2 B$.
-The quadratic dependence on $nt$ is a major inconvenience.
-For example, taking again $(t,n,B)=(128,74,5)$ gives around $2^{28}$ isogeny computations in signature/verification.
-We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
-The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
-
-We discuss some possible optimisations in Appendix~\ref{sec:variants}.
-
-
-% NOTE: $n=50, B=6$ is too small, as $(2B+1)^n \approx 2^{185}$. So I updated the above.
-Here is a table, for various $n$, of the smallest $B$ such that $(2B+1)^n > 2^{255}$.
-Maybe it would be better the other way around: smallest $n$ for various values of $B$.
-
-TODO: do we need this table? It's complicated going beyond $n\ge 74$, because then we have to take a larger $p$ and we're out of the CSIDH setting. And, among the other pairs, (74,5) is the optimum in terms of computation time (the worst in terms of sig size, though).
-
-\begin{center}
-\begin{tabular}{c||c|c|c|c|c|c|c|c|c|c}
- $n$     & 50 & 55 & 60 & 65 & 70 & 75 & 80 & 85 & 90 & 95 \\
-\hline
- min $B$ & 17 & 12 & 10 &  8 &  6 &  5 &  5 &  4 &  4 &  3 \\
-\end{tabular}
-\end{center}
-
-%\begin{figure} 
 
 
 
-%If a challenge bit $b_k = 1$ and the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z = (z_1, \dots, z_n) $ so that $z_k = f_{k,i} - e_k $.
-%Now, if all $|z_k| \le tB$ then we accept $\z$ as a ``safe'' representation of the ideal, otherwise we reject $\z$ and the protocol fails.
-%
-%f $E$ and $E_A = \a * E$, where $\a = $ is the private key.
-%To construct the private key one unif
-%
-% $1 \le k \le t$ and computes $E_k = \b_k * E$.
-%Here the exponent vectors $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ are uniformly and independently sampled in $[-B,B]^n$.
 
 %\begin{figure}[!htb]
 \begin{figure}
@@ -466,6 +415,69 @@ TODO: do we need this table? It's complicated going beyond $n\ge 74$, because th
 \end{minipage}
 \caption{The basic signature scheme using rejection sampling.\label{fig:sig-scheme}}
 \end{figure}
+
+
+
+
+
+
+\begin{lemma}\label{lem:rejection}
+The probability that the signing algorithm does not output $\bot$ is at least $1/e > 1/3$.
+\end{lemma}
+
+\begin{proof}
+Let notation be as in the proof of Lemma~\ref{lem:sim2}.
+For fixed $e \in [-B, B]$ and uniformly sampled $f \in U = [-(nt+1)B, (nt+1)B]$, the probability that a value $f-e$ lies in $[-ntB, ntB]$ is
+\[
+   \frac{2ntB + 1}{2(nt+1)B + 1}  = 1 - \frac{2B}{2(nt+1)B + 1} \ge 1 - \frac{1}{nt+1}.
+\]
+Hence, the probability that all of the values $z_{k,i}$ over $1 \le k \le t, 1 \le i \le n$ lie in $[-ntB, ntB]$ is at least $(1 - 1/(nt+1))^{nt}$.
+% Proof of the inequality: graph the functions
+Using the inequality $1 - 1/(x+1) \ge e^{-1/x}$ for $x \ge 1$ it follows that the probability that all values are in the desired range is at least
+\[
+   \left( e^{-1/nt} \right)^{nt} = e^{-1}.
+\]
+This completes the proof. \qed
+\end{proof}
+
+
+
+
+
+We can therefore get a rough idea of parameters and efficiency for the scheme.
+Let $\lambda$ be a security parameter (e.g., $\lambda=128$ or $\lambda=256$), for security
+we need at least $t=\lambda$ so that an attacker cannot guess the hash value or invert the hash function (see also the proof of Theorem~\ref{thm:security-basic}).
+We also need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
+The signature contains one hash value of $\lambda$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-1, we obtain signatures of 19.6 kilobytes (see also Table~\ref{tab:comparison}).
+
+To sign/verify one needs to evaluate the action of either of $\b_k$ and $\b_k\a^{-1}$ for every $1\le k\le t$,
+which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
+Hence, the total number of isogeny computations is upper bounded by $(nt)^2 B$.
+The quadratic dependence on $nt$ is a major inconvenience.
+For example, taking again $(t,n,B)=(128,74,5)$ gives around $2^{28}$ isogeny computations in signature/verification.
+We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
+The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
+
+We discuss some possible optimisations in Appendix~\ref{sec:variants}.
+
+
+*** Below is not post-quantum secure as it does not accommodate Tani algorithm. ***
+
+% NOTE: $n=50, B=6$ is too small, as $(2B+1)^n \approx 2^{185}$. So I updated the above.
+Here is a table, for various $n$, of the smallest $B$ such that $(2B+1)^n > 2^{255}$.
+Maybe it would be better the other way around: smallest $n$ for various values of $B$.
+
+TODO: do we need this table? It's complicated going beyond $n\ge 74$, because then we have to take a larger $p$ and we're out of the CSIDH setting. And, among the other pairs, (74,5) is the optimum in terms of computation time (the worst in terms of sig size, though).
+
+\begin{center}
+\begin{tabular}{c||c|c|c|c|c|c|c|c|c|c}
+ $n$     & 50 & 55 & 60 & 65 & 70 & 75 & 80 & 85 & 90 & 95 \\
+\hline
+ min $B$ & 17 & 12 & 10 &  8 &  6 &  5 &  5 &  4 &  4 &  3 \\
+\end{tabular}
+\end{center}
+
+
 
 
 
@@ -677,7 +689,6 @@ Of course, during key generation one needs to compute all the public keys, but d
 
 
 
-
 \section{Smaller public keys} \label{sec:smaller-keys}
 
 The approach of Section~\ref{sec:smaller-sigs} gives signatures that are potentially quite small, but at the expense of very large public keys. In some settings (e.g., software signing) large public keys can be easily accommodated, while in other settings (e.g., certificate chains) it makes no sense to shorten signatures at the expense of public key size.
@@ -792,7 +803,7 @@ A second reason for using this measure is that it estimates the running time as 
 
 Note that these estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
 However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees, much larger than ours, can be computed in a fraction of the time we need to compute isogenies.
-On the other hand, rejections that happen during signing multiply the running time by a small constant, tipically less than $3$ on average.
+On the other hand, rejections that happen during signing multiply the running time by a small constant, typically less than $3$ on average.
 
 
 \begin{landscape}
@@ -943,6 +954,11 @@ For our example parameters this would be 3790 bits (NO 6000), or around 474 byte
 
 More work needed to work out the exact details and determine the rejection sampling probabilities. ***
 
+\item One might try to trade-off the size of exponent vectors and the rejection probability. Lemma~\ref{lem:rejection} is about sampling $f_{k,i} \in [ -(nt+1)B, (nt+1)B ]$ and gives probability of acceptance $\approx 1/e \approx 0.368$.
+A simple modification of the proof shows that, for any $u > 0$, if one samples $f_{k,i} \in [ -u(nt+1)B, u(nt+1)B ]$ and accepts only those $\z_{k,i} \in [ -untB, untB ]$, then the acceptance probability is approximately $e^{-1/u}$.
+
+Taking $u = 1/2$ roughly halves the time spent on computing $\b_k * E$, but changes the acceptance probability to $e^{-2}  \approx 0.135$; overall this is worse than the original proposal since $2 e^{-2} \approx 0.271 < e^{-1}$.
+Similarly, taking $u = 2$ doubles the time spent on computing $\b_k * E$, but changes the acceptance probability to $e^{-1/2} \approx 0.607$; again this is worse on average than our proposal.
 \end{enumerate}
 
 
