@@ -113,8 +113,8 @@ Our main contribution is to use Lyubashevsky's ``Fiat-Shamir with aborts'' strat
 
 Currently it is a major problem to get practical signatures from isogeny problems.
 Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes.
-This can be reduced a small amount using some optimisations (e.g., see~\cite{GPS17}), but will still be in the tens of kilobytes.
-In contrast, in this paper we should be able to get signatures smaller than a kilobyte, which is better than lattice signatures.
+This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for a variant of that signature scheme (for classical 128-bit security level).
+In contrast, in this paper we should be able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
 Unfortunately, signing and verification are very slow, but we might just about be able to live with that in certain applications.
 
 
@@ -122,8 +122,7 @@ The paper is organised as follows.
 Section~\ref{sec:basic-scheme} gives the basic signature scheme concept, that was proposed by Stolbunov, and our secure variant based on Fiat-Shamir with aborts.
 Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit.
 Section~\ref{sec:smaller-keys} shows how to retain the benefit of shorter signatures, while also having a short public key, by using modified Merkle trees.
-In Appendix~\ref{sec:lossy-keys} we show how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}.
-
+In Appendix~\ref{sec:lossy-keys} we show how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (and this security enhancement involves no increase in signature size, though the primes are larger so computations will be somewhat slower).
 
 
 The name: The name ``SeaSign'' is a joke on the name CSIDH, which is pronounced ``sea-side''.
