@@ -1175,8 +1175,8 @@ I guess one can show, using a hybrid argument, that ability to solve the decisio
 
 \begin{definition}
 Consider two distributions on pairs $(E, E_A)$ of supersingular ellptic curves over $\F_p$.
-Let $D_1$ be the output distribution of the algorithm $\IGen$.
-Let $D_2$ be the uniform distribution (i.e., output distribution of the lossy key generation algorithm).
+Let $\D_1$ be the output distribution of the algorithm $\IGen$.
+Let $\D_2$ be the uniform distribution (i.e., output distribution of the lossy key generation algorithm).
 The \emph{decisional short isogeny problem} is to distinguish the two distributions when given one sample.
 \end{definition}
 
@@ -1293,11 +1293,11 @@ This ended up in the ``too hard'' pile.
 
 
 \begin{lemma} \label{lem:sim1}
-Let $B \in \N$. Let $D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
-Suppose the statistical distance between $D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
-Let $D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
+Let $B \in \N$. Let $\D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
+Suppose the statistical distance between $\D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
+Let $\D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
 Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
-Then the statistical distance between $D_2$ and $U$ is at most $\epsilon$.
+Then the statistical distance between $\D_2$ and $U$ is at most $\epsilon$.
 \end{lemma}
 
 Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
