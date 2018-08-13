@@ -724,7 +724,7 @@ See~\cite{10.1007/978-3-662-49384-7_15,sphincs+} for more details.
 Typically, in hash-based signatures the secret key would only contain $\SK.\seed$, since all secret and public values can be reconstructed from it at an acceptable cost.
 However, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s-1$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,1},\dots,h_{s,2^s})$.
 This is a considerably large secret key, e.g., around $1$ megabyte when $\lambda=128$ and $s=16$, but it is offset by a more than tenfold gain in signing time.
-Also note than the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
+Also note that the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
 
 To sign we proceed like in Section~\ref{sec:smaller-sigs}, but the signature now needs to contain additional information.
 The signer computes the random ideals $\b_1,\dots,\b_t$ and the associated curves $\E_1,\dots,\E_t$ to obtain the challenges $b_1,\dots,b_t$.
