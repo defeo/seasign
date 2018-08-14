@@ -194,10 +194,12 @@ We compute lists (assume $n$ is even)
 \]
 If $L_1 \cap L_2 \ne \varnothing$ then we have solved the isogeny problem.
 This attack can be used even when the set of ideal classes generated is a small subset of $\Cl( \OO )$.
-Hence for security we require $(2B+1)^n > 2^{2 \lambda}$, where $\lambda$ is the security parameter.
+Hence for security we require $(2B+1)^n > 2^{2 \lambda}$, where $\lambda$ is the security parameter (but see~\cite{adj+menezes+al-isogenies} for a more in-depth analysis of this algorithm, leading to smaller parameters).
 Further, there is a quantum algorithm due to Tani, which is straightforward to adapt to this problem (we refer to Section~5.2 of  De Feo, Jao and Pl{\^{u}}t~\cite{FJP14} for details).
 This means we need $(2B+1)^n > 2^{3 \lambda}$ bits to have post-quantum security.
 
+Also on a quantum computer, Kuperberg's algorithm, requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ gates, thus we also need $p>2^{2\lambda^2}$.
+Choosing the smallest values for $B,n,p$ satisfying these constraints leads to sampling in an increasingly small subset of the whole class group.
 Note that Kuperberg's algorithm uses the entire class group, and so there seems to be no improvement to the subexponential attack even if we only sample a subset of the class group, or if the sampling of ideal classes is biased from the uniform distribution.
 
 OPEN Q: Can Kuperberg be done if we sample from a subset of $\Cl(\OO)$????
@@ -206,6 +208,7 @@ OPEN Q: Can Kuperberg be done if we sample from a subset of $\Cl(\OO)$????
 
 
 By taking into account the best known attacks, the CSIDH authors propose parameters for the three NIST categories~\cite{NIST2016}, as summarized in Table~\ref{tab:csidh-parms}.
+Note that in all CSIDH instances the set of sampled ideal classes is (heuristically) likely to cover the whole class group.
 Their implementation of the smallest parameter size CSIDH-1 computes one class group action in under 100ms on a 3.5GHz processor.
 
 
@@ -767,9 +770,22 @@ It is divided in three sections.
 Section ``Exact'' reports the parameter sizes, as a number of bits, already computed in each section.
 $\lambda$ is the security parameter, $n,B$ and $s$ are as described previously.
 To simplify the expressions we assume that all hash functions have $\lambda$-bit outputs, and we set the parameter $t=\lambda/s$.
+We also give a rough lower bound for the performance of the keygen and sign/verify algorithms, in terms of $\F_p$-operations.
+The bound only takes into account the number of operations needed to compute and evaluate the isogeny path:
+\begin{enumerate}
+\item Based
+  on~\cite{10.1007/978-3-319-70697-9_11,10.1007/978-3-319-79063-3_11},
+  we estimate that computing/evaluating an isogeny of degree $\ell$
+  costs $O(\ell)$ operations;
+\item By the prime number theorem $\sum_{i=1}^n\ell_i\sim\frac{1}{2}n^2\ln(n)$, and the estimate is very accurate already for $n>3$;
+\item Hence an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case.
+\end{enumerate}
+We note that this is not likely to be the dominant part in the computation, especially asymptotically,
+as scalar multiplications of elliptic points are likely to dominate.
+However, estimating this part of the algorithm is much more complex and dependent on specific optimizations, we thus chose to ignore it.
+
 
 Section ``Asymptotic'' gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
-The constraints on the parameters $p,n,B$ are determined following the methodology in CSIDH~\cite{CLMPR18}, and may not be necessary.
 Here is the justification for the parameter restrictions in terms of $\lambda$:
 \begin{enumerate}
 \item Kuperberg's algorithm is believed to have complexity at least $\tilde{O}( 2^{\sqrt{\log(N)}} )$ in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
@@ -777,26 +793,22 @@ Here is the justification for the parameter restrictions in terms of $\lambda$:
    \sqrt{ \log(N)} > \sqrt{ \tfrac{1}{2} \log(p) } > \sqrt{ \tfrac{1}{2} 2 \lambda^2 } = \lambda.
 \]
 \item Tani's algorithm requires $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$.
-
-The table below states  $n\log B\sim \lambda^2$, which is not relevant in our situation as we base our security on a different assumption to other works.
-
-(*** So, do we abandon approximating the uniform distribution or not? This only affects the ``Asymptotic'' part of the table, of course, but then we should say that Theorem 3 does not apply.)
-
-\item If one is choosing primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}, then one is restricted to taking $n$ not too large compared with $p$.
-Approximating $\ell_i \approx n \log(n)$ it follows that $p \approx (n \log(n))^n$ and so we must have $n \log(n) < \log(p)$.
-
-In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
+\item Assuming that one wants to optimize for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=O(\lambda)$. Note that this is compatible with $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) = O(\lambda\log(\lambda))$.
+\item Instead of measuring performances in terms $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound.
 \end{enumerate}
+
+Note that our asymptotic choices forbid the key space from covering the whole class group.
+If the conditions of Definition~\ref{defn:ass1} are wanted, different choices must be made for $n$ and $B$.
+In this case it is best to choose primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}.
+Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and $n\log(B)\sim\lambda^2$ imply that $B\sim\sqrt{n}$, making all asymptotic bounds considerably worse.
 
 Finally, section ``CSIDH'' gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
 We estimate these parameters to correspond to the NIST-1 security level.
 
-In each section, we also give a very rough estimate of the expected running time for key generation and for signature/verification.
-We measure this as a multiple of the ``unit'' $\Cl(\OO)$ action, i.e., as the equivalent number of computations of the action $(\prod_{i=1}^n\l_i^B)*E$.
-We feel this is a better measure than the number of individual isogeny computations, because those are highly dependent on the isogeny degree $\ell_i$.
-A second reason for using this measure is that it estimates the running time as a number of applications of the CSIDH primitive; indeed, in the last section we obtain our numerical estimates by multiplting this number by $0.1$ seconds, the worst-case time reported in~\cite{CLMPR18} for one isogeny action.
-
-Note that these estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
+Here we estimate real-world performances, using as baseline the worst-case time for one isogeny action in CSIDH.
+In~\cite{CLMPR18}, for an exponent vector in $[-B,B]^n$, this time is reported to be $0.1$ seconds.
+Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
+Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
 However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees, much larger than ours, can be computed in a fraction of the time we need to compute isogenies.
 On the other hand, rejections that happen during signing multiply the running time by a small constant, typically less than $3$ on average.
 
@@ -853,25 +865,36 @@ On the other hand, rejections that happen during signing multiply the running ti
       & $\log p$ & $\log p$ & $2^s\log p$ & $2\lambda$ \\
       SK size
       & $n\log(2B+1)$ & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
-      $\Cl(\OO)$ actions &&&&\\
+      Performance ($\F_p$-ops) &&&&\\
       $\to$ keygen
-      & 1 & 1 & $2^s$ & $2^s$\\
+      & $\Omega\bigl(Bn^2\log(n)\bigr)$
+      & $\Omega\bigl(Bn^2\log(n)\bigr)$
+      & $\Omega\bigl(2^sBn^2\log(n)\bigr)$
+      & $\Omega\bigl(2^sBn^2\log(n)\bigr)$\\
       $\to$ sig/verify
-      & $\lambda$ & $n\lambda^2$ & $n(\lambda/s)^2$ & $n(\lambda/s)^2$\\
+      & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
+      & $\Omega\bigl(\lambda^2Bn^3\log(n)\bigr)$
+      & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$
+      & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$\\
       \hline
       \hspace{1em}\textbf{Asymptotic} &&&&\\
       Sig size
-      & $O(\lambda^3)$ & $O(\lambda^3)$ & $O(\lambda^3/s)$ & $O(\lambda^3/s)$\\
+      & $O(\lambda^2)$ & $O(\lambda^2\log(\lambda))$ & $O((\lambda^2/s)\log(\lambda))$ & $O(\lambda^3/s)$\\
       PK size
-      & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $\lambda$\\
+      & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $2\lambda$\\
       SK size
-      & $\lambda^2$ & $\lambda^2$ & $\lambda$ & $(2^s+1)\lambda$\\
-      $\Cl(\OO)$ actions &&&&\\
+      & $3\lambda$ & $3\lambda$ & $\lambda$ & $(2^s+1)\lambda$\\
+      Performance (bits) &&&&\\
       $\to$ keygen
-      & 1 & 1 & $2^s$ & $2^s$\\
+      & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
+      & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
+      & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$
+      & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$\\
       $\to$ sig/verify
-      & $\lambda$ & $\lambda^4/\log(\lambda)$
-      & $(\lambda^2/s)^2/\log(\lambda)$ & $(\lambda^2/s)^2/\log(\lambda)$\\
+      & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
+      & $\Omega\bigl(\lambda^7\log(\lambda)^2\bigr)$
+      & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$
+      & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$\\
       \hline
       \hspace{1em}\textbf{CSIDH(128,16)} &&&&\\
       Sig size
@@ -888,8 +911,7 @@ On the other hand, rejections that happen during signing multiply the running ti
     \caption{Parameter size and performance of the various signature
       protocols.
       Equivalences used for asymptotic analysis are:
-      $\log p \sim 2\lambda^2$, $n\log B\sim \lambda^2$,
-      $n\log n \sim 2\lambda^2$.
+      $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$.
 The entry CSIDH(128,16) is for parameters $(\lambda,n,B,s,\log_2(p)) = (128, 74, 5, 16, 500)$ and $t=\frac{\lambda}{s}=8$.
       All logarithms are in base 2. % NdL: this is probably wrong
     }
