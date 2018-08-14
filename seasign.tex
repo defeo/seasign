@@ -279,7 +279,7 @@ We focus in this section on classical adversaries and proofs in the random oracl
 Hence our signature is based on the traditional Fiat-Shamir transform.
 For schemes and analysis against a post-quantum adversary see Section~\ref{sec:KLS-defns}.
 
-\subsection{Stolbunov's scheme}
+\subsection{Stolbunov's scheme}\label{sec:Stolbunov}
 
 Section 2.B of Stolbunov's PhD thesis~\cite{Sto12} contains a sketch of a signature scheme based on isogeny problems (though his description is not complete and he does not give a proof of security).
 It is a Fiat-Shamir scheme based on an identification protocol.
@@ -885,7 +885,7 @@ On the other hand, rejections that happen during signing multiply the running ti
     \pgfmathtruncatemacro{\ComTime}{\ParTime}
     \centering
     \begin{tabular}{l | c | c | c | c |}
-      & Basic scheme (not secure)
+      & Stolbunov scheme (Section~\ref{sec:Stolbunov})
       & Rejection sampling (Section~\ref{sec:sig-reject-sample})
       & Shorter signatures (Section~\ref{sec:smaller-sigs})
       & Smaller public keys (Section~\ref{sec:smaller-keys}) \\
@@ -995,11 +995,11 @@ Hence the main factor in having a large security parameter is using lots of dist
 Suppose the $e_i$ are sampled from a discrete Gaussian distribution with parameter $\sigma$, so that the standard deviation is close to $\sigma$. The entropy of the continuous Gaussian distribution with standard deviation $\sigma$ is $\log( 2 \pi e \sigma^2 )/2$.
 % so we need the $n$-th multiple of this to be larger than the security parameter.
 
-For example, take $n=70$, $s = 16, t = 8$ and choose $\sigma = 5$ (so almost all values $e_{i}$ will lie in $[-15,15]$ but occasionally one is larger than this. Then
+For example, take $n=50$, $s = 16, t = 8$ and choose $\sigma = 5$ (so almost all values $e_{i}$ will lie in $[-15,15]$ but occasionally one is larger than this. Then
 \[
-   n \log( 2 \pi e \sigma^2 )/2 \approx 212
+   n \log( 2 \pi e \sigma^2 )/2 \approx 218
 \]
-so determining the $e_i$ using a meet-in-the-middle strategy should require at least $2^{106}$ iterations, and realistically much more than this since organising a search based on the entropy is hard to do. For post-quantum security we might want to replace $2 \lambda$ with $3\lambda$ in the above.
+so determining the $e_i$ using a meet-in-the-middle strategy should require at least $2^{109}$ iterations, and realistically much more than this since organising a search based on the entropy is hard to do. For post-quantum security we might want to replace $2 \lambda$ with $3\lambda$ in the above.
 
 We following the methods and results of Lyubashevsky~\cite{Lyu12}. Lemma 4.3(3) of~\cite{Lyu12} shows we can bound the norm $\Vert \e \Vert$ by $T = 2 \sigma \sqrt{n}$.
 Now we need to choose the $f_{k,i}$ from a discrete Gaussian with parameter $\sigma'$, so that the distribution of $f_{k,i} - e_i$ is close (within statistical distance, though we could probably use Renyi divergence to get better results) to the discrete Gaussian with parameter $\sigma'$.
@@ -1007,10 +1007,12 @@ Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficie
 In our case we need to apply rejection sampling to all $t$ vectors $\z_k$ simultaneously,
 which leads to an additional factor.
 
-For our choices $n=70, t = 8, \sigma = 5$ this gives $\sigma' > 3000$ (experiments ongoing).
+For our choices $n=50, t = 8, \sigma = 5$ this gives $\sigma' > 3000$ (experiments ongoing).
 If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log( 2 \pi e (\sigma')^2 )/2$ bits.
 For our example parameters this would be between 7000-8000 bits, or around one kilobyte again.
 % More work is needed to work out the exact details and determine the rejection sampling probabilities. 
+
+This section will be updated soon.
 
 \item One might try to trade-off the size of exponent vectors and the rejection probability. Lemma~\ref{lem:rejection} is about sampling $f_{k,i} \in [ -(nt+1)B, (nt+1)B ]$ and gives probability of acceptance $\approx 1/e \approx 0.368$.
 A simple modification of the proof shows that, for any $u > 0$, if one samples $f_{k,i} \in [ -u(nt+1)B, u(nt+1)B ]$ and accepts only those $\z_{k,i} \in [ -untB, untB ]$, then the acceptance probability is approximately $e^{-1/u}$.
@@ -1305,6 +1307,7 @@ In particular this theorem gives a precise statement of the advantage. \qed
 
 This section explains an alternative solution to the problem of representing an ideal class without leaking the private key of the signature scheme.
 This variant can be considered if a quantum computer is available during system setup.
+Essentially, this is the scheme from Stolbunov's thesis (see Section~\ref{sec:Stolbunov}), which can be used securely once the relation lattice is known.
 
 
 Let $\{ \l_1, \dots, \l_n \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
