@@ -1,8 +1,8 @@
 \documentclass{llncs}
 
-%\usepackage{amsmath,amssymb}
-\usepackage{amsmath,amssymb,fullpage}
-\usepackage{times}
+\usepackage{amsmath,amssymb}
+%\usepackage{amsmath,amssymb,fullpage}
+%\usepackage{times}
 \usepackage{algorithm,algorithmicx,algpseudocode}
 \usepackage[utf8]{inputenc}
 \usepackage[OT1]{fontenc}
@@ -99,8 +99,10 @@ Paris, France.
 
 \begin{abstract}
 We give a new signature scheme for isogenies that combines the class group actions of CSIDH with the notion of Fiat-Shamir with aborts.
+We believe it is possible to have signatures of size less than one kilobyte at the 128-bit security level, even with tight security reduction (to a non-standard problem) in the quantum random oracle model.
+Hence our signatures are potentially shorter than lattice signatures, but signing and verification are currently very expensive.
 
-This is a draft paper that is work-in-progress. Please do not distribute. Contents will change.
+This is a draft paper that is work-in-progress. Please do not distribute. Contents will change. Comments are welcome.
 \end{abstract}
 
 
@@ -520,7 +522,7 @@ Define $M_B$ to be an upper bound on the probability, over $\a, \b$ sampled from
 \end{definition}
 
 In other words, $\D_B$ is the output distribution of the public key generation algorithm.
-Understanding the distribution $\D_B$ is non-trivial in general.
+Understanding the distribution $\D_B$ is non-trivial in general.\footnote{Even the analogous problem of understanding the distribution of $\prod_i \ell_i^{e_i} \pmod{q}$, where $\ell_i$ are small primes and $q$ is some integer, is an open problem in general.}
 For small $B$ and $n$ (so that $(2B+1)^n \ll \#\Cl(\OO)$) we expect $\D_B$ to be the uniform distribution on a subset of $\Cl(\OO)$ of size $(2B+1)^n$. For fixed $n$ and large enough $B$ it should be the case that $\D_B$ is very close to the uniform distribution on $\Cl(\OO)$.
 A full study of the distribution $\D_B$ is beyond the scope of this paper, but is a good problem for future work.
 
@@ -609,13 +611,13 @@ To get shorter signatures it is natural to try to increase the size of the chall
 In this section we sketch an approach to obtain $s$-bit challenge values for any $s \in \N$, by trading the challenge size with the public key size. In the next section we explain how to shorten the public keys again.
 
 
-The basic idea is to have public keys $( E_{A,1} = \a_1 * E , \dots , E_{A,2^s} = \a_{2^s} * E )$.
-For each $1 \le m \le 2^s$ we choose $\e_m \leftarrow [-B,B]^n$ and set $E_{A,m} = ( \prod_{i=1}^n \l_i^{e_{m,i}} ) * E$.
+The basic idea is to have public keys $( E_{A,0} = \a_0 * E , \dots , E_{A,2^s-1} = \a_{2^s-1} * E )$.
+For each $0 \le m < 2^s$ we choose $\e_m \leftarrow [-B,B]^n$ and set $E_{A,m} = ( \prod_{i=1}^n \l_i^{e_{m,i}} ) * E$.
 The signing algorithm for user A chooses $t$ random ideals $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and computes $\E_k = \b_k * E$, as before.
-Now we have $s$-bit challenges $b_1, \dots, b_t \in \{1, 2, \dots, 2^s \}$.
+Now we have $s$-bit challenges $b_1, \dots, b_t \in \{0, 1, \dots, 2^s-1 \}$.
 For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which corresponds to the ideal class $\c_k := \a_{b_k}^{-1} \b_k$ and the verifier can check that $j( \E_k ) = j( \c_k * E_{A, b_k})$.
 
-A signature is still made of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
+A signature consists of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
 But now for security we now only require $ts \ge \lambda$.
 Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of only 944 bytes!
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes, and key generation is also $2^{16}$ times slower.
@@ -634,7 +636,7 @@ Hence the computational assumption underlying the scheme is the following.
 \begin{definition}\label{defn:one-out-of-2s-problem}
 % (One out of $2^s$ ideal action problem ***)
 Let notation be as in the key generation protocol of the scheme.
-Consider a set of $2^s$ elliptic curves $\{ E_{A,1}, \dots, E_{A,2^s} \}$, all of the form $E_{A,m} = \a_m * E$ for some ideal $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$ where the exponent vectors $\e_m $ are uniformly sampled in $[-B,B]^n \subseteq \Z^n$. The ``one out of $2^s$'' isogeny problem is to compute an ideal corresponding to any isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
+Consider a set of $2^s$ elliptic curves $\{ E_{A,0}, \dots, E_{A,2^s-1} \}$, all of the form $E_{A,m} = \a_m * E$ for some ideal $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$ where the exponent vectors $\e_m $ are uniformly sampled in $[-B,B]^n \subseteq \Z^n$. The ``one out of $2^s$'' isogeny problem is to compute an ideal corresponding to any isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
 \end{definition}
 
 
@@ -662,8 +664,6 @@ So suppose in this section that the distribution $\D_B$ of Definition~\ref{defn:
 This assumption is reasonable for bounded $n$ and very large $B$; but we leave for future work to determine whether practical parameters for isogeny crypto can be obtained under this constraint.
 
 
-We add an extra $1/2$ factor in the success probability, but this is not a big issue since the security proof isn't tight anyway.
-
 
 \begin{theorem}
 Let parameters be such that the statistical distance between $\D_B$ and the uniform distribution on $\Cl(\OO)$ is negligible.
@@ -674,17 +674,17 @@ In the random oracle model, the signature scheme of this section is unforgeable 
 \begin{proof}
 Let $A$ be an adversary against the scheme and $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
 
-Choose random ideal classes $\b_1, \dots, \b_{2^s}$
-(chosen as $\b_m = \prod_{i=1}^n \l_i^{u_{i,m}}$ for $1 \le m \le 2^s$ and $u_{i,m} \in [-B,B]$)
-and compute $E_{A,m}' = \b_m * E$ for $1 \le m \le 2^{s-1}$ and $E_{A,m}' = \b_m * E_A$ for $2^{s-1} < m \le 2^s$. Choose a random permutation $\pi$ on $\{ 1, 2, \dots, 2^s \}$ and set the public key to be the sequence $E_{A,m} = E_{A,\pi(m)}'$.
+Choose random ideal classes $\b_0, \dots, \b_{2^s-1}$
+(chosen as $\b_m = \prod_{i=1}^n \l_i^{u_{i,m}}$ for $0 \le m < 2^s$ and $u_{i,m} \in [-B,B]$)
+and compute $E_{A,m}' = \b_m * E$ for $0 \le m < 2^{s-1}$ and $E_{A,m}' = \b_m * E_A$ for $2^{s-1} \le m < 2^s$. Choose a random permutation $\pi$ on $\{ 0, 1, \dots, 2^s-1 \}$ and set the public key to be the sequence $E_{A,m} = E_{A,\pi(m)}'$.
 Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether the curve has been generated from $E$ or $E_A$.
 Now run the adversary on this public key.
 
 This is where the subtlety about distributions appears: it is crucial that the public key derived from the pair $(E, E_A)$ is indistinguishable from public keys output by the key generation algorithm.
 
 
-The simulator will handle hash and sign queries similarly to the proof of Theorem~\ref{thm:security-basic}.
-When simulating the sign oracle we first choose the $t$ values $b_1, \dots, b_1 \in \{0,1\}^s$, which are interpreted as the challenge values $1 \le b_k \le 2^s$.
+The simulator will handle hash and sign queries the same way as in the proof of Theorem~\ref{thm:security-basic}.
+When simulating the sign oracle we first choose the $t$ values $b_1, \dots, b_t \in \{0,1\}^s$, which are interpreted as the challenge values $0 \le b_k < 2^s$.
 For each $1 \le k \le t$ we choose a random ideal class $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ by choosing $z_{k,i} \in [-ntB, ntB]$, and then compute $\E_k = c_k * E_{A,b_k}$.
 One then defines the hash value $H( j(\E_1), \dots, j(\E_t), \msg )$ to be $b_1 \Vert b_2 \Vert \cdots \Vert b_t$.
 This simulation is indistinguishable to the real cryptosystem, assuming the distributions on ideal classes have negligible statistical distance.
@@ -694,12 +694,17 @@ With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simul
 \end{proof}
 
 
+Note that this proof has an extra $1/2$ factor in the success probability, but this is not a serious issue since the security proof isn't tight anyway.
+We have a tight proof in Appendix~\ref{sec:lossy-keys} based on a less standard assumption. It is an open problem to have a tight proof and also the security based on the assumption of Definition~\ref{defn:ass1}.
+
+
+
 %Version 2: Have a computational assumption $(E, \a * E, \a^2 * E, \a^3 * E , \dots, a^{2^s - 1} * E )$ and 3-special soundness implies can get $\a$ with a good probability. This is cute but ultimately pointless.
 
 
 \subsection{Reducing storage for private keys}\label{sec:private-key-compress}
 
-Rather than storing all the private keys $\a_i$ one could have generated them using a pseudorandom function as $\PRF( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
+Rather than storing all the private keys $\a_m$ for $0 \le m < 2^s$ one could have generated them using a pseudorandom function as $\PRF( \seed, i )$ where $\seed$ is a seed and $i$ is used to generate the $i$-th private key (which is an integer exponent vector).
 The prover only needs to store $\seed$ and can then recompute the private keys as needed.
 Of course, during key generation one needs to compute all the public keys, but during signing one only needs to determine $t \approx 8$ private keys (although this adds a cost to the signing algorithm).
 
@@ -710,7 +715,7 @@ Of course, during key generation one needs to compute all the public keys, but d
 
 The approach of Section~\ref{sec:smaller-sigs} gives signatures that are potentially quite small, but at the expense of very large public keys. In some settings (e.g., software signing) large public keys can be easily accommodated, while in other settings (e.g., certificate chains) it makes no sense to shorten signatures at the expense of public key size.
 In this section we explain how to use techniques from hash-based signatures to compress the public key while also maintaining compact signatures.
-The key idea is to use a Merkle tree~\cite{10.1007/0-387-34805-0_21} with leaves the public curves $E_{A,1}, \dots, E_{A,2^s}$, and use the tree root (a single hash value) as public key.
+The key idea is to use a Merkle tree~\cite{10.1007/0-387-34805-0_21} with leaves the public curves $E_{A,0}, \dots, E_{A,2^s-1}$, and use the tree root (a single hash value) as public key.
 However, the security of plain Merkle trees depends on collision resistance of the underlying hash function, thus requiring hashes of size at least twice the security parameter.
 Instead, we use a modified Merkle tree, as introduced in the hash-based signatures XMSS-T~\cite{10.1007/978-3-662-49384-7_15} and SPHINCS+~\cite{sphincs+}, whose security relies on the second preimage resistance of a keyed hash function.
 
@@ -721,22 +726,22 @@ Let the following (public) functions be given:
 \item $\PRFs: \{0,1\}^\lambda \times \{0,1\}^s \to [-B,B]^n$,
 \item $\PRFk: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^\lambda$,
 \item $\PRFm: \{0,1\}^\lambda \times \{0,1\}^{s+1} \to \{0,1\}^{\lceil\log p\rceil}$ three pseudo-random functions, and
-\item $M: \{0,1\}^\lambda \times \{0,1\}^{\lceil\log p\rceil} \to \{0,1\}^\lambda$ a keyed hash function.
+\item $M: \{0,1\}^\lambda \times \{0,1\}^{\lceil\log p\rceil} \to \{0,1\}^\lambda$ a keyed hash function (where we think of the first $\lambda$ bits as the key and the second $\lceil\log p\rceil$ bits as the input).
 \end{itemize}
 
 Finally, let $\PK.\seed$ and $\SK.\seed$ be two random seeds; as the names suggest, $\PK.\seed$ is part of the public key, while $\SK.\seed$ is part of the secret key.
-Like in Section~\ref{sec:private-key-compress}, we define the secret ideals $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$, where $\e_m=\PRFs(\SK.\seed, m)$, and the public curves $E_{A,m}=\a_m*E$, for $1\le m\le 2^s$.
+Like in Section~\ref{sec:private-key-compress}, we define the secret ideals $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$, where $\e_m=\PRFs(\SK.\seed, m)$, and the public curves $E_{A,m}=\a_m*E$, for $0 \le m < 2^s$.
 
-We set up a hash tree by defining $h_{l,u}$ for $0 \le l \le s$ and $1 \le u \le 2^{s-l}$.
+We set up a hash tree by defining $h_{l,u}$ for $0 \le l \le s$ and $0 \le u < 2^{s-l}$.
 First we set
-\[h_{s,u} = M\bigl( \PRFk(\PK.\seed,2^s+u-1),\; j( E_{A,u} ) \oplus \PRFm(\PK.\seed,2^s+u-1) \bigr)\]
-for $1 \le u \le 2^s$, where $\oplus$ denotes bitwise XOR.
+\[h_{s,u} = M\bigl( \PRFk(\PK.\seed,2^s+u ),\; j( E_{A,u} ) \oplus \PRFm(\PK.\seed,2^s+u ) \bigr)\]
+for $0 \le u < 2^s$, where $\oplus$ denotes bitwise XOR.
 Now, for any $0 \le l < s$, the rows of the hash tree are defined as
 \[
-  h_{l,u} = M\bigl( \PRFk(\PK.\seed, 2^l+u-1),\;
-  (h_{l+1,2u-1}\Vert h_{l+1,2u}) \oplus \PRFm(\PK.\seed, 2^l+u-1) \bigr).
+  h_{l,u} = M\bigl( \PRFk(\PK.\seed, 2^l+u ),\;
+  (h_{l+1,2u}\Vert h_{l+1,2u+1}) \oplus \PRFm(\PK.\seed, 2^l+u) \bigr).
 \]
-Finally, the public key is set to the pair $(\PK.\seed, h_{0,1})$.
+Finally, the public key is set to the pair $(\PK.\seed, h_{0,0})$.
 
 To prove that a value $E_{A,u}$ is in the hash tree, we use its \emph{authentication path}.
 That is the list of the hash values $h_{l,u'}$, for $1\le l \le s$, occurring as siblings of the nodes on the path from $h_{s,u}$ to the root.
@@ -744,7 +749,7 @@ The proof in~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} shows that having $
 See~\cite{10.1007/978-3-662-49384-7_15,sphincs+} for more details.
 
 Typically, in hash-based signatures the secret key would only contain $\SK.\seed$, since all secret and public values can be reconstructed from it at an acceptable cost.
-However, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s-1$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,1},\dots,h_{s,2^s})$.
+However, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s-1$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,0},\dots,h_{s,2^s-1})$.
 This is a considerably large secret key, e.g., around $1$ megabyte when $\lambda=128$ and $s=16$, but it is offset by a more than tenfold gain in signing time.
 Also note that the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
 
@@ -773,7 +778,7 @@ Concerning security, the proofs of the previous sections, and that of~\cite[Appe
   \item The pseudo-randomness of $\PRFs$;
   \end{itemize}
   when the hash function $H$ and the pseudo-random functions $\PRFk$
-  and $\PRFm$ are modeled as random oracles.
+  and $\PRFm$ are modeled as random oracles (ideal random functions).
 \end{theorem}
 
 Like in the previous section, it is possible to replace the assumption of Definition~\ref{defn:one-out-of-2s-problem} with that of Defintion~\ref{defn:ass1}, modulo some additional assumptions.
@@ -784,10 +789,10 @@ As already noted, the proofs are not tight, however the part concerned with the 
 \section{Performance}
 
 
-Table~\ref{tab:comparison} gives some estimates of cost for the schemes presented in Sections~\ref{sec:basic-scheme},~\ref{sec:smaller-sigs},~\ref{sec:smaller-keys}, plus the original insecure scheme.
+Table~\ref{tab:comparison} gives some estimates of cost for the schemes presented in Sections~\ref{sec:basic-scheme},~\ref{sec:smaller-sigs},~\ref{sec:smaller-keys}, plus the naive and insecure version of Stolbunov's original scheme from Section~\ref{sec:Stolbunov}.
 It is divided in three sections.
 
-Section ``Exact'' reports the parameter sizes, as a number of bits, already computed in each section.
+Section ``Exact'' reports the parameter sizes, as a number of bits, already computed in each section, where
 $\lambda$ is the security parameter, $n,B$ and $s$ are as described previously.
 To simplify the expressions we assume that all hash functions have $\lambda$-bit outputs, and we set the parameter $t=\lambda/s$.
 We also give a rough lower bound for the performance of the keygen and sign/verify algorithms, in terms of $\F_p$-operations.
@@ -795,12 +800,12 @@ The bound only takes into account the number of operations needed to compute and
 \begin{enumerate}
 \item Based
   on~\cite{10.1007/978-3-319-70697-9_11,10.1007/978-3-319-79063-3_11},
-  we estimate that computing/evaluating an isogeny of degree $\ell$
+  we estimate that computing/evaluating an isogeny of degree $\ell$, when given a kernel point,
   costs $O(\ell)$ operations;
 \item By the prime number theorem $\sum_{i=1}^n\ell_i\sim\frac{1}{2}n^2\ln(n)$, and the estimate is very accurate already for $n>3$;
-\item Hence an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case.
+\item Putting these estimates together, an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case.
 \end{enumerate}
-We note that this is not likely to be the dominant part in the computation, especially asymptotically,
+We note that the above estimate is not likely to be the dominant part in the computation, especially asymptotically,
 as scalar multiplications of elliptic points are likely to dominate.
 However, estimating this part of the algorithm is much more complex and dependent on specific optimizations, we thus chose to ignore it.
 
@@ -839,8 +844,7 @@ Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and $n\log(B)\sim\lambda^2$ imply tha
 
 Finally, section ``CSIDH'' gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
 We estimate these parameters to correspond to the NIST-1 security level.
-
-Here we estimate real-world performances, using as baseline the worst-case time for one isogeny action in CSIDH.
+We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
 In~\cite{CLMPR18}, for an exponent vector in $[-B,B]^n$, this time is reported to be $0.1$ seconds.
 Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
 Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
@@ -906,7 +910,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       & $\Omega\bigl(Bn^2\log(n)\bigr)$
       & $\Omega\bigl(2^sBn^2\log(n)\bigr)$
       & $\Omega\bigl(2^sBn^2\log(n)\bigr)$\\
-      $\to$ sig/verify
+      $\to$ sign/verify
       & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
       & $\Omega\bigl(\lambda^2Bn^3\log(n)\bigr)$
       & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$
@@ -925,7 +929,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$\\
-      $\to$ sig/verify
+      $\to$ verify
       & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
       & $\Omega\bigl(\lambda^7\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$
@@ -1011,6 +1015,8 @@ For our choices $n=50, t = 8, \sigma = 5$ this gives $\sigma' > 3000$ (experimen
 If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log( 2 \pi e (\sigma')^2 )/2$ bits.
 For our example parameters this would be between 7000-8000 bits, or around one kilobyte again.
 % More work is needed to work out the exact details and determine the rejection sampling probabilities. 
+
+The best option seems to be to sample $\e$ uniformly with coefficients in $[-B, B]$ but to sample $\f$ from discrete Gaussians. Taking $n=74, B = 5$ we have $\Vert \e \vert \le T = 28$ with high probability. Taking $\sigma' = 10 \sqrt{t} T \approx 790$ potentially gives signatures of around 900 bytes.
 
 This section will be updated soon.
 
@@ -1219,7 +1225,7 @@ This is also a reasonable assumption given equation~(\ref{eq:lossy-p-bound}).
 \end{description}
 
 Under heuristic assumption 1, we now show that the keys are lossy.
-The lossy key generator outputs a pair $(E,E_A$ where $E$ and $E_A$ are randomly sampled supersingular elliptic curves with $j(E), j(E_A) \in \F_p$.
+The lossy key generator outputs a pair $(E,E_A)$ where $E$ and $E_A$ are randomly sampled supersingular elliptic curves with $j(E), j(E_A) \in \F_p$.
 To implement this one constructs a supersingular curve with $j$-invariant in $\F_p$
 % using Br{\" o}ker's algorithm~\cite{Bro09} 
 and then runs long pseudorandom walks in the isogeny graph until the uniform mixing bounds have applied.
@@ -1238,7 +1244,7 @@ Note to self: it is not necessary to consider the birthday paradox in the analys
 We make the following decisional assumption.
 I guess one can show, using a hybrid argument, that ability to solve the decisional assumption implies ability to solve the computational assumption of Definition~\ref{defn:ass1p}. So it is not a ``new'' assumption.
 
-\begin{definition}
+\begin{definition} \label{defn:decisional-short-isogeny}
 Consider two distributions on pairs $(E, E_A)$ of supersingular ellptic curves over $\F_p$.
 Let $\D_1$ be the output distribution of the algorithm $\IGen$.
 Let $\D_2$ be the uniform distribution (i.e., output distribution of the lossy key generation algorithm).
@@ -1300,7 +1306,7 @@ In particular this theorem gives a precise statement of the advantage. \qed
 \end{proof}
 
 
-
+One can then combine this proof with the optimisations of Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}, to get a compact signature scheme with tight post-quantum security based on a merger of the assumptions in Definitions~\ref{defn:one-out-of-2s-problem} and~\ref{defn:decisional-short-isogeny}.
 
 
 \section{Using the relation lattice}\label{sec:sig-relation-lattice}
@@ -1354,8 +1360,8 @@ If the basis for $L$ is sufficiently nice then one can obtain good bounds on the
 
 One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^n$.
 The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^n$ and then apply Babai rounding as above.
-Proving anything about this seems to be hard: How large is the box? How close to uniform?
-This ended up in the ``too hard'' pile.
+It is an open problem to obtain rigorous results about the uniform distribution of ideal classes in this setting.
+
 
 
 \begin{lemma} \label{lem:sim1}
