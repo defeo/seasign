@@ -101,19 +101,18 @@ Paris, France.
 We give a new signature scheme for isogenies that combines the class group actions of CSIDH with the notion of Fiat-Shamir with aborts.
 We believe it is possible to have signatures of size less than one kilobyte at the 128-bit security level, even with tight security reduction (to a non-standard problem) in the quantum random oracle model.
 Hence our signatures are potentially shorter than lattice signatures, but signing and verification are currently very expensive.
-
-This is a draft paper that is work-in-progress. Please do not distribute. Contents will change. Comments are welcome.
 \end{abstract}
 
 
 
-\section{Intro}
+\section{Introduction}
 
 Stolbunov~\cite{Sto12} was the first to sketch a signature scheme based on isogeny problems.
-Stolbunov's scheme was in the framework of class group actions.
-However his scheme leaked the private key.
+Stolbunov's scheme is in the framework of class group actions.
+However the scheme was not analysed in the post-quantum setting, and a naive implementation would leak the private key.
 Due to renewed interest in class group actions, especially CSIDH~\cite{CLMPR18} (due to Castryck, Lange, Martindale, Panny and Renes) and the scheme by De Feo, Kieffer and Smith~\cite{DFKS18}, it is of interest to develop a secure signature scheme in this setting.
 Our main contribution is to use Lyubashevsky's ``Fiat-Shamir with aborts'' strategy to obtain a secure signature scheme.
+We also describe some methods to obtain much shorter signatures than in Stolbunov's original proposal.
 
 
 
@@ -137,20 +136,41 @@ The name: The name ``SeaSign'' is a reference to the name CSIDH, which is pronou
 
 
 
-\section{Background}
+\section{Background and notation}
 
-\subsection{Elliptic curves, isogenies, ideal class groups, class group actions}
 
-We recall some standard facts and fix our notation.
+We use the following notation: 
+$\#X$ is the number of elements in a set $X$;
+$\log$ denotes the logarithm in base $2$;
+for $B \in \N$ we denote by $[-B,B]$ the set of integers $u$ with $-B \le u \le B$.
 
-\begin{itemize}
-\item For $B \in \N$ we use the notation $[-B,B]$ for the set of integers $u$ with $-B \le u \le B$.
-\item We use the symbol $\log$ for the logarithm in base $2$.
 
-\item For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to be the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
-\item Given two $\OO$-ideals $\a, \b$ we write $\a \equiv \b$ if $\a$ and $\b$ are equivalent (meaning that $\a \b^{-1}$ is a principal fractional $\OO$-ideal). 
-\end{itemize}
+\subsection{Elliptic curves, isogenies, ideal class groups}
 
+
+References for elliptic curves over finite fields and isogenies are Silverman~\cite{Sil86}, Washington~\cite{Was08}, Galbraith~\cite{Gal12}, Sutherland~\cite{Sut17} and De Feo~\cite{DF17}.
+A good reference for ideal class groups and class group actions is Cox~\cite{Cox}.
+
+Let $E$ be an elliptic curve over a field $K$ and let $P \in E( K )$ be a point of order $m$.
+Then there is a unique (up to isomorphism) elliptic curve $E'$ and separable isogeny $\phi : E \to E'$ such that $\ker( phi ) = \langle P \rangle$.
+V{\' e}lu~\cite{velu71} gives an algorithm to compute and equation for $E'$ and rational functions that enable to compute $\phi$.
+The complexity of this algorithm is linear in $m$ and requires field operations in $K$, so when $K$ is a finite field it has cost $O( m \log( \#K )^2 )$ bit operations using standard arithmetic.
+In the worst case (i.e., when $m$ is large) this algorithm is exponential-time.
+In practice this computation is only feasible when $m$ is relatively small (say $m < 1000$) and when the field $K$ over which $P$ is defined is not too large (say, at most a few thousand bits).
+
+For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to be the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
+Since we are mostly concerned with the CSIDH~\cite{CLMPR18} approach, we will be interested in supersingular elliptic curves $E$ such that $j(E) \in \F_p$, where $p$ is a large prime.
+In this case $\End( E )$ is a maximal order in a quaternion algebra, while $\End_{\F_p}(E)$ is an order in the imaginary quadratic field $\Q( \sqrt{-p} )$.
+Indeed, $\Z[ \sqrt{-p} ] \subseteq \End_{\F_p}(E)$.
+
+We will be concerned with the ideal class group of the order $\OO = \End_{\F_p}(E)$.
+This is the quotient of the group of fractional invertible ideals in $\OO$ by the subgroup of principal fractional invertible ideals.
+Given two invertible $\OO$-ideals $\a, \b$ we write $\a \equiv \b$ if $\a$ and $\b$ are equivalent (meaning that $\a \b^{-1}$ is a principal fractional $\OO$-ideal). 
+
+
+ 
+
+\subsection{Class group actions and computational problems}
 
 Let $p$ be a prime.
 Let $E$ be an ordinary elliptic curve over $\F_p$ with $\End(E) \cong \OO$ or $E$ a supersingular curve over $\F_p$ with $\End_{\F_p}(E) \cong \OO$ where $\OO$ is an order in an imaginary quadratic field.
@@ -159,12 +179,16 @@ One can define the action of an $\OO$-ideal $\a$ on the curve $E$ as the image c
 We denote $E'$ by $\a * E$.
 
 The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \cong \OO$ is a principal homogenous space for $\Cl(\OO )$.
-General references for all this are Couveignes~\cite{Couv06}
-and Stolbunov~\cite{Sto12}.
+Good references for the details are Couveignes~\cite{Couv06} and Stolbunov~\cite{Sto12}.
 The key exchange protocol proposed by Couveignes and Stolbunov is for Alice to send $\a * E$ to Bob and Bob to send $\b * E$ to Alice; the shared key is $(\a\b) * E$.
 
-Given a generic ideal $\a\subset\OO$, there is an algorithm to compute $\a*E$ has subexponential complexity in $\log(\#\Cl(\OO))$~\cite{JS10,biasse_fieker_jacobson_2016}.
-To make this action efficient one must work instead with ideals $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
+
+The difficulty is that if $\a\subset\OO$ is an arbitrary ideal then the subgroup $E[ \a ]$ is typically defined over a very large field extension and the computation of $\a*E$ has exponential complexity.
+For efficient computation it is necessary to work with ideals that are a product of powers of small prime ideals, so it is necessary to find a ``smooth'' ideal in the ideal class of $\a$.
+Techniques for smoothing an ideal class in the context of isogeny computation were first proposed in~\cite{GHS02} and developed further in~\cite{BCL08,JS10,biasse_fieker_jacobson_2016}.
+The state of the art is~\cite{biasse_fieker_jacobson_2016} which gives computation $\a * E$ for any ideal class in subexponential complexity in $\log(\#\Cl(\OO))$.
+
+Since subexponential complexity is not good enough, for cryptographic applications it is necessary to choose ideals deliberately of the form $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
 Then, the action of $\a$ can be computed as a composition of isogenies of degree $\ell_i$.
 Throughout the paper we assume that $\{ \l_1, \dots, \l_n \}$ is a set of non-principal prime ideals in $\OO$, generating $\Cl(\OO)$, of norm polynomial in the size of the class group.
 Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assuming a generalised Riemann hypothesis, $\ell_i = O( \log(p)^2 )$.
@@ -176,43 +200,47 @@ Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
 The CSIDH paper speaks of hard homogenous spaces and calls the below problem ``Key recovery''.
 
 \begin{definition}\label{defn:ass1}
+(** It turns out that definitions do need to have a name ***)
 % (GAIP ?? ClAP (Cl Action Problem) ??)
 Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End(E_A) = \OO$. Find an ideal $\a$ such that $j( E_A ) = j( \a * E )$.
 \end{definition}
 
-The best classical algorithms for this problem have exponential time, but there are subexponential-time quantum algorithms for it~\cite{Kup,regev04,childs2014constructing,Kuperberg2013,BS18,BIJ18}
-(Expand: Kuperberg, Regev, Childs-Jao-Soukharev~\cite{childs2014constructing}, Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez (MathCrypt 2018)).
+The best classical algorithms for this problem in the general case have exponential time (at least $\sqrt{ \# \Cl( \OO ) }$ isogeny computations).
+Childs, Jao and Soukharev~\cite{childs2014constructing} were the first to point out that this problem can be formulated as a ``hidden shift'' problem, and so quantum algorithms for the hidden shift problem can be applied.
+Hence, there are subexponential-time quantum algorithms for the problem of Definition~\ref{defn:ass1} based on the quantum algorithms of Kuperberg~\cite{Kup} and Regev~\cite{regev04}. 
+It is still an active area of research to assess the exact quantum hardness of these problem; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez (MathCrypt 2018)).
+But at the very least, Kuperberg's algorithm requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ quantum gates, thus taking $p>2^{2\lambda^2}$ should be sufficient to make Definition~\ref{defn:ass1} hard for a quantum computer.
 
-Note that this problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
+
+If the ideals $\a$ in Definition~\ref{defn:ass1} are sampled uniformly at random then the problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
 If $\a'$ is a solution to the instance $(E_1, E_2)$ then any ideal equivalent to the fractional ideal $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
+This is a nice feature for security proofs that is not shared by SIDH; we use this idea in Section~\ref{sec:natural-problem}.
 
-When instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
-In the ordinary case, De Feo, Kieffer and Smith~\cite{DFKS18} introduced a method to use the more efficient V\'elu's formulas~\cite{velu71} for some primes $\ell_i$, but were unable to generalize it for sufficiently many.
+
+As already mentioned, when instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
+This is done both by chooseing the $\ell_i$ to have as small norm as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field as possible (so that V\'elu's formulas can be used).
+In the ordinary case, De Feo, Kieffer and Smith~\cite{DFKS18} introduced a method to make the system as efficient as possible (namely, using V\'elu's formulas~\cite{velu71} for some primes $\ell_i$, but they were unable to use V\'elu's formulas for all the primes they needed).
 By using supersingular curves over a field $\F_p$ with $p+1 = 4\prod_{i=1}^n\ell_i$, CSIDH~\cite{CLMPR18} manages to apply V\'elu's formulas to all primes $\ell_i$.
 For key exchange, CSIDH samples the exponent vectors $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for a suitable constant $B$.
 % such that $(2B+1)^n\ge\#\Cl(\OO)\approx p\log p$; this ensures that, heuristically, the key space covers all of $\Cl(\OO)$.
 
-
-
-An issue that arises in our security arguments is whether or not we are sampling ideal classes uniformly during key generation and signing (for precise details see Definition~\ref{defn:sampling-distributions} and the discussion that follows it).
-
-Recall there is a straightforward meet-in-the-middle attack when given $E$ and $\a * E$ for $\a = \prod_{i=1}^n \l_i^{e_i}$ over $e_i \in [-B, B]$.
+This leads to a special case of Definition~\ref{defn:ass1} where the ideals may not be uniformly distibruted in the ideal class group. For further discussion  see Definition~\ref{defn:sampling-distributions} and the discussion that follows it.
+In this special case one can also consider a straightforward meet-in-the-middle attack: Let $E$ and $\a * E$ be given, where $\a = \prod_{i=1}^n \l_i^{e_i}$ over $e_i \in [-B, B]$.
 We compute lists (assume $n$ is even)
 \[
    L_1 = \left\{ \left( \prod_{i=1}^{n/2} \l_i^{e_i} \right) * E : e_i \in [-B,B] \right\} \text{ \ \  and \ \  }
    L_2 = \left\{ \left( \prod_{i=n/2 + 1}^{n} \l_i^{e_i} \right) * E_A : e_i \in [-B,B] \right\}.
 \]
 If $L_1 \cap L_2 \ne \varnothing$ then we have solved the isogeny problem.
-This attack can be used even when the set of ideal classes generated is a small subset of $\Cl( \OO )$.
+This attack is faster than general methods when the set of ideal classes generated is a small subset of $\Cl( \OO )$.
 Hence for security we require $(2B+1)^n > 2^{2 \lambda}$, where $\lambda$ is the security parameter (but see~\cite{adj+menezes+al-isogenies} for a more in-depth analysis of this algorithm, leading to smaller parameters).
-Further, there is a quantum algorithm due to Tani, which is straightforward to adapt to this problem (we refer to Section~5.2 of  De Feo, Jao and Pl{\^{u}}t~\cite{FJP14} for details).
+Further, there is a quantum algorithm due to Tani, which is straightforward to adapt to this problem (we refer to Section~5.2 of De Feo, Jao and Pl{\^{u}}t~\cite{FJP14} for details).
 This means we might need to take $(2B+1)^n > 2^{3 \lambda}$ to have post-quantum security.
-
-Also on a quantum computer, Kuperberg's algorithm, requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ gates, thus we also need $p>2^{2\lambda^2}$.
 Choosing the smallest values for $B,n,p$ satisfying these constraints leads to sampling in an increasingly small subset of the whole class group.
-Note that Kuperberg's algorithm uses the entire class group, and so there seems to be no improvement to the subexponential attack even if we only sample a subset of the class group, or if the sampling of ideal classes is biased from the uniform distribution.
 
-%OPEN Q: Can Kuperberg be done if we sample from a subset of $\Cl(\OO)$????
+
+We remark that Kuperberg's algorithm uses the entire class group, and there seems to be no way to improve the algorithm for the case where the ``hidden shift'' is sampled from a distribution far from the uniform distribution.
+We leave the study of this question to future work.
 
 
 
@@ -242,16 +270,23 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
 
 
 
-For our signature schemes we may work with less specific primes than considered in CSIDH~\cite{CLMPR18}. For example, CSIDH takes $p+1 = 4\prod_{i=1}^n\ell_i$, whereas we may be able to use fewer primes and need a larger $p$.
+For our signature schemes we may work with less specific primes than considered in CSIDH~\cite{CLMPR18}. For example, CSIDH takes $p+1 = 4\prod_{i=1}^n\ell_i$, whereas we may be able to use fewer primes and just multiply by a random co-factor to get a large enough $p$.
 
 
 
 
 \subsection{Public key signature schemes}
 
-One can discuss Fiat-Shamir-type signatures in various ways, including the language of sigma protocols or identification schemes.
-In the main body of our paper we work directly with the language of signatures, and give proofs directly in this formulation.
-In Section~\ref{sec:KLS-defns} we use the language of identification schemes, and introduce the terminology there.
+One can describe Fiat-Shamir-type signatures in various ways, including the language of sigma protocols or identification schemes.
+In the main body of our paper we mostly work with the language of signatures, and give proofs directly in this formulation.
+In Section~\ref{sec:KLS-defns} we use the language of identification schemes, and introduce the terminology fully there.
+
+A \emph{canonical identification scheme} consists of algorithms $(\KeyGen, \PP_1, \PP_2, \VV)$ and a set $\ChSet$. The randomised algorithm $\KeyGen( 1^\lambda )$ outputs a key pair $(pk,sk)$.
+The deterministic algorithm $\PP_1$ takes $sk$ and randomness $r_1$ and computes $(W, \St) = P_1( sk, r_1 )$. 
+Here $\St$ denotes state information to be passed to $P_2$.
+A challenge $c$ is sampled uniformly from $\ChSet$. The deterministic algorithm $P_2$ then computes $Z = P_2( sk, W, c, \St, r_2 )$ or $\perp$, where $r_2$ is the randomness.
+The output $\perp$ corresponds to an abort in the ``Fiat-Shamir with aborts'' paradigm.
+We require that $\VV( pk, W, c, Z ) = 1$ for a correctly formed transcript $(W,c,Z)$.
 
 
 A \emph{public key signature scheme} consists of algorithms $\KeyGen, \Sign, \Verify$.
@@ -260,8 +295,9 @@ The randomised algorithm $\Sign$ takes input the private key $sk$ and a message 
 The verification algorithm $\Verify( pk, \msg, \sigma )$ returns $0$ or $1$.
 We require $\Verify( pk, \msg, \Sign( sk, \msg )) = 1$.
 
+The Fiat-Shamir transform is a construction to turn a canonical identification scheme into a public key signature scheme. The main idea is to make the interactive identification scheme into a non-interactive scheme by replacing the challenge $c$ by a hash $H( W, \msg )$.
 
-The standard notion of security is unforgeability against chosen-message attack (UF-CMA).
+The standard notion of security is \emph{unforgeability against chosen-message attack (UF-CMA)}.
 A UF-CMA adversary against the signature scheme is a randomised polynomial-time algorithm $A$ that plays the following game against a challenger.
 The challenger runs $\KeyGen$ to get $(pk,sk)$ and runs $A( pk )$.
 The adversary $A$ sends messages $\msg$ to the challenger, and receives $\sigma = \Sign(sk, \msg)$ in return.
@@ -313,8 +349,13 @@ The signature consists of the binary string $b_1\cdots b_t$ and the representati
 The verifier computes, for $1 \le k \le t$, $\E_k = \b_k * E$ when $b_k = 0$ and $\E_k = \b_k \a^{-1} * E_A$ when $b_k = 1$. The verifier then computes $H( j( \E_1), \dots, j(\E_t), \msg )$ and checks whether this is equal to the binary string $b_1\cdots b_t$, and accepts the signature if and only if the strings agree.
 
 
-We stress that neither Couveignes nor Stolbunov give a secure signature scheme as they do not explain how to prevent leakage of the private key. The main contribution of this paper is to give two solutions to the problem of representing $\b_k \a^{-1}$ without leaking the private key.
-Our main solution uses ideas from lattice cryptography (Fiat-Shamir with aborts) and we describe this in the remainder of the section.
+We stress that neither Couveignes nor Stolbunov give a secure post-quantum signature scheme.
+Both authors assume that the relations in the ideal class group have been computed (Stolbunov needs this to prevent leakage, since he needs to know discrete logs).
+However the cost to compute the relations in the ideal class group on a classical computer is roughly the same as the cost to break the scheme on a quantum computer (using the Kuperberg or Regev algorithms).
+Hence it does not make sense to assume the generator of the scheme knows the relations in the ideal class group (although see Appendix~\ref{sec:sig-relation-lattice} for a version of this idea in the fully post-quantum setting where quantum computers are readily available).
+
+The main contribution of this paper is to give a solution to the problem of representing $\b_k \a^{-1}$ without leaking the private key and without needing to compute relations in the ideal class group.
+Our solution uses ideas from lattice cryptography (Fiat-Shamir with aborts) and we describe this in the remainder of the section.
 An alternative solution requires a basis of a relation lattice in the ideal class group, which can be computed efficiently using a quantum computer. We describe this alternative solution in Appendix~\ref{sec:sig-relation-lattice}.
 
 
@@ -328,10 +369,10 @@ An alternative solution requires a basis of a relation lattice in the ideal clas
 The idea is to use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
 
 Let $B > 0$ be a constant. When generating the private key we sample uniformly $e_i \in [-B, B]$ for $1 \le i \le n$. Let $\e = ( e_1, \dots, e_n )$.
-The value $B$ is presumably chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ covers most ideal classes and so that the output distribution is close to uniformly distributed in $\Cl(\OO)$, but we avoid any explicit requirement or assumption that this distribution is uniform.
-We refer to Definition~\ref{defn:sampling-distributions} for more discussion of this issue.
+The value $B$ may be chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ covers most ideal classes and so that the output distribution is close to uniformly distributed in $\Cl(\OO)$, but we avoid any explicit requirement or assumption that this distribution is uniform.
+We refer to Definition~\ref{defn:sampling-distributions} for more discussion of this issue, and in Appendix~\ref{sec:lossy-keys} we consider a variant where the ideals are definitely not distributed uniformly in $\Cl(\OO)$.
 
-Exponents $f_{k,i}$ are sampled uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is the number of parallel rounds of the identification protocol and $n$ is the number of primes.
+Exponents $f_{k,i}$ are sampled uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is the number of parallel rounds of the identification/signature protocol and $n$ is the number of primes.
 Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$, $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and define $\E_k = \b_k * E $.
 
 
@@ -468,13 +509,13 @@ We can therefore get a rough idea of parameters and efficiency for the scheme.
 Let $\lambda$ be a security parameter (e.g., $\lambda=128$ or $\lambda=256$), for security
 we need at least $t=\lambda$ so that an attacker cannot guess the hash value or invert the hash function (see also the proof of Theorem~\ref{thm:security-basic}).
 We also need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
-The signature contains one hash value of $\lambda$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-1, we obtain signatures of 19.6 kilobytes (see also Table~\ref{tab:comparison}).
+The signature contains one hash value of $t$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-1, we obtain signatures of 19.6 kilobytes (see also Table~\ref{tab:comparison}).
 
 To sign/verify one needs to evaluate the action of either of $\b_k$ and $\b_k\a^{-1}$ for every $1\le k\le t$,
 which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
 Hence, the total number of isogeny computations is upper bounded by $(nt)^2 B$.
 The quadratic dependence on $nt$ is a major inconvenience.
-For example, taking again $(t,n,B)=(128,74,5)$ gives around $2^{28}$ isogeny computations in signature/verification.
+For example, taking $(n,t,B)=(74,128,5)$ gives around $2^{28}$ isogeny computations in signature/verification.
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
 The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
 
@@ -534,7 +575,7 @@ In the proof we will need to use $M_{ntB}$, since the concern is about the auxil
 \begin{definition} \label{defn:ass1p}
 % (Restricted ideal action problem ***)
 Let notation be as in the key generation protocol of the scheme.
-Given $(E, E_A)$, where $E_A = \a * E$ for some ideal $\a = \prod_{i=1}^n \l_i^{e_i}$ and the exponent vector $\e = (e_1, \dots, e_n)$ is uniformly sampled in $[-B,B]^n \subseteq \Z^n$, to compute any ideal equivalent to $\a$.
+Given $(E, E_A)$, where $E_A = \a * E$ for some ideal $\a = \prod_{i=1}^n \l_i^{e_i}$ and where the exponent vector $\e = (e_1, \dots, e_n)$ is uniformly sampled in $[-B,B]^n \subseteq \Z^n$, to compute any ideal equivalent to $\a$.
 \end{definition}
 
 Depending on how close to uniform is the distribution $\D_B$, this problem may or may not be equivalent to Definition~\ref{defn:ass1} and may or may not have a random self-reduction.
@@ -551,7 +592,7 @@ Then the probability that $I' = I$ and $h_{I}' \ne h_I$ is at least $\wp( \wp/Q 
 
 
 \begin{theorem}\label{thm:security-basic}
-In the random oracle model, the basic signature scheme is unforgeable under a chosen message attack under the assumption of Definition~\ref{defn:ass1p}.
+In the random oracle model, the basic signature scheme of Figure~\ref{fig:sig-scheme} is unforgeable under a chosen message attack under the assumption of Definition~\ref{defn:ass1p}.
 \end{theorem}
 
 \begin{proof}
@@ -582,14 +623,14 @@ Assuming the simulation does not fail, the output is a valid signature and is in
 \vskip 0.1cm
 
 \noindent \textbf{Hash queries:}
-To answer a random oracle query on input $x$ one checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise one chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
+To answer a random oracle query on input $x$ the simulator checks if $(x,y)$ already appears in the list, and if so returns $y$. Otherwise the simulator chooses uniformly at random $y \in \{0,1\}^t$ and sets $H(x) := y$ and adds $(x,y)$ to the list.
 
 \vskip 0.1cm
 
-Eventually $A$ outputs a forgery $(\msg, \z_1, \dots, \z_t, b_1\cdots b_t)$ that passes the verification equation.
+Eventually $A$ outputs a forgery $(\msg, \sigma = (\z_1, \dots, \z_t, b_1\cdots b_t))$ that passes the verification equation.
 Define $\c_k = \prod_i \l_i^{z_{k,i}}$.
 The proof now invokes the Forking Lemma (see Bellare-Neven~\cite{BN06}). The adversary is replayed with the same random tape and the exact same simulation, except that one of the hash queries is answered with a different binary string.
-With non-negligible probability the adversary outputs a forgery with the same message $\msg$ and the same input $(j(\E_1), \dots, j(\E_t), \msg)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1}$ is a solution to the problem instance. \qed
+With non-negligible probability the adversary outputs a forgery $\sigma = (\z_1', \dots, \z_t', b_1'\cdots b_t')$ for the same message $\msg$ and the same input $(j(\E_1), \dots, j(\E_t), \msg)$ to $H$, but a different output string $b_1'\cdots b_t'$. Let $k$ be an index such that $b_k \ne b_k'$ (without loss of generality $b_k = 0$ and $b_k' = 1$). Then the ideal classes $\c_k$ and $\c_k'$ in the two signatures are such that $j( \c_k * E ) = j( \c_k' * E_A )$ and so $\c_k' \c_k^{-1} = \prod_i \l_i^{z_{k,i}' - z_{k,i}}$ is a solution to the problem instance. \qed
 \end{proof}
 
 
@@ -642,10 +683,10 @@ Consider a set of $2^s$ elliptic curves $\{ E_{A,0}, \dots, E_{A,2^s-1} \}$, all
 
 
 We believe this problem is hard for classical and quantum computers. One can easily obtain a non-tight reduction of this problem to the problem of Definition~\ref{defn:ass1p}.
-However we do not know how to obtain a random-self-reduction for this problem, which prevents us from having a tight reduction to the problem of Definition~\ref{defn:ass1p}.
+However, if the ideals $\a_m$ are not sampled uniformly at random from $\Cl(\OO)$ then we do not know how to obtain a random-self-reduction for this problem, which prevents us from having a tight reduction to the problem of Definition~\ref{defn:ass1p}.
 
 
-\begin{theorem}
+\begin{theorem}\label{thm2}
 In the random oracle model, the signature scheme of this section is unforgeable under a chosen message attack under the assumption of Definition~\ref{defn:one-out-of-2s-problem}.
 \end{theorem}
 
@@ -653,17 +694,42 @@ The proof of this theorem is almost identical to the proof of Theorem~\ref{thm:s
 
 
 
-\subsection{Variant based on a more natural problem}
+\subsection{Variant based on a more natural problem} \label{sec:natural-problem}
 
 
-Definition~\ref{defn:one-out-of-2s-problem}  is a little un-natural.
+Definition~\ref{defn:one-out-of-2s-problem} is a little un-natural.
 It would be more pleasing to prove security based on the problems in Definition~\ref{defn:ass1} or~\ref{defn:ass1p}.
 We now explain that one can prove security based on the problem in Definition~\ref{defn:ass1}, under an assumption about uniform sampling of ideal classes.
 
-So suppose in this section that the distribution $\D_B$ of Definition~\ref{defn:sampling-distributions} has negligible statistical distance from the uniform distribution.
+Suppose in this section that the distribution $\D_B$ of Definition~\ref{defn:sampling-distributions} has negligible statistical distance (Renyi divergence can also be used here) from the uniform distribution.
 This assumption is reasonable for bounded $n$ and very large $B$; but we leave for future work to determine whether practical parameters for isogeny crypto can be obtained under this constraint.
 
 
+\begin{lemma}
+Let parameters be such that the statistical distance between $\D_B$ and the uniform distribution on $\Cl(\OO)$ is negligible.
+Then given an algorithm that runs in time $T$ and solves the problem of Definition~\ref{defn:one-out-of-2s-problem} with probability $\epsilon$, thee is an algorithm to solve the problem of Definition~\ref{defn:ass1} with time $T + O( 2^s \log(p)^3 )$ and success probability $\epsilon/2$.
+\end{lemma}
+
+\begin{proof}
+Let $A$ be an algorithm for Definition~\ref{defn:one-out-of-2s-problem}, and let $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
+
+Choose random ideal classes $\b_0, \dots, \b_{2^s-1}$
+(chosen as $\b_m = \prod_{i=1}^n \l_i^{u_{i,m}}$ for $0 \le m < 2^s$ and $u_{i,m} \in [-B,B]$)
+and compute $E_{A,m}' = \b_m * E$ for $0 \le m < 2^{s-1}$ and $E_{A,m}' = \b_m * E_A$ for $2^{s-1} \le m < 2^s$. Choose a random permutation $\pi$ on $\{ 0, 1, \dots, 2^s-1 \}$ and construct the sequence $E_{A,m} = E_{A,\pi(m)}'$.
+This computation takes $O( 2^s \log(p)^3 )$ bit operations.
+Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether any individual curve has been generated from $E$ or $E_A$.
+This is where the subtlety about distributions appears: it is crucial that the curves derived from the pair $(E, E_A)$ are indistinguishable from the curves in Definition~\ref{defn:one-out-of-2s-problem}.
+
+Now run the algorithm $A$ on this input. Since the input is indistinguishable from a real input, $A$ runs in time $T$ and succeeds with probability $\epsilon$.
+In the case of success, we have an ideal $\c$ corresponding to an isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
+With probability $1/2$ we have that one of the curves, say $E_{m}$, is known to the simulator as  $\b * E$ and the other (i.e., $E_{m'}$) is known as $\b' * E_A$. If this event occurs then we have $\c \b * E = \b' * E_A$ (or vice versa) in which case $\c \b (\b')^{-1}$ is a solution to the original instance. \qed
+\end{proof}
+
+
+Note that this proof introduces an extra $1/2$ factor in the success probability, but this is not a serious issue since the security proof isn't tight anyway.
+
+
+Using this result, the following theorem is an immediate consequence of Theorem~\ref{thm2}.
 
 \begin{theorem}
 Let parameters be such that the statistical distance between $\D_B$ and the uniform distribution on $\Cl(\OO)$ is negligible.
@@ -671,30 +737,29 @@ In the random oracle model, the signature scheme of this section is unforgeable 
 \end{theorem}
 
 
-\begin{proof}
-Let $A$ be an adversary against the scheme and $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
+%\begin{proof}
+%Let $A$ be an adversary against the scheme and $(E, E_A = \a * E )$ be an instance of Definition~\ref{defn:ass1}.
+%
+%Choose random ideal classes $\b_0, \dots, \b_{2^s-1}$
+%(chosen as $\b_m = \prod_{i=1}^n \l_i^{u_{i,m}}$ for $0 \le m < 2^s$ and $u_{i,m} \in [-B,B]$)
+%and compute $E_{A,m}' = \b_m * E$ for $0 \le m < 2^{s-1}$ and $E_{A,m}' = \b_m * E_A$ for $2^{s-1} \le m < 2^s$. Choose a random permutation $\pi$ on $\{ 0, 1, \dots, 2^s-1 \}$ and set the public key to be the sequence $E_{A,m} = E_{A,\pi(m)}'$.
+%Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether the curve has been generated from $E$ or $E_A$.
+%Now run the adversary on this public key.
+%
+%This is where the subtlety about distributions appears: it is crucial that the public key derived from the pair $(E, E_A)$ is indistinguishable from public keys output by the key generation algorithm.
+%
+%The simulator will handle hash and sign queries the same way as in the proof of Theorem~\ref{thm:security-basic}.
+%When simulating the sign oracle we first choose the $t$ values $b_1, \dots, b_t \in \{0,1\}^s$, which are interpreted as the challenge values $0 \le b_k < 2^s$.
+%For each $1 \le k \le t$ we choose a random ideal class $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ by choosing $z_{k,i} \in [-ntB, ntB]$, and then compute $\E_k = c_k * E_{A,b_k}$.
+%One then defines the hash value $H( j(\E_1), \dots, j(\E_t), \msg )$ to be $b_1 \Vert b_2 \Vert \cdots \Vert b_t$.
+%This simulation is indistinguishable to the real cryptosystem, assuming the distributions on ideal classes have negligible statistical distance.
+%
+%When the forking lemma is applied we have, for some index $k$, two different ideals $\c_k, \c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$ and $b_k' \ne b_k$
+%With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simulator as  $\b * E$ and the other is known as $\b' * E_A$. If this event occurs then we have $\c_k \b * E = \c_k' \b' * E_A$ (or vice versa) in which case $(c_k' \b')^{-1} c_k \b$ is a solution to the original instance. \qed
+%\end{proof}
 
-Choose random ideal classes $\b_0, \dots, \b_{2^s-1}$
-(chosen as $\b_m = \prod_{i=1}^n \l_i^{u_{i,m}}$ for $0 \le m < 2^s$ and $u_{i,m} \in [-B,B]$)
-and compute $E_{A,m}' = \b_m * E$ for $0 \le m < 2^{s-1}$ and $E_{A,m}' = \b_m * E_A$ for $2^{s-1} \le m < 2^s$. Choose a random permutation $\pi$ on $\{ 0, 1, \dots, 2^s-1 \}$ and set the public key to be the sequence $E_{A,m} = E_{A,\pi(m)}'$.
-Note that these curves are all uniformly sampled in the isogeny class, and so there is no way to distinguish whether the curve has been generated from $E$ or $E_A$.
-Now run the adversary on this public key.
 
-This is where the subtlety about distributions appears: it is crucial that the public key derived from the pair $(E, E_A)$ is indistinguishable from public keys output by the key generation algorithm.
-
-
-The simulator will handle hash and sign queries the same way as in the proof of Theorem~\ref{thm:security-basic}.
-When simulating the sign oracle we first choose the $t$ values $b_1, \dots, b_t \in \{0,1\}^s$, which are interpreted as the challenge values $0 \le b_k < 2^s$.
-For each $1 \le k \le t$ we choose a random ideal class $\c_k = \prod_{i=1}^n \l_i^{z_{k,i}}$ by choosing $z_{k,i} \in [-ntB, ntB]$, and then compute $\E_k = c_k * E_{A,b_k}$.
-One then defines the hash value $H( j(\E_1), \dots, j(\E_t), \msg )$ to be $b_1 \Vert b_2 \Vert \cdots \Vert b_t$.
-This simulation is indistinguishable to the real cryptosystem, assuming the distributions on ideal classes have negligible statistical distance.
-
-When the forking lemma is applied we have, for some index $k$, two different ideals $\c_k, \c_k'$ such that $j( \c_k * E_{A, b_k} ) = j( \c_k' * E_{A, b_k'})$ and $b_k' \ne b_k$
-With probability $1/2$ we have that one of the $E_{A,b_k}$ is known to the simulator as  $\b * E$ and the other is known as $\b' * E_A$. If this event occurs then we have $\c_k \b * E = \c_k' \b' * E_A$ (or vice versa) in which case $(c_k' \b')^{-1} c_k \b$ is a solution to the original instance. \qed
-\end{proof}
-
-
-Note that this proof has an extra $1/2$ factor in the success probability, but this is not a serious issue since the security proof isn't tight anyway.
+%Note that this proof has an extra $1/2$ factor in the success probability, but this is not a serious issue since the security proof isn't tight anyway.
 We have a tight proof in Appendix~\ref{sec:lossy-keys} based on a less standard assumption. It is an open problem to have a tight proof and also the security based on the assumption of Definition~\ref{defn:ass1}.
 
 
@@ -713,7 +778,7 @@ Of course, during key generation one needs to compute all the public keys, but d
 
 \section{Smaller public keys} \label{sec:smaller-keys}
 
-The approach of Section~\ref{sec:smaller-sigs} gives signatures that are potentially quite small, but at the expense of very large public keys. In some settings (e.g., software signing) large public keys can be easily accommodated, while in other settings (e.g., certificate chains) it makes no sense to shorten signatures at the expense of public key size.
+The approach of Section~\ref{sec:smaller-sigs} gives signatures that are potentially quite small, but at the expense of very large public keys. In some settings (e.g., software signing or licence checks) large public keys can be easily accommodated, while in other settings (e.g., certificate chains) it makes no sense to shorten signatures at the expense of public key size.
 In this section we explain how to use techniques from hash-based signatures to compress the public key while also maintaining compact signatures.
 The key idea is to use a Merkle tree~\cite{10.1007/0-387-34805-0_21} with leaves the public curves $E_{A,0}, \dots, E_{A,2^s-1}$, and use the tree root (a single hash value) as public key.
 However, the security of plain Merkle trees depends on collision resistance of the underlying hash function, thus requiring hashes of size at least twice the security parameter.
@@ -763,7 +828,7 @@ The $t$ authentication paths eventually merge before the root, thus some hash va
 We can save some space by only sending the hash values once, in some standardized order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
 For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 kilobytes to the signature of Section~\ref{sec:smaller-sigs}.
-Note that this is still an order of magnitude smaller than the best hash-based signature schemes, while being stateless.
+Note that this is still an order of magnitude smaller than the best hash-based signature schemes, while being stateless, and also still of the same size as the shortest known lattice-based signatures.
 
 Concerning security, the proofs of the previous sections, and that of~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
@@ -1282,7 +1347,7 @@ This is simply the requirement that there is a simulator that produces transcrip
 
 
 \begin{lemma}
-Our scheme has no-abort honest verifier zero-knowledge.
+The identification scheme (sigma protocol) of Figure~\ref{fig:id-scheme} has no-abort honest verifier zero-knowledge.
 \end{lemma}
 
 \begin{proof}
@@ -1292,11 +1357,11 @@ Further, the distribution of triples $(W,c,Z)$ is identical to the distribution 
 \end{proof}
 
 
-
+ 
 
 \begin{theorem}
 Under Heuristics 1, 2, 3 and the restricted class group action problem of Definition~\ref{defn:ass1p}.
-The signature scheme has UF-CMA security in the quantum random oracle, with a tight security reduction.
+The signature scheme (applying Figure~\ref{fig:sign} to Figure~\ref{fig:id-scheme}) has UF-CMA security in the quantum random oracle, with a tight security reduction.
 \end{theorem}
  
 
@@ -1372,11 +1437,13 @@ Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
 Then the statistical distance between $\D_2$ and $U$ is at most $\epsilon$.
 \end{lemma}
 
-Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
+% Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
 
 
 \begin{proof}
-They are the same thing. \qed
+The distribution of ideal classes $\prod_{i=1}^n \l_i^{x_i}$ in $\Cl(\OO)$ is the same as the distribution of vectors in $\FF \cap \Z^n$ obtained by Babai rounding of $\x=(x_1, \dots, x_n)$.
+Hence, if one distribution is close to uniform then so is the other.
+\qed
 \end{proof}
 
 
