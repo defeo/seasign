@@ -874,39 +874,41 @@ As already noted, the proofs are not tight, however the part concerned with the 
 \section{Performance}
 
 
-Table~\ref{tab:comparison} gives some estimates of cost for the schemes presented in Sections~\ref{sec:basic-scheme},~\ref{sec:smaller-sigs},~\ref{sec:smaller-keys}, plus the naive and insecure version of Stolbunov's original scheme from Section~\ref{sec:Stolbunov}.
-It is divided in three sections.
+Table~\ref{tab:comparison} gives some estimates of cost for the schemes presented in Sections~\ref{sec:basic-scheme},~\ref{sec:smaller-sigs},~\ref{sec:smaller-keys}.
+%, plus the naive and insecure version of Stolbunov's original scheme from Section~\ref{sec:Stolbunov}.
+The rows of the table are divided into three sections.
 
-Section ``Exact'' reports the parameter sizes, as a number of bits, already computed in each section, where
+The first section of the table (under the heading ``Exact'') reports the parameter sizes, as a number of bits, already computed in each section, where
 $\lambda$ is the security parameter, $n,B$ and $s$ are as described previously.
 To simplify the expressions we assume that all hash functions have $\lambda$-bit outputs, and we set the parameter $t=\lambda/s$.
-We also give a rough lower bound for the performance of the keygen and sign/verify algorithms, in terms of $\F_p$-operations.
-The bound only takes into account the number of operations needed to compute and evaluate the isogeny path:
+
+In all sections we give a rough lower bound for the performance of the keygen and sign/verify algorithms, in terms of $\F_p$-operations.
+The lower bound only takes into account the number of operations needed to compute and evaluate the isogeny path, and so the exact cost may be higher.
+The operation count is based on the following estimates.
 \begin{enumerate}
 \item Based
   on~\cite{10.1007/978-3-319-70697-9_11,10.1007/978-3-319-79063-3_11},
   we estimate that computing/evaluating an isogeny of degree $\ell$, when given a kernel point,
-  costs $O(\ell)$ operations;
-\item By the prime number theorem $\sum_{i=1}^n\ell_i\sim\frac{1}{2}n^2\ln(n)$, and the estimate is very accurate already for $n>3$;
-\item Putting these estimates together, an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case.
+  costs $O(\ell)$ operations.
+\item By the prime number theorem $\sum_{i=1}^n\ell_i\sim\frac{1}{2}n^2\ln(n)$, and the estimate is very accurate already for $n>3$.
 \end{enumerate}
-We note that the above estimate is not likely to be the dominant part in the computation, especially asymptotically,
+Putting these estimates together, an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case. We note that the above estimate is not likely to be the dominant part in the computation, especially asymptotically,
 as scalar multiplications of elliptic points are likely to dominate.
-However, estimating this part of the algorithm is much more complex and dependent on specific optimizations, we thus chose to ignore it.
+However, estimating this part of the algorithm is much more complex and dependent on specific optimizations, we thus leave a more precise analysis for future work.
 
-
-Section ``Asymptotic'' gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
-Here is the justification for the parameter restrictions in terms of $\lambda$:
+The second section of rows in the table (under the heading ``Asymptotic'') gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
+We now give a brief justification for the parameter restrictions in terms of $\lambda$.
 \begin{enumerate}
-\item Kuperberg's algorithm is believed to have complexity at least $\tilde{O}( 2^{\sqrt{\log(N)}} )$ in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
+\item Kuperberg's algorithm is believed to require at least $ 2^{\sqrt{\log(N)}}$ operations in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
 \[
    \sqrt{ \log(N)} > \sqrt{ \tfrac{1}{2} \log(p) } > \sqrt{ \tfrac{1}{2} 2 \lambda^2 } = \lambda.
 \]
+So we choose $\log(p) \approx 2 \lambda^2$.
 
 \item 
 To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$.
 For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$.
-Though see the earlier discussion and the work of Adj  et al.~\cite{adj+menezes+al-isogenies}.
+Though see the earlier discussion and the work of Adj  et al.~\cite{adj+menezes+al-isogenies} that suggests this may be too cautious.
 
 %The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
 
@@ -919,17 +921,20 @@ Though see the earlier discussion and the work of Adj  et al.~\cite{adj+menezes+
 
 \item Assuming that one wants to optimize for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=O(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = O( \sqrt{\log(p)} )$. Note that this is compatible with $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) = O(\lambda\log(\lambda))$.
 
-\item Instead of measuring performances in terms $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound.
+\item Instead of measuring performance in terms $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
 
 \end{enumerate}
 
 Note that our asymptotic choices forbid the key space from covering the whole class group.
 If the conditions of Problem~\ref{defn:ass1} are wanted, different choices must be made for $n$ and $B$.
 In this case it is best to choose primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}.
-Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and $n\log(B)\sim\lambda^2$ imply that $B\sim\sqrt{n}$, making all asymptotic bounds considerably worse.
+Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $\log(n) \sim \lambda^2 / \log(\lambda)$.
+To have a distribution of ideal classes close to uniform we need $(2B+1)^n \gg \sqrt{p}$ and so $\log(B) > \log( \sqrt{p} )/n \sim \log(\lambda)$.
+Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
 
-Finally, section ``CSIDH'' gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
+The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
 We estimate these parameters to correspond to the NIST-1 security level.
+Note that we expect to be able to get smaller signatures at similar cost, but we choose these parameters to be able to recycle the running-time computations from~\cite{CLMPR18}.
 We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
 In~\cite{CLMPR18}, for an exponent vector in $[-B,B]^n$, this time is reported to be $0.1$ seconds.
 Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
@@ -974,64 +979,80 @@ On the other hand, rejections that happen during signing multiply the running ti
     \pgfmathtruncatemacro{\ParTime}{round(\n * \t^2 * \CSIDHsecs)}
     \pgfmathtruncatemacro{\ComTime}{\ParTime}
     \centering
-    \begin{tabular}{l | c | c | c | c |}
-      & Stolbunov scheme (Section~\ref{sec:Stolbunov})
+%    \begin{tabular}{l | c | c | c | c |}
+    \begin{tabular}{l | c | c | c |}
+%      & Stolbunov scheme (Section~\ref{sec:Stolbunov})
       & Rejection sampling (Section~\ref{sec:sig-reject-sample})
       & Shorter signatures (Section~\ref{sec:smaller-sigs})
       & Smaller public keys (Section~\ref{sec:smaller-keys}) \\
       \hline
-      \hspace{1em}\textbf{Exact} &&&&\\
+%      \hspace{1em}\textbf{Exact} &&&&\\
+      \hspace{1em}\textbf{Exact} &&&\\
       Sig size
-      & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
+%      & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
       & $\lambda\lceil n\log (2(n\lambda + 1) B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
       PK size
-      & $\log p$ & $\log p$ & $2^s\log p$ & $2\lambda$ \\
+%      & $\log p$ & $\log p$ & $2^s\log p$ & $2\lambda$ \\
+       & $\log p$ & $2^s\log p$ & $2\lambda$ \\
       SK size
-      & $n\log(2B+1)$ & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
-      Performance ($\F_p$-ops) &&&&\\
+%      & $n\log(2B+1)$ & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
+       & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
+%      Performance ($\F_p$-ops) &&&&\\
+      Performance ($\F_p$-ops) &&&\\
       $\to$ keygen
-      & $\Omega\bigl(Bn^2\log(n)\bigr)$
+%      & $\Omega\bigl(Bn^2\log(n)\bigr)$
       & $\Omega\bigl(Bn^2\log(n)\bigr)$
       & $\Omega\bigl(2^sBn^2\log(n)\bigr)$
       & $\Omega\bigl(2^sBn^2\log(n)\bigr)$\\
       $\to$ sign/verify
-      & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
+%      & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
       & $\Omega\bigl(\lambda^2Bn^3\log(n)\bigr)$
       & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$
       & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$\\
       \hline
-      \hspace{1em}\textbf{Asymptotic} &&&&\\
+%      \hspace{1em}\textbf{Asymptotic} &&&&\\
+      \hspace{1em}\textbf{Asymptotic} &&&\\
       Sig size
-      & $O(\lambda^2)$ & $O(\lambda^2\log(\lambda))$ & $O((\lambda^2/s)\log(\lambda))$ & $O(\lambda^3/s)$\\
+%      & $O(\lambda^2)$ & $O(\lambda^2\log(\lambda))$ & $O((\lambda^2/s)\log(\lambda))$ & $O(\lambda^3/s)$\\
+      & $O(\lambda^2\log(\lambda))$ & $O((\lambda^2/s)\log(\lambda))$ & $O(\lambda^3/s)$\\
       PK size
-      & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $2\lambda$\\
+%      & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $2\lambda$\\
+       & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $2\lambda$\\
       SK size
-      & $3\lambda$ & $3\lambda$ & $\lambda$ & $(2^s+1)\lambda$\\
-      Performance (bits) &&&&\\
+%      & $3\lambda$ & $3\lambda$ & $\lambda$ & $(2^s+1)\lambda$\\
+      & $3\lambda$ & $\lambda$ & $(2^s+1)\lambda$\\
+%      Performance (bits) &&&&\\
+      Performance (bits) &&&\\
       $\to$ keygen
-      & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
+%      & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$\\
       $\to$ verify
-      & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
+%      & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
       & $\Omega\bigl(\lambda^7\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$\\
       \hline
-      \hspace{1em}\textbf{CSIDH(128,16)} &&&&\\
+%      Performance (bits) &&&&\\
+      Performance (bits) &&&\\
       Sig size
-      & \BasSig{} B & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
+%      & \BasSig{} B & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
+      & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
       PK size
-      & \BasPK{} B & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
+%      & \BasPK{} B & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
+      & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
       SK size
-      & \BasSK{} B & \RejSK{} B & \ParSK{} B & \ComSK{} KB \\
+%      & \BasSK{} B & \RejSK{} B & \ParSK{} B & \ComSK{} KB \\
+      & \RejSK{} B & \ParSK{} B & \ComSK{} KB \\
       Est. keygen time
-      & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
+%      & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
+      & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
       Est. sig/verify time
-      & \BasTime{} s & \RejTime{} s & \ParTime{} s & \ComTime{} s
+%      & \BasTime{} s & \RejTime{} s & \ParTime{} s & \ComTime{} s
+      & \RejTime{} s & \ParTime{} s & \ComTime{} s
     \end{tabular}
     \caption{Parameter size and performance of the various signature
       protocols.
