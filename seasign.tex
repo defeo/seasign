@@ -936,7 +936,7 @@ Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
 
 The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
 We estimate these parameters to correspond to the NIST-1 security level.
-Note that we expect to be able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params}.
+Note that we are able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params} (and one can also potentially consider $s > 16$, such as $(s,t)=(21,6)$).
 However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
 We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
 In~\cite{CLMPR18}, for an exponent vector in $[-B,B]^n$, this time is reported to be $0.1$ seconds.
