@@ -99,7 +99,7 @@ Universit{\' e} de Versailles -- Saint-Quentin, Paris, France.
 
 \begin{abstract}
 We give a new signature scheme for isogenies that combines the class group actions of CSIDH with the notion of Fiat-Shamir with aborts.
-We believe it is possible to have signatures of size less than one kilobyte at the 128-bit security level, even with tight security reduction (to a non-standard problem) in the quantum random oracle model.
+Our techniques allow to have signatures of size less than one kilobyte at the 128-bit security level, even with tight security reduction (to a non-standard problem) in the quantum random oracle model.
 Hence our signatures are potentially shorter than lattice signatures, but signing and verification are currently very expensive.
 \end{abstract}
 
@@ -120,8 +120,13 @@ We also describe some methods to obtain much shorter signatures than in Stolbuno
 Currently it is a major problem to get practical signatures from isogeny problems.
 Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes.
 This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for their signature scheme (for classical 128-bit security level).
-In contrast, in this paper we should be able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
+In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
 Unfortunately, signing and verification are very slow, but we might just about be able to live with that in certain applications.
+
+
+We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
+For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is around 4Mb, signature size is 944 bytes, and verification time is around 8 minutes (signing time is up to three times longer than this, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3kb and does not add any significant additional cost to signing or verification time.
+One can obtain even shorter signatures by taking different choices of parameters, for example taking $(n,B) = 20,3275)$ leads to signatures as small as 416 bytes, but we do not have an estimate of the verification time for these parameters.
 
 
 The paper is organised as follows.
@@ -200,7 +205,6 @@ Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
 The CSIDH paper speaks of hard homogenous spaces and calls the below problem ``Key recovery''.
 
 \begin{problem}\label{defn:ass1}
-(** It turns out that definitions do need to have a name ***)
 % (GAIP ?? ClAP (Cl Action Problem) ??)
 Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End(E_A) = \OO$. Find an ideal $\a$ such that $j( E_A ) = j( \a * E )$.
 \end{problem}
@@ -673,17 +677,16 @@ For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which cor
 
 A signature consists of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
 But now for security we now only require $ts \ge \lambda$.
-Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of only 944 bytes!
-(*****)
+Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of well under one kilobyte (see Table~\ref{tab:alt-params}).
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes, and key generation is also $2^{16}$ times slower.
 
 
 As far as we can tell, this idea cannot be applied to the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17}.
 
-(*****)
-What params should we use for signatures. Can get sigs as low as we want by ignoring computation time.
-Limiting case is $n=1$ and $B = 2^{256}$ giving $32 + 16 = 48$ byte signatures. Obviously impossible.
-Sweet spot seems to be sigs with around 500 bytes.
+
+%What params should we use for signatures. Can get sigs as low as we want by ignoring computation time.
+%Limiting case is $n=1$ and $B = 2^{256}$ giving $32 + 16 = 48$ byte signatures. Obviously impossible.
+%Sweet spot seems to be sigs with around 500 bytes.
 
 
 
@@ -879,7 +882,7 @@ Table~\ref{tab:comparison} gives some estimates of cost for the schemes presente
 The rows of the table are divided into three sections.
 
 The first section of the table (under the heading ``Exact'') reports the parameter sizes, as a number of bits, already computed in each section, where
-$\lambda$ is the security parameter, $n,B$ and $s$ are as described previously.
+$\lambda$ is the security parameter, $n,B$ and $s$ are as described previously (in Section~\ref{sec:basic-scheme} we have $s=1$).
 To simplify the expressions we assume that all hash functions have $\lambda$-bit outputs, and we set the parameter $t=\lambda/s$.
 
 In all sections we give a rough lower bound for the performance of the keygen and sign/verify algorithms, in terms of $\F_p$-operations.
@@ -907,8 +910,7 @@ So we choose $\log(p) \approx 2 \lambda^2$.
 
 \item 
 To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$.
-For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$.
-Though see the earlier discussion and the work of Adj  et al.~\cite{adj+menezes+al-isogenies} that suggests this may be too cautious.
+For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, although the work of Adj  et al.~\cite{adj+menezes+al-isogenies} suggests this may be too cautious. In any case, we have $n \log(B) = \Omega( \lambda )$.
 
 %The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
 
@@ -919,7 +921,7 @@ Though see the earlier discussion and the work of Adj  et al.~\cite{adj+menezes+
 %
 %In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
 
-\item Assuming that one wants to optimize for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=O(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = O( \sqrt{\log(p)} )$. Note that this is compatible with $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) = O(\lambda\log(\lambda))$.
+\item Assuming that one wants to optimize for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=\Omega(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = \Omega( n \log(n)) =  \Omega( \lambda \log(\lambda))$. Note that this is compatible with the requirement $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) \sim \lambda\log(\lambda)^2$.
 
 \item Instead of measuring performance in terms $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
 
@@ -934,12 +936,13 @@ Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
 
 The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
 We estimate these parameters to correspond to the NIST-1 security level.
-Note that we expect to be able to get smaller signatures at similar cost, but we choose these parameters to be able to recycle the running-time computations from~\cite{CLMPR18}.
+Note that we expect to be able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params}.
+However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
 We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
 In~\cite{CLMPR18}, for an exponent vector in $[-B,B]^n$, this time is reported to be $0.1$ seconds.
 Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
 Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
-However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees, much larger than ours, can be computed in a fraction of the time we need to compute isogenies.
+However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees much larger than ours can be computed in a fraction of the time we need to compute isogenies.
 On the other hand, rejections that happen during signing multiply the running time by a small constant, typically less than $3$ on average.
 
 
@@ -955,7 +958,7 @@ On the other hand, rejections that happen during signing multiply the running ti
     \pgfmathtruncatemacro{\t}{\lam / \s}
     % Sig size
     \pgfmathtruncatemacro{\BasSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8} 
-    \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*(\n*\lam+1)*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*\n*\lam*\B + 1)) + \lam) / 8}
     \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\n*\t*\B + 1)) + \lam) / 8}
     \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
     % PK size
@@ -990,7 +993,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       \hspace{1em}\textbf{Exact} &&&\\
       Sig size
 %      & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
-      & $\lambda\lceil n\log (2(n\lambda + 1) B + 1)\rceil + \lambda$
+      & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
       PK size
@@ -1036,6 +1039,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$\\
       \hline
+      \hspace{1em}\textbf{CSIDH} &&&\\
 %      Performance (bits) &&&&\\
       Performance (bits) &&&\\
       Sig size
@@ -1056,14 +1060,31 @@ On the other hand, rejections that happen during signing multiply the running ti
     \end{tabular}
     \caption{Parameter size and performance of the various signature
       protocols.
-      Equivalences used for asymptotic analysis are:
+      Parameters taken in the asymptotic analysis are:
       $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$.
-The entry CSIDH(128,16) is for parameters $(\lambda,n,B,s,\log_2(p)) = (128, 74, 5, 16, 500)$ and $t=\frac{\lambda}{s}=8$.
-      All logarithms are in base 2. % NdL: this is probably wrong
+The entry CSIDH is for parameters $(\lambda,n,B,\log_2(p)) = (128, 74, 5, 16, 500)$ with $(s,t) = (1,128)$ in the first column and $(s,t)=(16,8)$ in the second two columns.
+      All logarithms are in base 2.
     }
     \label{tab:comparison}
   \end{table}
 \end{landscape}
+
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  $n$ & B & $\lceil \log_2( 2ntB + 1) \rceil$ & Signature size (bytes) \\
+\hline
+  20 & 3275 & 20 & 416 \\
+  28 & 293 & 17 & 492 \\
+  33 & 124 & 16 & 544 \\
+  37 & 55 & 15 & 571 \\
+  46 & 22 & 14 & 660 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Parameter choices for small signatures, with $(s,t)=(16,8)$, at around 128-bit classical security level. Signature size is $nt \lceil \log_2( 2ntB + 1) \rceil + 128$ bits. \label{tab:alt-params}}
+\end{table}
 
 \section{Conclusions}
 
