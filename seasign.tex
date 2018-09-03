@@ -930,7 +930,7 @@ For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \l
 Note that our asymptotic choices forbid the key space from covering the whole class group.
 If the conditions of Problem~\ref{defn:ass1} are wanted, different choices must be made for $n$ and $B$.
 In this case it is best to choose primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}.
-Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $\log(n) \sim \lambda^2 / \log(\lambda)$.
+Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $n \sim \lambda^2 / \log(\lambda)$.
 To have a distribution of ideal classes close to uniform we need $(2B+1)^n \gg \sqrt{p}$ and so $\log(B) > \log( \sqrt{p} )/n \sim \log(\lambda)$.
 Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
 
