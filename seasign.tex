@@ -63,7 +63,7 @@
 \newcommand{\Wset}{\mathcal{W}}
 \newcommand{\Zset}{\mathcal{Z}}
 \newcommand{\ChSet}{\textsf{ChSet}}
-\newcommand{\St}{\textsf{St}}
+\newcommand{\St}{\textsf{st}}
 \newcommand{\LossIGen}{\mathsf{LossIGen}}
 \newcommand{\PRF}{\mathsf{PRF}}
 \newcommand{\PRFk}{\PRF_{\mathrm{key}}}
@@ -193,7 +193,7 @@ For efficient computation it is necessary to work with ideals that are a product
 Techniques for smoothing an ideal class in the context of isogeny computation were first proposed in~\cite{GHS02} and developed further in~\cite{BCL08,JS10,biasse_fieker_jacobson_2016}.
 The state of the art is~\cite{biasse_fieker_jacobson_2016} which gives computation $\a * E$ for any ideal class in subexponential complexity in $\log(\#\Cl(\OO))$.
 
-Since subexponential complexity is not good enough, for cryptographic applications it is necessary to choose ideals deliberately of the form $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
+Since subexponential complexity is not good enough, for cryptographic applications it is necessary to choose ideals deliberately of the form $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are split prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
 Then, the action of $\a$ can be computed as a composition of isogenies of degree $\ell_i$.
 Throughout the paper we assume that $\{ \l_1, \dots, \l_n \}$ is a set of non-principal prime ideals in $\OO$, generating $\Cl(\OO)$, of norm polynomial in the size of the class group.
 Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assuming a generalised Riemann hypothesis, $\ell_i = O( \log(p)^2 )$.
@@ -229,7 +229,10 @@ This is a nice feature for security proofs that is not shared by SIDH; we use th
 As already mentioned, when instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
 This is done both by chooseing the $\ell_i$ to have as small norm as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field as possible (so that V\'elu's formulas can be used).
 In the ordinary case, De Feo, Kieffer and Smith~\cite{DFKS18} introduced a method to make the system as efficient as possible (namely, using V\'elu's formulas~\cite{velu71} for some primes $\ell_i$, but they were unable to use V\'elu's formulas for all the primes they needed).
-By using supersingular curves over a field $\F_p$ with $p+1 = 4\prod_{i=1}^n\ell_i$, CSIDH~\cite{CLMPR18} manages to apply V\'elu's formulas to all primes $\ell_i$.
+By using supersingular curves over a field $\F_p$ with $p+1 = 4\prod_{i=1}^n\ell_i$, CSIDH~\cite{CLMPR18} manages to apply V\'elu's formulas for all primes $\ell_i$.
+Note that the formula for $p+1$ implies
+% $p \equiv 3 \pmod{8}$, and so the maximal order in $\Q(\sqrt{-p})$ is $\Z[ (1 + \sqrt{-p})/2 ]$ and minimal polynomial of generator $\theta = (1 + \sqrt{-p})/2$ is $f(x) = x^2 + x + (p+1)/4$ satisfies $f(x) \equiv x(x+1) \pmod{\ell_i}$
+that each prime $\ell_i$ splits in $\Q(\sqrt{-p})$ as a product $(\ell_i) = \l_i \bar{\l}_i$ of distinct prime ideals.
 For key exchange, CSIDH samples the exponent vectors $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for a suitable constant $B$.
 % such that $(2B+1)^n\ge\#\Cl(\OO)\approx p\log p$; this ensures that, heuristically, the key space covers all of $\Cl(\OO)$.
 
@@ -312,7 +315,7 @@ The randomised algorithm $\Sign$ takes input the private key $sk$ and a message 
 The verification algorithm $\Verify( pk, \msg, \sigma )$ returns $0$ or $1$.
 We require $\Verify( pk, \msg, \Sign( sk, \msg )) = 1$.
 
-The Fiat-Shamir transform is a construction to turn a canonical identification scheme into a public key signature scheme. The main idea is to make the interactive identification scheme into a non-interactive scheme by replacing the challenge $c$ by a hash $H( W, \msg )$.
+The \emph{Fiat-Shamir transform} is a construction to turn a canonical identification scheme into a public key signature scheme. The main idea is to make the interactive identification scheme into a non-interactive scheme by replacing the challenge $c$ by a hash $H( W, \msg )$.
 
 The standard notion of security is \emph{unforgeability against chosen-message attack (UF-CMA)}.
 A UF-CMA adversary against the signature scheme is a randomised polynomial-time algorithm $A$ that plays the following game against a challenger.
@@ -356,7 +359,7 @@ When $b_k=1$ the verifier checks that $j(\E_k) = j( (\b_k \a^{-1}) * E_A )$.
 A cheating prover (who does not know the private key) can succeed with probability $1/2^t$.
 
 The major problem with the above idea is how to represent the ideal class of $\b_k \a^{-1}$ in a way that does not leak $\a$.
-Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key, instead he mentions in one sentence a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
+Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key, instead he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
 Couveignes also does not explain how to prevent this leakage.
 A main contribution of our paper is to give solutions to this problem.
 
@@ -383,7 +386,7 @@ An alternative solution requires a basis of a relation lattice in the ideal clas
 
 % The approach in Section~\ref{sec:sig-relation-lattice} is theoretically elegant, but the assumption that the relation lattice $L$ can be computed is doubtful for practical post-quantum signatures.
 %Hence this section contains our main solution to the problem of representing the ideal class $\b_k \a^{-1}$.
-The idea is to use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
+To prevent signatures from leaking the private key, we use rejection sampling in exactly the way proposed by Lyubashevsky~\cite{Lyu09} in the context of lattice signatures.
 
 Let $B > 0$ be a constant. When generating the private key we sample uniformly $e_i \in [-B, B]$ for $1 \le i \le n$. Let $\e = ( e_1, \dots, e_n )$.
 The value $B$ may be chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ covers most ideal classes and so that the output distribution is close to uniformly distributed in $\Cl(\OO)$, but we avoid any explicit requirement or assumption that this distribution is uniform.
@@ -393,7 +396,7 @@ Exponents $f_{k,i}$ are sampled uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is
 Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$, $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and define $\E_k = \b_k * E $.
 
 
-If the $k$-th challenge bit $b_k$ is zero then the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(\E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$ as in the basic scheme above.\footnote{In the scheme and analysis I actually apply rejection sampling to the case $b_k = 0$. It doesn't really matter one way or the other.}
+If the $k$-th challenge bit $b_k$ is zero then the prover responds with $\f_k = ( f_{k,1}, \dots, f_{k,n} )$ and the verifier checks that $j(\E_k) = j( (\prod_{i=1}^n \l_i^{f_{k,i}}) * E )$ as in the basic scheme above.\footnote{In the scheme and analysis we apply rejection sampling to the case $b_k = 0$ as well as the case $b_k = 1$. An alternative would be to only apply rejection sampling in the case $b_k = 1$. It doesn't really matter one way or the other, since in both settings we are able to simulate a signer in the random oracle model and so the security proof works.}
 If $b_k = 1$ then the prover is required to provide a representation of $\b_k \a^{-1}$, the idea is to compute the vector $\z_k = (z_{k,1}, \dots, z_{k,n}) $ defined by $z_{k,i} = f_{k,i} - e_i $ for $1 \le i \le n$.
 As already noted, outputting $\z$ directly would potentially leak the secret.
 To prevent this leakage we only output $\z_k$ if all its entries satisfy $| z_{k,i} | \le nt B$.
@@ -909,8 +912,8 @@ We now give a brief justification for the parameter restrictions in terms of $\l
 So we choose $\log(p) \approx 2 \lambda^2$.
 
 \item 
-To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$.
-For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, although the work of Adj  et al.~\cite{adj+menezes+al-isogenies} suggests this may be too cautious. In any case, we have $n \log(B) = \Omega( \lambda )$.
+To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$, although the work of Adj  et al.~\cite{adj+menezes+al-isogenies} suggests this may be too cautious.
+For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, though again this may not be necessary. In any case, we have $n \log(B) = \Omega( \lambda )$.
 
 %The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
 
@@ -1182,16 +1185,16 @@ In the remainder of this section we develop these ideas.
 
 We closely follow Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}.
 A \emph{canonical identification scheme} consists of algorithms $(\IGen, \PP_1, \PP_2, \VV)$ and a set $\ChSet$. The randomised algorithm $\IGen( 1^\lambda )$ outputs a key pair $(pk,sk)$.
-The deterministic algorithm $\PP_1$ takes $sk$ and randomness $r_1$ and computes $(W, \St) = P_1( sk, r_1 )$. 
-Here $\St$ denotes state information to be passed to $P_2$.
-A challenge $c$ is sampled uniformly from $\ChSet$. The deterministic algorithm $P_2$ then computes $Z = P_2( sk, W, c, \St, r_2 )$ or $\perp$, where $r_2$ is the randomness.
+The deterministic algorithm $\PP_1$ takes $sk$ and randomness $r_1$ and computes $(W, \St) = \PP_1( sk, r_1 )$. 
+Here $\St$ denotes state information to be passed to $\PP_2$.
+A challenge $c$ is sampled uniformly from $\ChSet$. The deterministic algorithm $\PP_2$ then computes $Z = \PP_2( sk, W, c, \St, r_2 )$ or $\perp$, where $r_2$ is the randomness.
 The output $\perp$ corresponds to an abort in the ``Fiat-Shamir with aborts'' paradigm.
 We require that $\VV( pk, W, c, Z ) = 1$ for a correctly formed transcript $(W,c,Z)$.
 
 We assume, for each value of $\lambda$, there are well-defined sets $\Wset$ and $\Zset$, such that $\Wset$ contains all $W$ output by $\PP_1$ and $\Zset$ contains all $Z$ output by $\PP_2$. 
-The scheme is \emph{commitment recoverable} if, given $c$ and $Z = P_2( sk, W, c, \St )$, there is a unique $W \in \Wset$ such that $\VV( pk, W, c, Z ) = 1$ and this $W$ can be efficiently computed from $(pk, c, Z)$
+The scheme is \emph{commitment recoverable} if, given $c$ and $Z = \PP_2( sk, W, c, \St )$, there is a unique $W \in \Wset$ such that $\VV( pk, W, c, Z ) = 1$ and this $W$ can be efficiently computed from $(pk, c, Z)$
 
-A canonical identification scheme is $\epsilon_{zk}$-naHVZK \emph{non-abort honest verifier zero knowledge} if there is a simulator that given only $pk$ outputs $(W, c, Z)$ whose distribution has statistical distance at most $\epsilon_{zk}$ from the output distribution of the real protocol conditioned on $P_2( sk, W, c, \St, r_2 ) \ne \perp$.
+A canonical identification scheme is $\epsilon_{zk}$-naHVZK \emph{non-abort honest verifier zero knowledge} if there is a simulator that given only $pk$ outputs $(W, c, Z)$ whose distribution has statistical distance at most $\epsilon_{zk}$ from the output distribution of the real protocol conditioned on $\PP_2( sk, W, c, \St, r_2 ) \ne \perp$.
 
 % Don't need this:
 % ***We say $W$ has $\alpha$ \emph{bits of min entropy} if the probability any -- not needed to define
