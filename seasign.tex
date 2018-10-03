@@ -126,7 +126,7 @@ Unfortunately, signing and verification are very slow, but we might just about b
 
 We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
 For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is around 4Mb, signature size is 944 bytes, and verification time is around 8 minutes (signing time is up to three times longer than this, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3kb and does not add any significant additional cost to signing or verification time.
-One can obtain even shorter signatures by taking different choices of parameters, for example taking $(n,B) = 20,3275)$ leads to signatures as small as 416 bytes, but we do not have an estimate of the verification time for these parameters.
+One can obtain even shorter signatures by taking different choices of parameters, for example taking $(n,B) = (20,3275)$ leads to signatures as small as 416 bytes, but we do not have an estimate of the verification time for these parameters.
 
 
 The paper is organised as follows.
@@ -158,7 +158,7 @@ A good reference for ideal class groups and class group actions is Cox~\cite{Cox
 
 Let $E$ be an elliptic curve over a field $K$ and let $P \in E( K )$ be a point of order $m$.
 Then there is a unique (up to isomorphism) elliptic curve $E'$ and separable isogeny $\phi : E \to E'$ such that $\ker( \phi ) = \langle P \rangle$.
-V{\' e}lu~\cite{velu71} gives an algorithm to compute and equation for $E'$ and rational functions that enable to compute $\phi$.
+V{\' e}lu~\cite{velu71} gives an algorithm to compute an equation for $E'$ and rational functions that enable to compute $\phi$.
 The complexity of this algorithm is linear in $m$ and requires field operations in $K$, so when $K$ is a finite field it has cost $O( m \log( \#K )^2 )$ bit operations using standard arithmetic.
 In the worst case (i.e., when $m$ is large) this algorithm is exponential-time.
 In practice this computation is only feasible when $m$ is relatively small (say $m < 1000$) and when the field $K$ over which $P$ is defined is not too large (say, at most a few thousand bits).
@@ -191,7 +191,7 @@ The key exchange protocol proposed by Couveignes and Stolbunov is for Alice to s
 The difficulty is that if $\a\subset\OO$ is an arbitrary ideal then the subgroup $E[ \a ]$ is typically defined over a very large field extension and the computation of $\a*E$ has exponential complexity.
 For efficient computation it is necessary to work with ideals that are a product of powers of small prime ideals, so it is necessary to find a ``smooth'' ideal in the ideal class of $\a$.
 Techniques for smoothing an ideal class in the context of isogeny computation were first proposed in~\cite{GHS02} and developed further in~\cite{BCL08,JS10,biasse_fieker_jacobson_2016}.
-The state of the art is~\cite{biasse_fieker_jacobson_2016} which gives computation $\a * E$ for any ideal class in subexponential complexity in $\log(\#\Cl(\OO))$.
+The state of the art is~\cite{biasse_fieker_jacobson_2016} which computes $\a * E$ for any ideal class in subexponential complexity in $\log(\#\Cl(\OO))$.
 
 Since subexponential complexity is not good enough, for cryptographic applications it is necessary to choose ideals deliberately of the form $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are split prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
 Then, the action of $\a$ can be computed as a composition of isogenies of degree $\ell_i$.
@@ -227,10 +227,11 @@ This is a nice feature for security proofs that is not shared by SIDH; we use th
 
 
 As already mentioned, when instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
-This is done both by chooseing the $\ell_i$ to have as small norm as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field as possible (so that V\'elu's formulas can be used).
-In the ordinary case, De Feo, Kieffer and Smith~\cite{DFKS18} introduced a method to make the system as efficient as possible (namely, using V\'elu's formulas~\cite{velu71} for some primes $\ell_i$, but they were unable to use V\'elu's formulas for all the primes they needed).
-By using supersingular curves over a field $\F_p$ with $p+1 = 4\prod_{i=1}^n\ell_i$, CSIDH~\cite{CLMPR18} manages to apply V\'elu's formulas for all primes $\ell_i$.
-Note that the formula for $p+1$ implies
+This is done both by choosing the $\ell_i$ to have as small norm as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field as possible (so that V\'elu's formulas can be used).
+In the ordinary case, the best technique currently available to select parameters is due to De~Feo, Kieffer and Smith~\cite{DFKS18}: a prime of a special form is fixed, then elliptic curves are taken at random until a suitable one is found.
+Despite the optimizations described in~\cite{DFKS18}, this technique is currently incapable of producing efficient parameters in a reasonable amount of time.
+Like~\cite{DFKS18}, CSIDH~\cite{CLMPR18} chooses a special prime of the form $p+1 = 4\prod_{i=1}^n\ell_i$, but, instead of ordinary curves, it uses supersingular curves defined over $\F_p$.
+This makes the search for a suitable curve instantaneous, and produces very efficient parameters; indeed note that the formula for $p+1$ implies
 % $p \equiv 3 \pmod{8}$, and so the maximal order in $\Q(\sqrt{-p})$ is $\Z[ (1 + \sqrt{-p})/2 ]$ and minimal polynomial of generator $\theta = (1 + \sqrt{-p})/2$ is $f(x) = x^2 + x + (p+1)/4$ satisfies $f(x) \equiv x(x+1) \pmod{\ell_i}$
 that each prime $\ell_i$ splits in $\Q(\sqrt{-p})$ as a product $(\ell_i) = \l_i \bar{\l}_i$ of distinct prime ideals.
 For key exchange, CSIDH samples the exponent vectors $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for a suitable constant $B$.
@@ -662,7 +663,7 @@ There may be situations where a larger hash output is needed; for more discussio
 
 
 
-
+% TODO: is "sigs" really acceptable?
 \section{Smaller sigs}\label{sec:smaller-sigs}
 
 
@@ -702,7 +703,10 @@ Hence the computational assumption underlying the scheme is the following.
 \begin{problem}\label{defn:one-out-of-2s-problem}
 % (One out of $2^s$ ideal action problem ***)
 Let notation be as in the key generation protocol of the scheme.
-Consider a set of $2^s$ elliptic curves $\{ E_{A,0}, \dots, E_{A,2^s-1} \}$, all of the form $E_{A,m} = \a_m * E$ for some ideal $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$ where the exponent vectors $\e_m $ are uniformly sampled in $[-B,B]^n \subseteq \Z^n$. The ``one out of $2^s$'' isogeny problem is to compute an ideal corresponding to any isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
+Consider a set of $2^s$ elliptic curves $\{ E_{A,0}, \dots, E_{A,2^s-1} \}$, all of the form $E_{A,m} = \a_m * E$ for some ideal $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$ where the exponent vectors $\e_m $ are uniformly sampled in $[-B,B]^n \subseteq \Z^n$.
+% TODO: since we have unbaptized this problem, maybe we should also
+% not name it "one ouf of..." in the sentence below:
+The ``one out of $2^s$'' isogeny problem is to compute an ideal corresponding to any isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
 \end{problem}
 
 
@@ -1116,6 +1120,8 @@ Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
 One can consider various ideas to get more efficient (i.e., faster signing and verification) or more compact signatures.
 
 \begin{enumerate}
+  % TODO: Do we need this \item? We don't say anything new, one line would be enough.
+  % At any rate, the style needs polishing
 \item Following Stolbunov one could use higher powers for the smaller primes.
 
 This is definitely worth looking at. We could take $B=1$ for some of the larger primes (e.g., the ones bigger than 50), and then use much larger values for $B$ for the primes $3, 5, 7$ etc. If $B_i$ is the bound used for $\l_i$ then the full key space is $\prod_i (2B_i + 1)$.
@@ -1136,7 +1142,7 @@ For example, take $n=50$, $s = 16, t = 8$ and choose $\sigma = 5$ (so almost all
 \]
 so determining the $e_i$ using a meet-in-the-middle strategy should require at least $2^{109}$ iterations, and realistically much more than this since organising a search based on the entropy is hard to do. For post-quantum security we might want to replace $2 \lambda$ with $3\lambda$ in the above.
 
-We following the methods and results of Lyubashevsky~\cite{Lyu12}. Lemma 4.3(3) of~\cite{Lyu12} shows we can bound the norm $\Vert \e \Vert$ by $T = 2 \sigma \sqrt{n}$.
+We follow the methods and results of Lyubashevsky~\cite{Lyu12}. Lemma 4.3(3) of~\cite{Lyu12} shows we can bound the norm $\Vert \e \Vert$ by $T = 2 \sigma \sqrt{n}$.
 Now we need to choose the $f_{k,i}$ from a discrete Gaussian with parameter $\sigma'$, so that the distribution of $f_{k,i} - e_i$ is close (within statistical distance, though we could probably use Renyi divergence to get better results) to the discrete Gaussian with parameter $\sigma'$.
 Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficient, though in practice one usually chooses $\sigma' = \alpha T $ where $\alpha \approx 10$.
 In our case we need to apply rejection sampling to all $t$ vectors $\z_k$ simultaneously,
@@ -1148,10 +1154,12 @@ If we use some kind of compact coding of integers distributed as Gaussians~\cite
 For our example parameters this would be between 7000-8000 bits, or around one kilobyte again.
 % More work is needed to work out the exact details and determine the rejection sampling probabilities. 
 
+% TODO: This \item needs updating, esp. regarding concrete parameters below
 The best approach seems to be to sample $\e$ \emph{uniformly} with coefficients in $[-B, B]$, while sampling $\f$ from a discrete Gaussian. Taking $n=74, B = 5$ we have $\Vert \e \vert \le T = 28$ with high probability. Taking $\sigma' = 10 \sqrt{t} T \approx 790$ potentially gives signatures of around 900 bytes.
 
 The numbers in this section may be updated in response to further experiments and optimizations.
 
+% TODO: the negative result below is not very interesting, isn't it?
 \item One might try to trade-off the size of exponent vectors and the rejection probability. Lemma~\ref{lem:rejection} is about sampling $f_{k,i} \in [ -(nt+1)B, (nt+1)B ]$ and gives probability of acceptance $\approx 1/e \approx 0.368$.
 A simple modification of the proof shows that, for any $u > 0$, if one samples $f_{k,i} \in [ -u(nt+1)B, u(nt+1)B ]$ and accepts only those $\z_{k,i} \in [ -untB, untB ]$, then the acceptance probability is approximately $e^{-1/u}$.
 
