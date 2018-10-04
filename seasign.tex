@@ -1548,13 +1548,67 @@ Hence, if one distribution is close to uniform then so is the other.
 \qed
 \end{proof}
 
+One can then prove a variant of Theorem~\ref{thm:security-basic} and adapt the optimisations of Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}. 
+This approach gives rise to smaller signatures, and much faster signature and verification times: in terms of the security parameter $\lambda$ the size gain is logarithmic gain, while the performance gain is quadratic.
+Public/private key sizes and key generation time are unaffected.
+We summarise the obtained parameters and expected performance in Table~\ref{tab:stolbunov}, using the same conventions as in Table~\ref{tab:comparison}; we only report data on signature size and sign/verify performance, and we refer to Table~\ref{tab:comparison} for the other (unchanged) entries.
 
-One can then prove a variant of Theorem~\ref{thm:security-basic} and all the theorems in the paper. This approach should give rise to much smaller signatures -- close to optimal size given the subexponential security of the class group action problem.
-But we do not consider this topic further in this paper as it requires a quantum computer during key generation.
+
+\begin{table}
+  \pgfkeys{/pgf/fixed point arithmetic}
+  \def\lam{128}
+  \def\n{74}
+  \def\B{5}
+  \def\logp{500}
+  \def\s{16}
+  \def\CSIDHsecs{0.1}
+  \pgfmathtruncatemacro{\t}{\lam / \s}
+  % Sig size
+  \pgfmathtruncatemacro{\StoSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8}
+  \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\B + 1)) + \lam) / 8}
+  \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
+  % sig time
+  \pgfmathtruncatemacro{\StoTime}{round(\lam * \CSIDHsecs)}
+  \pgfmathtruncatemacro{\ParTime}{\t * \CSIDHsecs * 10}
+  \pgfmathtruncatemacro{\ComTime}{\ParTime}
+  \centering
+  \begin{tabular}{l | c | c | c |}
+    & Stolbunov scheme
+    & Shorter signatures
+    & Smaller public keys\\
+    \hline
+    \hspace{1em}\textbf{Exact} &&&\\
+    Sig size
+    & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
+    & $\frac{\lambda}{s}\lceil n\log (2B+1)\rceil + \lambda$
+    & $\frac{\lambda}{s}(\lceil n\log (2B+1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
+    Performance ($\F_p$-ops)
+    & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
+    & $\Omega\bigl((\lambda/s)Bn^2\log(n)\bigr)$
+    & $\Omega\bigl((\lambda/s)Bn^2\log(n)\bigr)$\\
+    \hline
+    \hspace{1em}\textbf{Asymptotic} &&&\\
+    Sig size
+    & $O(\lambda^2)$ & $O(\lambda^2/s)$ & $O(\lambda^3/s)$\\
+    Performance (bits)
+    & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
+    & $\Omega\bigl((\lambda^5/s)\log(\lambda)^2\bigr)$
+    & $\Omega\bigl((\lambda^5/s)\log(\lambda)^2\bigr)$\\
+    \hline
+    \hspace{1em}\textbf{CSIDH} &&&\\
+    Sig size             & \StoSig{} B & \ParSig{} B & \ComSig{} B\\
+    Est. sig/verify time & \StoTime{} s & 0.\ParTime{} s & 0.\ComTime{} s
+  \end{tabular}
+  \caption{Signature size and sign/verify performance of Stolbunov's
+    protocol, when combined with the variants of
+    Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}.  The
+    conventions are the same as in Table~\ref{tab:comparison}:
+    $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$ for
+    asymptotic analysis,
+    $(\lambda,n,B,\log_2(p)) = (128, 74, 5, 16, 500)$ with
+    $(s,t) = (1,128)$ or $(16,8)$ for the CSIDH entry.  All logarithms
+    are in base 2.}
+  \label{tab:stolbunov}
+\end{table}
 
 \end{document}
-
-
-
-
-
