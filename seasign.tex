@@ -118,7 +118,7 @@ We also describe some methods to obtain much shorter signatures than in Stolbuno
 
 
 Currently it is a major problem to get practical signatures from isogeny problems.
-Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes
+Yoo \emph{et al.} (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes
 and signing/verification that take a few seconds on a PC.
 This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for their signature scheme (for classical 128-bit security level).
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
@@ -188,7 +188,7 @@ Let $\Cl(\OO )$ be the ideal class group of $\OO$.
 One can define the action of an $\OO$-ideal $\a$ on the curve $E$ as the image curve $E'$ under the isogeny $\phi : E \to E'$ whose kernel is equal to the subgroup $E[ \a ] = \{ P \in E( \Fpbar ) : \alpha(P) = 0 \; \forall \alpha \in \a \}$.
 We denote $E'$ by $\a * E$.
 
-The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \cong \OO$ is a principal homogenous space for $\Cl(\OO )$.
+The set $\{ j(E) \}$ of isomorphism classes of elliptic curves with $\End(E) \cong \OO$ is a principal homogeneous space for $\Cl(\OO )$.
 Good references for the details are Couveignes~\cite{Couv06} and Stolbunov~\cite{Sto12}.
 The key exchange protocol proposed by Couveignes and Stolbunov is for Alice to send $\a * E$ to Bob and Bob to send $\b * E$ to Alice; the shared key is $(\a\b) * E$.
 
@@ -207,7 +207,7 @@ In practice one usually takes $\ell_i=O(\log(p))$ for efficiency reasons; heuris
 
 The basic computational assumption is the ideal action problem.
 Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
-The CSIDH paper speaks of hard homogenous spaces and calls the below problem ``Key recovery''.
+The CSIDH paper speaks of hard homogeneous spaces and calls the below problem ``Key recovery''.
 
 \begin{problem}\label{defn:ass1}
 % (GAIP ?? ClAP (Cl Action Problem) ??)
@@ -234,7 +234,7 @@ This is a nice feature for security proofs that is not shared by SIDH; we use th
 As already mentioned, when instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
 This is done both by choosing the $\ell_i$ to have as small norm as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field as possible (so that V\'elu's formulas can be used).
 In the ordinary case, the best technique currently available to select parameters is due to De~Feo, Kieffer and Smith~\cite{DFKS18}: a prime of a special form is fixed, then elliptic curves are taken at random until a suitable one is found.
-Despite the optimizations described in~\cite{DFKS18}, this technique is currently incapable of producing efficient parameters in a reasonable amount of time.
+Despite the optimisations described in~\cite{DFKS18}, this technique is currently incapable of producing efficient parameters in a reasonable amount of time.
 Like~\cite{DFKS18}, CSIDH~\cite{CLMPR18} chooses a special prime of the form $p+1 = 4\prod_{i=1}^n\ell_i$, but, instead of ordinary curves, it uses supersingular curves defined over $\F_p$.
 This makes the search for a suitable curve instantaneous, and produces very efficient parameters; indeed note that the formula for $p+1$ implies
 % $p \equiv 3 \pmod{8}$, and so the maximal order in $\Q(\sqrt{-p})$ is $\Z[ (1 + \sqrt{-p})/2 ]$ and minimal polynomial of generator $\theta = (1 + \sqrt{-p})/2$ is $f(x) = x^2 + x + (p+1)/4$ satisfies $f(x) \equiv x(x+1) \pmod{\ell_i}$
@@ -258,7 +258,7 @@ Hence for security we may require
 where $\lambda$ is the security parameter.
 Further, there is a quantum algorithm due to Tani, which is straightforward to adapt to this problem (we refer to Section~5.2 of De Feo, Jao and Pl{\^{u}}t~\cite{FJP14} for details).
 This means we might need to take $(2B+1)^n > 2^{3 \lambda}$ to have post-quantum security.
-However, Adj et al.~\cite{adj+menezes+al-isogenies} have given an in-depth analysis of these algorithms, and they argue that the naive analysis is unrealistic as it ignores storage costs and other overheads.
+However, Adj \emph{et al.}~\cite{adj+menezes+al-isogenies} have given an in-depth analysis of these algorithms, and they argue that the naive analysis is unrealistic as it ignores storage costs and other overheads.
 Instead, they claim the fastest algorithm in practice (even considering quantum adversaries) for this problem is based on an approach by van Oorschot and Wiener that takes time $(2B+1)^n/M^{3/2}$, where $M$ is the number of processors.
 Since $M < (2B+1)^{n/3}$ in practice, this cost is larger than $(2B+1)^{n/2}$.
 
@@ -271,7 +271,7 @@ We leave the study of this question to future work.
 
 
 
-By taking into account the best known attacks, the CSIDH authors propose parameters for the three NIST categories~\cite{NIST2016}, as summarized in Table~\ref{tab:csidh-parms}.
+By taking into account the best known attacks, the CSIDH authors propose parameters for the three NIST categories~\cite{NIST2016}, as summarised in Table~\ref{tab:csidh-parms}.
 Note that in all CSIDH instances the set of sampled ideal classes is (heuristically) likely to cover the whole class group.
 Their implementation of the smallest parameter size CSIDH-1 computes one class group action in under 100ms on a 3.5GHz processor.
 
@@ -573,7 +573,7 @@ We discuss some possible optimisations in Appendix~\ref{sec:variants}, including
 
 The above description represents the isomorphism class of $\a * E$ using a $j$-invariant.
 But, as explained in~\cite{DG16,CLMPR18}, in the case of supersingular curves over $\F_p$ there are two isomorphism classes for each $j$-invariant and so the $j$-invariant alone is not an adequate representation for $\a * E$.
-Castryck et al~\cite{CLMPR18} observe that the Montgomery model for these curves provides an elegant solution to the dilemma.
+Castryck \emph{et al.}~\cite{CLMPR18} observe that the Montgomery model for these curves provides an elegant solution to the dilemma.
 Instead of representing $\a * E$ with a $j$-invariant one uses the ``$A$ coefficient'' of the Montgomery equation.
 This works when choosing $p \equiv 3 \pmod{8}$ and using curves whose endomorphism ring is on the ``floor'' of the 2-isogeny volcano; we refer to Proposition~8 of~\cite{CLMPR18} for the details. 
 
@@ -627,7 +627,7 @@ Nevertheless, we believe this is a plausible assumption.
 We recall the forking lemma, in the formulation of Bellare and Neven~\cite{BN06}.
 
 \begin{lemma} \label{forking-lemma} (Bellare and Neven~\cite{BN06})
-Fix an integer $Q \ge 1$. Let $A$ be a randomized algorithm that takes as input $h_1, \dots, h_Q \in \{0,1\}^t$ and outputs $(J, \sigma)$ where $ 1\le J \le Q$ with probability $\wp$.
+Fix an integer $Q \ge 1$. Let $A$ be a randomised algorithm that takes as input $h_1, \dots, h_Q \in \{0,1\}^t$ and outputs $(J, \sigma)$ where $ 1\le J \le Q$ with probability $\wp$.
 Consider the following experiment: $h_1, \dots, h_Q$ are chosen uniformly at random in $\{0,1\}^t$; $A(h_1, \dots, h_Q )$ returns $(I,\sigma)$ such that $I \ge 1$; $h_I', \dots, h_Q'$ are chosen uniformly at random in $\{0,1\}^t$; $A( h_1, \dots, h_{I-1}, h_I', \dots, h_Q' )$ returns $(I', \sigma')$.
 Then the probability that $I' = I$ and $h_{I}' \ne h_I$ is at least $\wp( \wp/Q - 1/2^t )$.
 \end{lemma}
@@ -705,7 +705,7 @@ Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes, and key generation is also $2^{16}$ times slower.
 
 
-As far as we can tell, this idea cannot be applied to the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17}.
+As far as we can tell, this idea cannot be applied to the schemes of Yoo \emph{et al.}~\cite{YAJJS17} or Galbraith \emph{et al.}~\cite{GPS17}.
 
 
 %What params should we use for signatures. Can get sigs as low as we want by ignoring computation time.
@@ -751,7 +751,7 @@ It would be more pleasing to prove security based on Problem~\ref{defn:ass1} or 
 We now explain that one can prove security based on Problem~\ref{defn:ass1}, under an assumption about uniform sampling of ideal classes.
 
 Suppose in this section that the distribution $\D_B$ of Definition~\ref{defn:sampling-distributions} has negligible statistical distance (Renyi divergence can also be used here) from the uniform distribution.
-This assumption is reasonable for bounded $n$ and very large $B$; but we leave for future work to determine whether practical parameters for isogeny crypto can be obtained under this constraint.
+This assumption is reasonable for bounded $n$ and very large $B$; but we leave for future work to determine whether practical parameters for isogeny based cryptography can be obtained under this constraint.
 
 
 \begin{lemma}
@@ -875,7 +875,7 @@ The signature is made of the ideals $\c_1,\dots,\c_t$, the curves $E_{A,b_1},\do
 The verifier computes $\E_i$ as $\c_i * E_{A,b_i}$, obtains the challenges $b_1,\dots,b_t$, and uses them to verify the authentication paths.
 Hence, the signature contains $t$ ideals represented as vectors in $[-ntB,ntB]^n$, $t$ curves represented by their $j$-invariants, and $t$ authentication paths of length $s$.
 The $t$ authentication paths eventually merge before the root, thus some hash values will be repeated.
-We can save some space by only sending the hash values once, in some standardized order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
+We can save some space by only sending the hash values once, in some standardised order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
 For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 kilobytes to the signature of Section~\ref{sec:smaller-sigs}.
 Note that this is still an order of magnitude smaller than the best hash-based signature schemes, while being stateless, and also still of the same size as the shortest known lattice-based signatures.
@@ -893,7 +893,7 @@ Concerning security, the proofs of the previous sections, and that of~\cite[Appe
   \item The pseudo-randomness of $\PRFs$;
   \end{itemize}
   when the hash function $H$ and the pseudo-random functions $\PRFk$
-  and $\PRFm$ are modeled as random oracles (ideal random functions).
+  and $\PRFm$ are modelled as random oracles (ideal random functions).
 \end{theorem}
 
 Like in the previous section, it is possible to replace Problem~\ref{defn:one-out-of-2s-problem} with Problem~\ref{defn:ass1}, modulo some additional assumptions.
@@ -924,7 +924,7 @@ The operation count is based on the following estimates.
 \end{enumerate}
 Putting these estimates together, an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case. We note that the above estimate is not likely to be the dominant part in the computation, especially asymptotically,
 as scalar multiplications of elliptic points are likely to dominate.
-However, estimating this part of the algorithm is much more complex and dependent on specific optimizations, we thus leave a more precise analysis for future work.
+However, estimating this part of the algorithm is much more complex and dependent on specific optimisations, we thus leave a more precise analysis for future work.
 
 The second section of rows in the table (under the heading ``Asymptotic'') gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
 We now give a brief justification for the parameter restrictions in terms of $\lambda$.
@@ -936,7 +936,7 @@ We now give a brief justification for the parameter restrictions in terms of $\l
 So we choose $\log(p) \approx 2 \lambda^2$.
 
 \item 
-To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$, although the work of Adj  et al.~\cite{adj+menezes+al-isogenies} suggests this may be too cautious.
+To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$, although the work of Adj \emph{et al.}~\cite{adj+menezes+al-isogenies} suggests this may be too cautious.
 For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, though again this may not be necessary. In any case, we have $n \log(B) = \Omega( \lambda )$.
 
 %The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
@@ -948,7 +948,7 @@ For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \l
 %
 %In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
 
-\item Assuming that one wants to optimize for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=\Omega(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = \Omega( n \log(n)) =  \Omega( \lambda \log(\lambda))$. Note that this is compatible with the requirement $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) \sim \lambda\log(\lambda)^2$.
+\item Assuming that one wants to optimise for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=\Omega(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = \Omega( n \log(n)) =  \Omega( \lambda \log(\lambda))$. Note that this is compatible with the requirement $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) \sim \lambda\log(\lambda)^2$.
 
 \item Instead of measuring performance in terms $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
 
@@ -966,7 +966,7 @@ We estimate these parameters to correspond to the NIST-1 security level.
 Note that we are able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params} (and one can also potentially consider $s > 16$, such as $(s,t)=(21,6)$).
 However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
 We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
-In~\cite{CLMPR18}, for an exponent vector in $[-B,B]^n$, this time is reported to be $0.1$ seconds.
+In~\cite{CLMPR18,cryptoeprint:2018:782}, for an exponent vector in $[-B,B]^n$, this time is reported to be around $0.1$ seconds.
 Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
 Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
 However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees much larger than ours can be computed in a fraction of the time we need to compute isogenies.
@@ -1067,8 +1067,6 @@ On the other hand, rejections that happen during signing multiply the running ti
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$\\
       \hline
       \hspace{1em}\textbf{CSIDH} &&&\\
-%      Performance (bits) &&&&\\
-      Performance (bits) &&&\\
       Sig size
 %      & \BasSig{} B & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
       & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
@@ -1119,7 +1117,7 @@ The entry CSIDH is for parameters $(\lambda,n,B,\log_2(p)) = (128, 74, 5, 16, 50
 We have given a signature scheme suitable for the CSIDH isogeny setting.
 This solves an unresolved problem in Stolbunov's thesis.
 We have also shown how to get shorter signatures by increasing the public key size.
-We do not know how to obtain a similar tradeoff between public key size and signature size for the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17} based on the SIDH setting.
+We do not know how to obtain a similar trade-off between public key size and signature size for the schemes of Yoo \emph{et al.}~\cite{YAJJS17} or Galbraith \emph{et al.}~\cite{GPS17} based on the SIDH setting.
 
 
 %\section*{Acknowledgements}
@@ -1175,7 +1173,7 @@ For our example parameters this would be between 7000-8000 bits, or around one k
 % TODO: This \item needs updating, esp. regarding concrete parameters below
 The best approach seems to be to sample $\e$ \emph{uniformly} with coefficients in $[-B, B]$, while sampling $\f$ from a discrete Gaussian. Taking $n=74, B = 5$ we have $\Vert \e \vert \le T = 28$ with high probability. Taking $\sigma' = 10 \sqrt{t} T \approx 790$ potentially gives signatures of around 900 bytes.
 
-The numbers in this section may be updated in response to further experiments and optimizations.
+The numbers in this section may be updated in response to further experiments and optimisations.
 
 % TODO: the negative result below is not very interesting, isn't it?
 \item One might try to trade-off the size of exponent vectors and the rejection probability. Lemma~\ref{lem:rejection} is about sampling $f_{k,i} \in [ -(nt+1)B, (nt+1)B ]$ and gives probability of acceptance $\approx 1/e \approx 0.368$.
@@ -1407,7 +1405,7 @@ We consider the following decisional problem.
 It is an open challenge to give a ``search to decision'' reduction in this context (showing that if one can solve Problem~\ref{defn:decisional-short-isogeny} then one can solve Problem~\ref{defn:ass1p}). This seems to be non-trivial.
 
 \begin{problem} \label{defn:decisional-short-isogeny}
-Consider two distributions on pairs $(E, E_A)$ of supersingular ellptic curves over $\F_p$.
+Consider two distributions on pairs $(E, E_A)$ of supersingular elliptic curves over $\F_p$.
 Let $\D_1$ be the output distribution of the algorithm $\IGen$.
 Let $\D_2$ be the uniform distribution (i.e., output distribution of the lossy key generation algorithm).
 The \emph{decisional short isogeny problem} is to distinguish the two distributions when given one sample.
@@ -1489,14 +1487,14 @@ We call this the \emph{relation lattice}.
 
 A basis for this lattice can be constructed in subexponential time using classical algorithms~\cite{hafner1989rigorous,biasse_fieker_jacobson_2016}.
 However, of interest to us is that a basis can be constructed
-in probabilistic polynomial time using quantum algorithms: define $f:\Z^n\to\Cl(\OO)$ by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalization of Shor's algorithm~\cite{kitaev1995hsp}.
+in probabilistic polynomial time using quantum algorithms: define $f:\Z^n\to\Cl(\OO)$ by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalisation of Shor's algorithm~\cite{kitaev1995hsp}.
 The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
 The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
 It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficient (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
 
 For the remainder of this section we assume that the relation lattice is known.
 Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$
-Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centered fundamental domain of the basis of $L$.
+Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centred fundamental domain of the basis of $L$.
 Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$ by
 $(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
 In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
