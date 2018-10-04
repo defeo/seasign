@@ -343,8 +343,8 @@ We focus in this section on classical adversaries and proofs in the random oracl
 Hence our signature is based on the traditional Fiat-Shamir transform.
 For schemes and analysis against a post-quantum adversary see Appendix~\ref{sec:lossy-keys}.
 
-For simplicity, we describe this scheme in the setting of a general class group action on a set of $j$-invariants of elliptic curves.
-In Section~\ref{sec:CSIDH-implementation} we explain one small subtlety that arises when implementing the scheme in the setting on CSIDH.
+For simplicity, we describe our schemes in the setting of a general class group action on a set of $j$-invariants of elliptic curves.
+In Section~\ref{sec:CSIDH-implementation} we explain one small subtlety that arises when implementing the scheme in the setting of CSIDH.
 
 
 \subsection{Stolbunov's scheme}\label{sec:Stolbunov}
@@ -807,7 +807,7 @@ In the random oracle model, the signature scheme of this section is unforgeable 
 
 
 %Note that this proof has an extra $1/2$ factor in the success probability, but this is not a serious issue since the security proof isn't tight anyway.
-We have a tight proof in Appendix~\ref{sec:lossy-keys} based on a less standard assumption. It is an open problem to have a tight proof and also the security based on Problem~\ref{defn:ass1}.
+We have a tight proof in Appendix~\ref{sec:lossy-keys} based on a less standard assumption (see Problem~\ref{defn:decisional-short-isogeny}). It is an open problem to have a tight proof and also the security based on Problem~\ref{defn:ass1}.
 
 
 
@@ -1401,7 +1401,7 @@ Given $E$ it means there are at most that many $j( \a * E )$. Since $E_A$ is uni
 % Note to self (Steven): it is not necessary to consider the birthday paradox in the analysis of Lemma~\ref{lem:isogeny count}. Due to the bound of equation~(\ref{eq:lossy-p-bound}), we are sampling curves far from uniformly and so the probability of a collision is not controlled by the birthday paradox.
 
 We consider the following decisional problem.
-It would be an interesting problem to give a ``search to decision'' reduction in this context (showing that if one can solve Problem~\ref{defn:decisional-short-isogeny} then one can solve Problem~\ref{defn:ass1p}). This seems to be non-trivial.
+It is an open challenge to give a ``search to decision'' reduction in this context (showing that if one can solve Problem~\ref{defn:decisional-short-isogeny} then one can solve Problem~\ref{defn:ass1p}). This seems to be non-trivial.
 
 \begin{problem} \label{defn:decisional-short-isogeny}
 Consider two distributions on pairs $(E, E_A)$ of supersingular ellptic curves over $\F_p$.
