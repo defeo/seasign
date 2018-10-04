@@ -577,7 +577,10 @@ Castryck et al~\cite{CLMPR18} observe that the Montgomery model for these curves
 Instead of representing $\a * E$ with a $j$-invariant one uses the ``$A$ coefficient'' of the Montgomery equation.
 This works when choosing $p \equiv 3 \pmod{8}$ and using curves whose endomorphism ring is on the ``floor'' of the 2-isogeny volcano; we refer to Proposition~8 of~\cite{CLMPR18} for the details. 
 
-In short, when implementing our signature schemes  using CSIDH one should choose $p \equiv 3 \pmod{8}$ and replace the words ``$j$-invariant'' by ``Montgomery coefficient''.
+In short, when implementing our signature schemes using CSIDH one should choose $p \equiv 3 \pmod{8}$ and replace the words ``$j$-invariant'' by ``Montgomery coefficient''.
+In terms of the security analysis, strictly speaking the security proofs use variants of the computational problems expressed in terms of Montgomery coefficients.
+It is a simple exercise to show that these problems are equivalent to problems expressed using $j$-invariants.
+Hence the theorem statements in our paper are all correct in the setting of CSIDH.
 
 
 
