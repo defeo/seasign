@@ -79,12 +79,12 @@
 
 \title{SeaSign: Compact isogeny signatures from class group actions}
 
-\author{Luca De Feo \and Steven D. Galbraith}
-\institute{Mathematics Department, University of Auckland, NZ.
-\email{s.galbraith@auckland.ac.nz}
-\and
-Universit{\' e} de Versailles -- Saint-Quentin, Paris, France.
-\email{luca.de-feo@uvsq.fr}}
+%\author{Luca De Feo \and Steven D. Galbraith}
+%\institute{Mathematics Department, University of Auckland, NZ.
+%\email{s.galbraith@auckland.ac.nz}
+%\and
+%Universit{\' e} de Versailles -- Saint-Quentin, Paris, France.
+%\email{luca.de-feo@uvsq.fr}}
 
 
 
@@ -118,10 +118,13 @@ We also describe some methods to obtain much shorter signatures than in Stolbuno
 
 
 Currently it is a major problem to get practical signatures from isogeny problems.
-Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes.
+Yoo et al (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes
+and signing/verification that take a few seconds on a PC.
 This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for their signature scheme (for classical 128-bit security level).
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
-Unfortunately, signing and verification are very slow, but we might just about be able to live with that in certain applications.
+Unfortunately, signing and verification are very slow, but we 
+%might just about be able to live with that in certain applications.
+hope that future work will lead to more efficient schemes.
 
 
 We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
@@ -134,6 +137,8 @@ Section~\ref{sec:basic-scheme} gives the basic signature scheme concept, that wa
 Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit.
 Section~\ref{sec:smaller-keys} shows how to retain the benefit of shorter signatures, while also having a short public key, by using modified Merkle trees.
 In Appendix~\ref{sec:lossy-keys} we show how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (and this security enhancement involves no increase in signature size, though the primes are larger so computations will be somewhat slower).
+This is the first time that lossy keys have been used in the isogeny setting.
+Appendix~\ref{sec:sig-relation-lattice} explains that, if a quantum computer is available during parameter generation, then a much more practical signature scheme can be obtained by following the methods in Stolbunov's thesis.
 
 
 The name ``SeaSign'' is a reference to the name CSIDH, which is pronounced ``sea-side''.
@@ -212,7 +217,7 @@ Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End
 The best classical algorithms for this problem in the general case have exponential time (at least $\sqrt{ \# \Cl( \OO ) }$ isogeny computations).
 Childs, Jao and Soukharev~\cite{childs2014constructing} were the first to point out that this problem can be formulated as a ``hidden shift'' problem, and so quantum algorithms for the hidden shift problem can be applied.
 Hence, there are subexponential-time quantum algorithms for Problem~\ref{defn:ass1} based on the quantum algorithms of Kuperberg~\cite{Kup} and Regev~\cite{regev04}. 
-It is still an active area of research to assess the exact quantum hardness of these problem; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez (MathCrypt 2018)).
+It is still an active area of research to assess the exact quantum hardness of these problem; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18}).
 But at the very least, Kuperberg's algorithm requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ quantum gates, thus taking 
 \begin{equation} \label{con1}
    p>2^{2\lambda^2},
@@ -337,6 +342,10 @@ This section contains our main ideas and presents a basic signature scheme.
 We focus in this section on classical adversaries and proofs in the random oracle model.
 Hence our signature is based on the traditional Fiat-Shamir transform.
 For schemes and analysis against a post-quantum adversary see Appendix~\ref{sec:lossy-keys}.
+
+For simplicity, we describe this scheme in the setting of a general class group action on a set of $j$-invariants of elliptic curves.
+In Section~\ref{sec:CSIDH-implementation} we explain one small subtlety that arises when implementing the scheme in the setting on CSIDH.
+
 
 \subsection{Stolbunov's scheme}\label{sec:Stolbunov}
 
@@ -543,7 +552,6 @@ The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close
 We discuss some possible optimisations in Appendix~\ref{sec:variants}, including the idea to use discrete Gaussians instead of uniform distributions for the vectors.
 
 
-%*** Below is not post-quantum secure as it does not accommodate Tani algorithm. ***
 %
 %% NOTE: $n=50, B=6$ is too small, as $(2B+1)^n \approx 2^{185}$. So I updated the above.
 %Here is a table, for various $n$, of the smallest $B$ such that $(2B+1)^n > 2^{255}$.
@@ -560,6 +568,16 @@ We discuss some possible optimisations in Appendix~\ref{sec:variants}, including
 %\end{center}
 
 
+
+\subsection{CSIDH implementation} \label{sec:CSIDH-implementation}
+
+The above description represents the isomorphism class of $\a * E$ using a $j$-invariant.
+But, as explained in~\cite{DG16,CLMPR18}, in the case of supersingular curves over $\F_p$ there are two isomorphism classes for each $j$-invariant and so the $j$-invariant alone is not an adequate representation for $\a * E$.
+Castryck et al~\cite{CLMPR18} observe that the Montgomery model for these curves provides an elegant solution to the dilemma.
+Instead of representing $\a * E$ with a $j$-invariant one uses the ``$A$ coefficient'' of the Montgomery equation.
+This works when choosing $p \equiv 3 \pmod{8}$ and using curves whose endomorphism ring is on the ``floor'' of the 2-isogeny volcano; we refer to Proposition~8 of~\cite{CLMPR18} for the details. 
+
+In short, when implementing our signature schemes  using CSIDH one should choose $p \equiv 3 \pmod{8}$ and replace the words ``$j$-invariant'' by ``Montgomery coefficient''.
 
 
 
@@ -663,8 +681,7 @@ There may be situations where a larger hash output is needed; for more discussio
 
 
 
-% TODO: is "sigs" really acceptable?
-\section{Smaller sigs}\label{sec:smaller-sigs}
+\section{Smaller signatures}\label{sec:smaller-sigs}
 
 
 The signature size of the basic scheme is very large, since the sigma protocol that underlies the identification scheme only has single bit challenges. 
@@ -704,9 +721,9 @@ Hence the computational assumption underlying the scheme is the following.
 % (One out of $2^s$ ideal action problem ***)
 Let notation be as in the key generation protocol of the scheme.
 Consider a set of $2^s$ elliptic curves $\{ E_{A,0}, \dots, E_{A,2^s-1} \}$, all of the form $E_{A,m} = \a_m * E$ for some ideal $\a_m = \prod_{i=1}^n \l_i^{e_{m,i}}$ where the exponent vectors $\e_m $ are uniformly sampled in $[-B,B]^n \subseteq \Z^n$.
-% TODO: since we have unbaptized this problem, maybe we should also
-% not name it "one ouf of..." in the sentence below:
-The ``one out of $2^s$'' isogeny problem is to compute an ideal corresponding to any isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
+The 
+%``one out of $2^s$'' isogeny 
+problem is to compute an ideal corresponding to any isogeny $E_{A,m} \to E_{A,m'}$ for some $m \ne m'$.
 \end{problem}
 
 
@@ -1102,10 +1119,10 @@ We have also shown how to get shorter signatures by increasing the public key si
 We do not know how to obtain a similar tradeoff between public key size and signature size for the schemes of Yoo et al~\cite{YAJJS17} or Galbraith et al~\cite{GPS17} based on the SIDH setting.
 
 
-\section*{Acknowledgements}
-
-Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
-
+%\section*{Acknowledgements}
+%
+%Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
+% Thanks to Lorenz Panny for comments and suggestions.
 
 \bibliographystyle{plain}
 \bibliography{biblio}
@@ -1120,14 +1137,12 @@ Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
 One can consider various ideas to get more efficient (i.e., faster signing and verification) or more compact signatures.
 
 \begin{enumerate}
-  % TODO: Do we need this \item? We don't say anything new, one line would be enough.
-  % At any rate, the style needs polishing
-\item Following Stolbunov one could use higher powers for the smaller primes.
+\item Following Stolbunov one could use higher powers for the smaller primes, but it is unclear that this provides any benefit in practice.
 
-This is definitely worth looking at. We could take $B=1$ for some of the larger primes (e.g., the ones bigger than 50), and then use much larger values for $B$ for the primes $3, 5, 7$ etc. If $B_i$ is the bound used for $\l_i$ then the full key space is $\prod_i (2B_i + 1)$.
+%This is definitely worth looking at. We could take $B=1$ for some of the larger primes (e.g., the ones bigger than 50), and then use much larger values for $B$ for the primes $3, 5, 7$ etc. If $B_i$ is the bound used for $\l_i$ then the full key space is $\prod_i (2B_i + 1)$.
 
-The main problem is that a change to a single $B_i$ makes very little difference to the key size. For example, doubling $B_1$ only adds roughly $+1$ to the logarithm of the product, which is the security parameter.
-Hence the main factor in having a large security parameter is using lots of distinct primes $\l_i$, which automatically means a high cost for signing and verification since almost all $f_{k,i}$ will be non-zero.
+%The main problem is that a change to a single $B_i$ makes very little difference to the key size. For example, doubling $B_1$ only adds roughly $+1$ to the logarithm of the product, which is the security parameter.
+%Hence the main factor in having a large security parameter is using lots of distinct primes $\l_i$, which automatically means a high cost for signing and verification since almost all $f_{k,i}$ will be non-zero.
 
 
 
@@ -1461,10 +1476,10 @@ This variant can be considered if a quantum computer is available during system 
 Essentially, this is the scheme from Stolbunov's thesis (see Section~\ref{sec:Stolbunov}), which can be used securely once the relation lattice is known.
 
 
-Let $\{ \l_1, \dots, \l_n \}$ be a set of $\OO$-ideals that generates $\Cl( \OO )$.
+Let $( \l_1, \dots, \l_n )$ be a sequence of $\OO$-ideals that generates $\Cl( \OO )$.
 Define 
 \[
-   L = \{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} \equiv (1) \}.
+   L = \left\{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} \equiv (1) \right\}.
 \]
 Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
 We call this the \emph{relation lattice}.
@@ -1489,7 +1504,8 @@ Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z
 
 Returning to Stolbunov's signature scheme, the solution to the problem is then straightforward:
 Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
-a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e = (f_{k,i} - e_i)$
+a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e$
+% = (f_{k,i} - e_i)$
 and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
 The vector $\z$ is sent as the response to the $k$-th challenge.
 Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
