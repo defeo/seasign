@@ -49,6 +49,7 @@
 \renewcommand{\l}{\mathfrak{l}}
 \newcommand{\e}{\mathbf{e}}
 \newcommand{\f}{\mathbf{f}}
+\newcommand{\g}{\mathfrak{g}}
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\z}{\mathbf{z}}
 
@@ -120,7 +121,7 @@ We also describe some methods to obtain much shorter signatures than in Stolbuno
 Currently it is a major problem to get practical signatures from isogeny problems.
 Yoo \emph{et al.} (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes
 and signing/verification that take a few seconds on a PC.
-This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for their signature scheme (for classical 128-bit security level).
+This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for this signature scheme (for classical 128-bit security level) and approximately 11 kilobytes for their main scheme.
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
 Unfortunately, signing and verification are very slow, but we 
 %might just about be able to live with that in certain applications.
@@ -198,7 +199,7 @@ For efficient computation it is necessary to work with ideals that are a product
 Techniques for smoothing an ideal class in the context of isogeny computation were first proposed in~\cite{GHS02} and developed further in~\cite{BCL08,JS10,biasse_fieker_jacobson_2016}.
 The state of the art is~\cite{biasse_fieker_jacobson_2016} which computes $\a * E$ for any ideal class in subexponential complexity in $\log(\#\Cl(\OO))$.
 
-Since subexponential complexity is not good enough, for cryptographic applications it is necessary to choose ideals deliberately of the form $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are split prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
+Since subexponential complexity is not good enough for cryptographic applications it is necessary to choose ideals deliberately of the form $\a = \prod_{i=1}^n \l_i^{e_i}$ where $\l_1, \dots, \l_n$ are split prime $\OO$-ideals of small norm $\ell_i$ and where $(e_1, \dots, e_n)$ is an appropriately chosen vector of exponents.
 Then, the action of $\a$ can be computed as a composition of isogenies of degree $\ell_i$.
 Throughout the paper we assume that $\{ \l_1, \dots, \l_n \}$ is a set of non-principal prime ideals in $\OO$, generating $\Cl(\OO)$, of norm polynomial in the size of the class group.
 Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assuming a generalised Riemann hypothesis, $\ell_i = O( \log(p)^2 )$.
@@ -208,6 +209,7 @@ In practice one usually takes $\ell_i=O(\log(p))$ for efficiency reasons; heuris
 The basic computational assumption is the ideal action problem.
 Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
 The CSIDH paper speaks of hard homogeneous spaces and calls the below problem ``Key recovery''.
+It can also be called ``vectorisation''.
 
 \begin{problem}\label{defn:ass1}
 % (GAIP ?? ClAP (Cl Action Problem) ??)
@@ -369,9 +371,12 @@ When $b_k=1$ the verifier checks that $j(\E_k) = j( (\b_k \a^{-1}) * E_A )$.
 A cheating prover (who does not know the private key) can succeed with probability $1/2^t$.
 
 The major problem with the above idea is how to represent the ideal class of $\b_k \a^{-1}$ in a way that does not leak $\a$.
-Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key, instead he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
-Couveignes also does not explain how to prevent this leakage.
-A main contribution of our paper is to give solutions to this problem.
+Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key.
+Instead, Stolbunov (and also Couveignes) work in the setting where the relation lattice in the ideal class group is known; we discuss this further in Appendix~\ref{sec:sig-relation-lattice}.
+%
+% he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
+%Couveignes also does not explain how to prevent this leakage.
+A main contribution of our paper is to give solutions to this problem that do not require to know the relation lattice.
 
 To obtain a signature scheme Stolbunov applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(\E_1), \dots, j(\E_t) , \msg )$ where $H$ is a cryptographic hash function with $t$-bit output and $\msg$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
@@ -380,13 +385,19 @@ The verifier computes, for $1 \le k \le t$, $\E_k = \b_k * E$ when $b_k = 0$ and
 
 
 We stress that neither Couveignes nor Stolbunov give a secure post-quantum signature scheme.
-Both authors assume that the relations in the ideal class group have been computed (Stolbunov needs this to prevent leakage, since he needs to know discrete logs).
-However the cost to compute the relations in the ideal class group on a classical computer is roughly the same as the cost to break the scheme on a quantum computer (using the Kuperberg or Regev algorithms).
-Hence it does not make sense to assume the generator of the scheme knows the relations in the ideal class group (although see Appendix~\ref{sec:sig-relation-lattice} for a version of this idea in the fully post-quantum setting where quantum computers are readily available).
+Both authors assume that the relations in the ideal class group have been computed (Stolbunov needs this to prevent leakage).
+%, since he needs to know discrete logs).
+However the cost to compute the relations in the ideal class group on a classical computer is in essentially the same asymptotic complexity class as the cost to break the scheme on a quantum computer (using the Kuperberg or Regev algorithms).
+Hence it may not make sense to require the Key Generation algorithm of the scheme to compute the relations in the ideal class group.
+On the other hand, in the fully post-quantum setting where quantum computers are readily available then the relation lattice can be computed in polynomial time.
+We revisit this issue in Appendix~\ref{sec:sig-relation-lattice}.
+
+
+
 
 The main contribution of this paper is to give a solution to the problem of representing $\b_k \a^{-1}$ without leaking the private key and without needing to compute relations in the ideal class group.
 Our solution uses ideas from lattice cryptography (Fiat-Shamir with aborts) and we describe this in the remainder of the section.
-An alternative solution requires a basis of a relation lattice in the ideal class group, which can be computed efficiently using a quantum computer. We describe this alternative solution in Appendix~\ref{sec:sig-relation-lattice}.
+%An alternative solution requires a basis of a relation lattice in the ideal class group, which can be computed efficiently using a quantum computer. We describe this alternative solution in Appendix~\ref{sec:sig-relation-lattice}.
 
 
 
@@ -1164,16 +1175,17 @@ Lemma 4.6 of~\cite{Lyu12} suggests that $\sigma' = T \sqrt{\log(n)}$ is sufficie
 In our case we need to apply rejection sampling to all $t$ vectors $\z_k$ simultaneously,
 which leads to an additional factor.
 
-For our choices $n=50, t = 8, \sigma = 5$ this may give $\sigma' \approx 3000$.
+For our choices $n=50, t = 8, \sigma = 5$ this gives $\sigma' \approx 3500$.
 % (experiments ongoing).
-If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log( 2 \pi e (\sigma')^2 )/2$ bits.
+If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log_2( 2 \pi e (\sigma')^2 )/2$ bits.
 For our example parameters this would be between 7000-8000 bits, or around one kilobyte again.
 % More work is needed to work out the exact details and determine the rejection sampling probabilities. 
 
 % TODO: This \item needs updating, esp. regarding concrete parameters below
-The best approach seems to be to sample $\e$ \emph{uniformly} with coefficients in $[-B, B]$, while sampling $\f$ from a discrete Gaussian. Taking $n=74, B = 5$ we have $\Vert \e \vert \le T = 28$ with high probability. Taking $\sigma' = 10 \sqrt{t} T \approx 790$ potentially gives signatures of around 900 bytes.
+The best approach seems to be to sample $\e$ \emph{uniformly} with coefficients in $[-B, B]$, while sampling $\f$ from a discrete Gaussian. Taking $n=74, B = 5$ we have $\Vert \e \vert \le T = 24$ with reasonable probability. Taking $\sigma' = 10 \sqrt{t} T \approx 790$ potentially gives signatures of around 800-900 bytes.
 
-The numbers in this section may be updated in response to further experiments and optimisations.
+In conclusion, the use of discrete Gaussians does not seem to lead to shorter or faster signatures than using uniform distributions. Hence we suggest to use uniform distributions since the implementation of rejection sampling is much simpler and less error-prone.
+
 
 % TODO: the negative result below is not very interesting, isn't it?
 \item One might try to trade-off the size of exponent vectors and the rejection probability. Lemma~\ref{lem:rejection} is about sampling $f_{k,i} \in [ -(nt+1)B, (nt+1)B ]$ and gives probability of acceptance $\approx 1/e \approx 0.368$.
@@ -1195,7 +1207,7 @@ This allows us to use the methods of Kiltz, Lyubashevsky and Schaffner~\cite{KLS
 
 
 Here's the basic idea to get a lossy scheme, using uniform distributions for simplicity (one can also use discrete Gaussians in this setting):
-Take a very large prime $p$ so that the ideal class group is very large, but use relatively small values for $n$ and $B$ so that $\{ \a = \prod_{i=1}^n \l_i^{e_i} : |e_i| \le B \}$ is a very small subset of the class group.\footnote{It might even be possible to consider working with subgroups, in the quantum algorithm case where the class group structure is known.}
+Take a very large prime $p$ so that the ideal class group is very large, but use relatively small values for $n$ and $B$ so that $\{ \a = \prod_{i=1}^n \l_i^{e_i} : |e_i| \le B \}$ is a very small subset of the class group.\footnote{It might even be possible to consider working with subgroups, in the quantum algorithm case where the class group structure is known. For example, private keys could be sampled from a large subgroup and lossy keys from a non-trivial coset.}
 The real key is $(E, E_A = \a*E )$ for such an $\a$.
 The lossy key is $(E, E_A )$ where $E_A$ is a uniformly random curve in the isogeny class.
 Further, choose parameters so that the $f_{k,i}$ are also such that $\{ \b = \prod_{i=1}^n \l_i^{f_{k,i}} : |f_{k,i}| \le (nt+1)B \}$ is a small subset of the ideal class group.
@@ -1610,5 +1622,24 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
     are in base 2.}
   \label{tab:stolbunov}
 \end{table}
+
+
+
+We end by mentioning a suggestion of Stolbunov~\cite{Sto12} that will give signatures of optimal size when the relation lattice is known.
+%
+% he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
+%
+Suppose the ideal class group is cyclic of order $N$ and let $\g$ be a generator.
+Then one can choose the private key by uniformly sampling an integer $0 \le x < N$ and letting $\a = \g^x$ in $\Cl(\OO)$.
+The public key is $E_A = \a * E$ as before (this computation requires ``smoothing'' the ideal class using the relation lattice).
+When signing one chooses the $t$ random ideals $\b_k$ by choosing uniform integers $y_k$ in $[0,N)$ and computing $\b_k = \g^{y_k}$.
+As before $\E_k = \b_k * E$.
+Finally, in the scheme, when $b_k = 0$ we return $y_k$ and when $b_k = 1$ we return $y_k - x \pmod{N}$.
+The verifier just sees a uniformly distributed integer modulo $N$, and uses this to recompute $\E_k$ from either $E$ or $E_A$.
+This scheme is clearly optimal, since one cannot represent a random element of a group of order $N$ in fewer than $\log_2(N)$ bits.
+
+
+
+
 
 \end{document}
