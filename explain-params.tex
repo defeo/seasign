@@ -1,0 +1,176 @@
+\documentclass{llncs}
+
+%\usepackage{amsmath,amssymb}
+\usepackage{amsmath,amssymb,fullpage}
+\usepackage{times}
+\usepackage{algorithm,algorithmicx,algpseudocode}
+\usepackage[utf8]{inputenc}
+\usepackage[OT1]{fontenc}
+
+
+%\renewcommand{\C}{\mathcal{C}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\F}{\mathbb{F}}
+\newcommand{\Fpbar}{\overline{\mathbb{F}}_p}
+\newcommand{\Fqbar}{\overline{\mathbb{F}}_q}
+\newcommand{\FF}{\mathcal{F}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\OO}{\mathcal{O}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+%\newcommand{\ch}{\text{ch}}
+\DeclareMathOperator{\End}{End}
+\DeclareMathOperator{\Cl}{Cl}
+\newcommand{\seed}{\mathsf{seed}}
+\newcommand{\msg}{\mathsf{msg}}
+\newcommand{\PK}{\mathsf{PK}}
+\newcommand{\SK}{\mathsf{SK}}
+
+\renewcommand{\a}{\mathfrak{a}}
+\renewcommand{\b}{\mathfrak{b}}
+\let\cedil\c
+\renewcommand{\c}{\mathfrak{c}}
+\renewcommand{\l}{\mathfrak{l}}
+\newcommand{\e}{\mathbf{e}}
+\newcommand{\f}{\mathbf{f}}
+\newcommand{\g}{\mathfrak{g}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\z}{\mathbf{z}}
+
+\DeclareMathOperator{\Adv}{Adv}
+
+\newcommand{\KeyGen}{\mathsf{KeyGen}}
+\newcommand{\Sign}{\mathsf{Sign}}
+\newcommand{\Verify}{\mathsf{Verify}}
+\newcommand{\IGen}{\mathsf{IGen}}
+\newcommand{\PP}{\mathsf{P}}
+\newcommand{\VV}{\mathsf{V}}
+\newcommand{\Wset}{\mathcal{W}}
+\newcommand{\Zset}{\mathcal{Z}}
+\newcommand{\ChSet}{\textsf{ChSet}}
+\newcommand{\St}{\textsf{st}}
+\newcommand{\LossIGen}{\mathsf{LossIGen}}
+\newcommand{\PRF}{\mathsf{PRF}}
+\newcommand{\PRFk}{\PRF_{\mathrm{key}}}
+\newcommand{\PRFm}{\PRF_{\mathrm{mask}}}
+\newcommand{\PRFs}{\PRF_{\mathrm{secret}}}
+
+\begin{document}
+
+\textbf{Explanation and working for signature sizes and costs when the relation lattice is known. In other words we have an ideal class and wish to write it as a product of small split prime ideals.}
+
+\vskip 0.2cm
+
+This problem has been discussed by Stolbunov and also Bonnetain-Schrottenloher.
+\begin{itemize}
+\item Stolbunov (AMC 2010) is fairly naive. He uses LLL, Babai rounding, and does not give explicit bounds.
+
+\item Bonnetain and Schrottenloher use BKZ and nearest plane. They are concerned with the $l_1$-norm and state "$< 2^5$ overhead" meaning the $l_1$-norm of the vector is at most $2^5$ times that in the original CSIDH scheme. They are not concerned with how to represent the exponent vector, which is relevant for signature size.
+\end{itemize}
+
+The goal of this note is to work everything out from the beginning, using various approaches.
+
+\section{Calculations}
+
+Let $p$ be of size around $2^{512} $, so that class number size is approx $2^{256} = \sqrt{p}$.
+
+Let $n$ be number of split prime ideals used for signatures. We assume these primes generate the ideal class group. Let $L$ be the relation lattice 
+\[
+   L = \{ (x_1,\dots,x_n) : \prod_{i=1}^n \l_i^{x_i} = 1 \}.
+\]
+
+The volume of the relation lattice is the class number.
+
+Gaussian heuristic is that the shortest vector in $L$ has length 
+\[   \lambda_1(L)  =  \sqrt{n/(2 \pi e )} Vol(L)^{1/n}.   \]
+So this is approx $const*\sqrt{n}*2^{256/n}$.
+
+We will be taking a "random" ideal class $\a$, represented as some exponent vector $y = (y_1,\dots,y_n)$, and wish to find a short vector $x$ in the coset $y + L$. In other words, we need to find a lattice vector $w$ in $L$ close to $y$, so that $x=y-w$ is a short vector in this coset.
+The vector $x$ is what will be sent as part of the signature.
+
+There are lots of ways to compute a close lattice vector. Note, we do not need to necessarily find the closest, so this problem is more like bounded distance decoding (BDD). One can run enumeration etc. One can also do advanced versions of nearest plane like discussed by Goldreich-Goldwasser-Halevi (CRYPTO 97) and Lindner-Peikert (CT-RSA 2011).
+But for our application it is most natural to do a lattice reduction precomputation on L and then use fast methods like Babai nearest plane to find a close vector.
+
+Gama-Nguyen (Eurocrypt 2008) and Chen-Nguyen (later) have studied BKZ lattice reduction.
+Gama-Nguyen emphasise that the problems are all easy for the kind of dimensions we are looking at with CSIDH: "First of all, we stress that SVP and its variants should all be considered easy when the lattice dimension is less than 70".
+The Gama-Nguyen experiments and modelling suggest that BKZ with blocksize 20 computes approximations with factor $c = 1.0128$ and that the "average slope of the Gram-Schmidt logs" is $-0.0263$.
+
+The nearest plane algorithm output satisfies (this is equation (4.3) of Babai's paper)
+\begin{equation} \label{eq1}
+    \Vert y - w \Vert_2^2 \le (\Vert b_1^*\Vert_2^2 + \Vert b_2^*\Vert_2^2 + \cdots + \Vert b_n^*\Vert_2^2 )/4
+\end{equation}
+where $b_i^*$ are the Gram-Schmidt vectors of the lattice. Since the GS vectors tend to decrease, this is most strongly effected by the first vectors, such as $b_1^* = b_1$. Hence this method works best when $b_1$ is as short as possible and the basis is as orthogonal as possible (and so the $b_i^*$ all have similar lengths).
+
+Note that equation~(\ref{eq1}) comes just from the fact that we are rounding a real number to the nearest integer, and so on average one cannot expect better than the 4 on the denominator being replaced by an 8. In other words, this bound is more-or-less best possible for uniform $y$.
+
+Finally we will need the standard relationships among norms: 
+\[   \Vert x \Vert_\infty  \le  \Vert x \Vert_2   \le  \sqrt{n} \Vert x \Vert_\infty\]
+
+\[   \Vert x \Vert_2   \le  \Vert x \Vert_1   \le   \sqrt{n} \Vert x \Vert_2 \]
+which gives
+\[   \Vert x \Vert_\infty  \le  \Vert x \Vert_1   \le   n \Vert x \Vert_\infty . \]
+
+Recall that if $x$ is sampled uniform in $[-B,B]$ then the expected value of $x^2$ is $B^2/3$.
+From this I guess that if $x$ is uniformly chosen in $\Z^n$ to have $\Vert x \Vert_\infty = B$ then $\Vert x \Vert_2^2 \approx n B^2/3$.
+Reversing this, given a vector $x$ of known $\Vert x \Vert_2$ then I predict the infinity norm to be $\sqrt{3/n} \Vert x \Vert_2$.
+
+
+We now may make several choices:
+\begin{itemize}
+\item what value for n?
+\item how much lattice reduction to do on L?
+\item what bounds do we assume?
+\end{itemize}
+
+
+\subsection{Case 1: Perfect lattice reduction}
+Perfect lattice reduction on $L$, where $L$ has a nice "near orthogonal" basis. So all $b_i^*$ have length close to $\lambda_1(L)$. When $n \le 70$ then this is probably reasonable (though it would be nice to support it with actual examples).
+
+Let's take $n=40$ and $n=70$ as examples.
+The bound of equation (\ref{eq1}) becomes $\Vert x \Vert_2 =  \Vert y - w \Vert_2 \le \sqrt{n}/2 \lambda_1(L) \approx n 2^{256/n}$.
+This is $2^{11.7}$ and $2^{9.7}$ respectively.
+
+Let us (as explained above) guess $\Vert x \Vert_\infty = \sqrt{3/n} \Vert x \Vert_2 $, giving values for the infinity norm of $2^{9.83}$ and $2^{7.43}$ respectively.
+Since the entries are signed, there are in general $1 + 2 \Vert x \Vert_\infty $ possible values for each entry in the vector. Hence we can probably safely use 9 bits to represent each entry in the $n=70$ case, and use 11 bits in the $n=40$ case.
+Since we send $t=8$ vectors, each of $n$ bits, the signature size for these two cases would be
+$40 \cdot 8 \cdot 11 $ bits (which is 440 bytes), respectively
+ $70 \cdot 8 \cdot 9$ (630 bytes).
+So it looks like taking $n$ smaller is better for signature size, just like in the other version of the scheme. 
+What is most surprising is that signatures are not any shorter than they are with our scheme anyway!
+
+\subsection{Case 2: BKZ-20 lattice reduction}
+We now follow Gama-Nguyen.
+We have $\Vert b_1 \Vert_2 = (1.0128)^n \lambda_1(L)$ from doing BKZ-20.
+Further, due to the Gram-Schmidt slopes, we have
+\[
+   \Vert b_i^* \Vert_2 \approx \Vert b_1 \Vert_2^{1 - 0.0263(i-1)}.
+\]
+So we use this formula in equation~(\ref{eq1}) to bound the Babai near plane algorithm.
+
+We do this in \texttt{bkz-vectors-babai.sage}.
+
+Again, taking $n=40$ and $n=70$ we get
+$\Vert x \Vert_2 \approx 216.7$ (infinity norm $59.3 \approx 2^{5.9}$), respectively
+$\Vert x \Vert_2 \approx 70.4$ (infinity norm $14.6 \approx 2^{3.9} $), respectively.
+Bizarrely, these are better bounds than with our analysis in Case 1. So probably it was a bad error to suppose all the $b_i^*$ have the same length; it would be better to let them gradually decline in size.
+
+Anyway, in terms of signature sizes, we need 7 bits to represent a coefficient in the vector $x$ when $n=40$, respectively 5 bits when $n=70$.
+Signature sizes are then (with $t=8$) 280 and 350 bytes respectively.
+This is pretty good, and will lead to faster verification and signing of course, but is still not amazing.
+
+Note that, when $n=70$, the move from exponents $[-5,5]$ to exponents $[-16,16]$ is actually only an ``overhead'' of about 3, much better than the $\le 2^5$ stated by Bonnetain and Schrottenloher.
+
+
+\section{Conclusion}
+
+Overall, the improvement from using the relation lattice is less than I originally expected. In general we expect that for most $y$ there is a lattice vector $x$ in the cost $x + L$ with $\Vert x \Vert_\infty \le 5$, but we are very far from being able to compute it using the nearest plane method as far as I can tell.
+
+So there is not an urgent need to get this completely worked out and written up.
+
+I feel that experiments are necessary to get a better idea of what is the best approach, especially the sizes of the GS vectors of highly-reduced bases, and hence the behaviour of near-plane in practice.
+
+
+\end{document}
+
