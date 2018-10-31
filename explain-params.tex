@@ -131,6 +131,7 @@ Perfect lattice reduction on $L$, where $L$ has a nice "near orthogonal" basis. 
 Let's take $n=40$ and $n=70$ as examples.
 The bound of equation (\ref{eq1}) becomes $\Vert x \Vert_2 =  \Vert y - w \Vert_2 \le \sqrt{n}/2 \lambda_1(L) \approx n 2^{256/n}$.
 This is $2^{11.7}$ and $2^{9.7}$ respectively.
+Note that the bound $\Vert y - w \Vert_2 \le \sqrt{n}/2 \lambda_1(L)$ is the absolute worst case bound in a lattice with all vectors of length approximately $\lambda_1(L)$; I guess that the average distance is much closer. (This may be the reason why our estimate for the signature size and time is so bad in this subsection.)
 
 Let us (as explained above) guess $\Vert x \Vert_\infty = \sqrt{3/n} \Vert x \Vert_2 $, giving values for the infinity norm of $2^{9.83}$ and $2^{7.43}$ respectively.
 Since the entries are signed, there are in general $1 + 2 \Vert x \Vert_\infty $ possible values for each entry in the vector. Hence we can probably safely use 9 bits to represent each entry in the $n=70$ case, and use 11 bits in the $n=40$ case.
@@ -138,7 +139,7 @@ Since we send $t=8$ vectors, each of $n$ bits, the signature size for these two 
 $40 \cdot 8 \cdot 11 $ bits (which is 440 bytes), respectively
  $70 \cdot 8 \cdot 9$ (630 bytes).
 So it looks like taking $n$ smaller is better for signature size, just like in the other version of the scheme. 
-What is most surprising is that signatures are not any shorter than they are with our scheme anyway!
+
 
 \subsection{Case 2: BKZ-20 lattice reduction}
 We now follow Gama-Nguyen.
@@ -158,7 +159,9 @@ Bizarrely, these are better bounds than with our analysis in Case 1. So probably
 
 Anyway, in terms of signature sizes, we need 7 bits to represent a coefficient in the vector $x$ when $n=40$, respectively 5 bits when $n=70$.
 Signature sizes are then (with $t=8$) 280 and 350 bytes respectively.
-This is pretty good, and will lead to faster verification and signing of course, but is still not amazing.
+This is pretty good, and will lead to faster verification and signing.
+If we assume that the exponents in the signature are in the range $[-15, 15]$ then each group action computation in signature verification is approximately 3 times the cost of a CSIDH key exchange.
+
 
 Note that, when $n=70$, the move from exponents $[-5,5]$ to exponents $[-16,16]$ is actually only an ``overhead'' of about 3, much better than the $\le 2^5$ stated by Bonnetain and Schrottenloher.
 
@@ -170,6 +173,14 @@ Overall, the improvement from using the relation lattice is less than I original
 So there is not an urgent need to get this completely worked out and written up.
 
 I feel that experiments are necessary to get a better idea of what is the best approach, especially the sizes of the GS vectors of highly-reduced bases, and hence the behaviour of near-plane in practice.
+
+\section{Future work}
+
+Do some experiments with relation lattices in class groups.
+Determine optimal dimension (smaller dimension makes lattice algorithms work better, but then the size of integers in the vectors increases).
+What is the best algorithm for finding close lattice vectors (near plane, randomised near plane, enumeration, embedding technique using lattice reduction, etc).
+
+
 
 
 \end{document}

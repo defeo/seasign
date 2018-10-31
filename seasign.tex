@@ -1511,7 +1511,7 @@ Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$
 $(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
 In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
 
-Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai rounding method~\cite{Bab86}.
+Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai nearest plane method~\cite{Bab86} or more advanced methods.
 
 
 
@@ -1519,7 +1519,7 @@ Returning to Stolbunov's signature scheme, the solution to the problem is then s
 Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
 a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e$
 % = (f_{k,i} - e_i)$
-and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
+and then using Babai nearest-plane to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
 The vector $\z$ is sent as the response to the $k$-th challenge.
 Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
 
@@ -1535,30 +1535,54 @@ But $\b_k$ is uniform and independent of $\e$ and not known to verifier. \qed
 
 
 
-If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$; for example some details are given in~\cite{BS18}.
-
-One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^n$.
-The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^n$ and then apply Babai rounding as above.
-It is an open problem to obtain rigorous results about the uniform distribution of ideal classes in this setting.
-
-
-
-\begin{lemma} \label{lem:sim1}
-Let $B \in \N$. Let $\D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
-Suppose the statistical distance between $\D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
-Let $\D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
-Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
-Then the statistical distance between $\D_2$ and $U$ is at most $\epsilon$.
-\end{lemma}
-
-% Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
+If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$.
+For example, suppose $L$ has been BKZ-reduced (or even reduced to obtain a best possible basis).
+% to have basis $\{ b_1, \dots, b_n \}$
+Then there are known bounds on the vector output by the Babai nearest plane algorithm.
+Some similar calculations are given in~\cite{BS18}.
 
 
-\begin{proof}
-The distribution of ideal classes $\prod_{i=1}^n \l_i^{x_i}$ in $\Cl(\OO)$ is the same as the distribution of vectors in $\FF \cap \Z^n$ obtained by Babai rounding of $\x=(x_1, \dots, x_n)$.
-Hence, if one distribution is close to uniform then so is the other.
-\qed
-\end{proof}
+%One final remark: In the security proof we need to be able to simulate the signing oracle, and hence we need to produce uniformly chosen vectors $\z \in \FF \cap \Z^n$.
+%The simplest way to do this is to uniformly sample $\z'$ in a large box in $\Z^n$ and then apply Babai rounding as above.
+%It is an open problem to obtain rigorous results about the uniform distribution of ideal classes in this setting.
+
+
+
+%\begin{lemma} \label{lem:sim1}
+%Let $B \in \N$. Let $\D_1$ be the distribution on ideal classes obtained by computing $\prod_{i=1}^n \l_i^{x_i}$ over uniformly sampled $x_i \in [-B,B]$.
+%Suppose the statistical distance between $\D_1$ and the uniform distribution on $\Cl(\OO)$ is bounded by $\epsilon$.
+%Let $\D_2$ be the distribution on $\FF \cap \Z^n$ defined by uniformly sampling vectors $\x \in [-B,B]^n$ and applying Babai rounding.
+%Let $U$ be the uniform distribution on $\FF \cap \Z^n$.
+%Then the statistical distance between $\D_2$ and $U$ is at most $\epsilon$.
+%\end{lemma}
+
+% % Note $[-B,B]$ is the set of integers $u$ with $-B \le u \le B$.
+
+
+%\begin{proof}
+%The distribution of ideal classes $\prod_{i=1}^n \l_i^{x_i}$ in $\Cl(\OO)$ is the same as the distribution of vectors in $\FF \cap \Z^n$ obtained by Babai rounding of $\x=(x_1, \dots, x_n)$.
+%Hence, if one distribution is close to uniform then so is the other.
+%\qed
+%\end{proof}
+
+
+
+
+We use a suggestion of Stolbunov~\cite{Sto12} that gives signatures of optimal size when the relation lattice is known.
+%
+% he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
+%
+Suppose the ideal class group is cyclic of order $N$ and let $\g$ be a generator (whose factorisation over $( \l_1, \dots, \l_n )$ is known).
+Then one can choose the private key by uniformly sampling an integer $0 \le x < N$ and letting $\a = \g^x$ in $\Cl(\OO)$.
+The public key is $E_A = \a * E$ as before (this computation requires ``smoothing'' the ideal class using the relation lattice).
+When signing one chooses the $t$ random ideals $\b_k$ by choosing uniform integers $y_k$ in $[0,N)$ and computing $\b_k = \g^{y_k}$.
+As before $\E_k = \b_k * E$.
+Finally, in the scheme, when $b_k = 0$ we return $y_k$ and when $b_k = 1$ we return $y_k - x \pmod{N}$.
+The verifier just sees a uniformly distributed integer modulo $N$, and uses this to recompute $\E_k$ from either $E$ or $E_A$ (again, this requires reducing a vector modulo the relation lattice and then computing the corresponding isogenies).
+This scheme is clearly optimal, since one cannot represent a random element of a group of order $N$ in fewer than $\log_2(N)$ bits.
+
+
+
 
 One can then prove a variant of Theorem~\ref{thm:security-basic} and adapt the optimisations of Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}. 
 This approach gives rise to smaller signatures, and much faster signature and verification times: in terms of the security parameter $\lambda$ the size gain is logarithmic gain, while the performance gain is quadratic.
@@ -1570,18 +1594,18 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
   \pgfkeys{/pgf/fixed point arithmetic}
   \def\lam{128}
   \def\n{74}
-  \def\B{5}
+  \def\B{15}
   \def\logp{500}
   \def\s{16}
   \def\CSIDHsecs{0.1}
   \pgfmathtruncatemacro{\t}{\lam / \s}
   % Sig size
   \pgfmathtruncatemacro{\StoSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8}
-  \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\B + 1)) + \lam) / 8}
+  \pgfmathtruncatemacro{\ParSig}{round(\logp + \lam) / 8}
   \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
   % sig time
   \pgfmathtruncatemacro{\StoTime}{round(\lam * \CSIDHsecs)}
-  \pgfmathtruncatemacro{\ParTime}{\t * \CSIDHsecs * 10}
+  \pgfmathtruncatemacro{\ParTime}{\t * \CSIDHsecs * 3}
   \pgfmathtruncatemacro{\ComTime}{\ParTime}
   \centering
   \begin{tabular}{l | c | c | c |}
@@ -1609,7 +1633,7 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
     \hline
     \hspace{1em}\textbf{CSIDH} &&&\\
     Sig size             & \StoSig{} B & \ParSig{} B & \ComSig{} B\\
-    Est. sig/verify time & \StoTime{} s & 0.\ParTime{} s & 0.\ComTime{} s
+    Est. sig/verify time & \StoTime{} s & \ParTime{} s & \ComTime{} s
   \end{tabular}
   \caption{Signature size and sign/verify performance of Stolbunov's
     protocol, when combined with the variants of
@@ -1617,26 +1641,11 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
     conventions are the same as in Table~\ref{tab:comparison}:
     $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$ for
     asymptotic analysis,
-    $(\lambda,n,B,\log_2(p)) = (128, 74, 5, 16, 500)$ with
+    $(\lambda,n,\log_2(p)) = (128, 74, 500)$ with
     $(s,t) = (1,128)$ or $(16,8)$ for the CSIDH entry.  All logarithms
     are in base 2.}
   \label{tab:stolbunov}
 \end{table}
-
-
-
-We end by mentioning a suggestion of Stolbunov~\cite{Sto12} that will give signatures of optimal size when the relation lattice is known.
-%
-% he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
-%
-Suppose the ideal class group is cyclic of order $N$ and let $\g$ be a generator.
-Then one can choose the private key by uniformly sampling an integer $0 \le x < N$ and letting $\a = \g^x$ in $\Cl(\OO)$.
-The public key is $E_A = \a * E$ as before (this computation requires ``smoothing'' the ideal class using the relation lattice).
-When signing one chooses the $t$ random ideals $\b_k$ by choosing uniform integers $y_k$ in $[0,N)$ and computing $\b_k = \g^{y_k}$.
-As before $\E_k = \b_k * E$.
-Finally, in the scheme, when $b_k = 0$ we return $y_k$ and when $b_k = 1$ we return $y_k - x \pmod{N}$.
-The verifier just sees a uniformly distributed integer modulo $N$, and uses this to recompute $\E_k$ from either $E$ or $E_A$.
-This scheme is clearly optimal, since one cannot represent a random element of a group of order $N$ in fewer than $\log_2(N)$ bits.
 
 
 
