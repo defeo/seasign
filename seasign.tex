@@ -47,9 +47,12 @@
 \let\cedil\c
 \renewcommand{\c}{\mathfrak{c}}
 \renewcommand{\l}{\mathfrak{l}}
+\newcommand{\bb}{\mathbf{b}}
 \newcommand{\e}{\mathbf{e}}
 \newcommand{\f}{\mathbf{f}}
 \newcommand{\g}{\mathfrak{g}}
+\renewcommand{\v}{\mathbf{v}}
+\newcommand{\w}{\mathbf{w}}
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\z}{\mathbf{z}}
 
@@ -1482,6 +1485,8 @@ In particular this theorem gives a precise statement of the advantage. \qed
 One can then combine this proof with the optimisations of Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}, to get a compact signature scheme with tight post-quantum security based on a merger of the assumptions corresponding to Problems~\ref{defn:one-out-of-2s-problem} and~\ref{defn:decisional-short-isogeny}.
 
 
+
+
 \section{Using the relation lattice}\label{sec:sig-relation-lattice}
 
 This section explains an alternative solution to the problem of representing an ideal class without leaking the private key of the signature scheme.
@@ -1495,7 +1500,12 @@ Define
    L = \left\{ (x_1, \dots, x_n ) \in \Z^n : \prod_{i=1}^n \l_i^{x_i} \equiv (1) \right\}.
 \]
 Then $L$ is a rank $n$ lattice with volume equal to $\#\Cl(\OO)$.
-We call this the \emph{relation lattice}.
+Indeed, we have the exact sequence of Abelian groups
+\[
+   0 \rightarrow L \rightarrow \Z^n \rightarrow \Cl( \OO ) \rightarrow 1
+\]
+where the map $\Z^n \rightarrow \Cl( \OO )$ is the group homomorphism $(x_1, \dots, x_n) \mapsto \prod_i \l_i^{x_i}$.
+We call $L$ the \emph{relation lattice}.
 
 A basis for this lattice can be constructed in subexponential time using classical algorithms~\cite{hafner1989rigorous,biasse_fieker_jacobson_2016}.
 However, of interest to us is that a basis can be constructed
@@ -1505,13 +1515,10 @@ The quantum case would make sense in a post-quantum world where a quantum comput
 It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficient (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
 
 For the remainder of this section we assume that the relation lattice is known.
-Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$
+Let $\{ \x_1, \dots, \x_n \}$ be a basis for $L$.
 Let $\FF = \{ \sum_{i=1}^n : u_i \x_i : -1/2 \le u_i < 1/2 \}$ be the centred fundamental domain of the basis of $L$.
 Then there is a one-to-one correspondence between $\FF \cap \Z^n$ and $\Cl(\OO)$ by
 $(z_1, \dots, z_n ) \in \FF \cap \Z^n  \mapsto \prod_{i=1}^n \l_i^{z_i}$.
-In practice one prefers a basis for $L$ so that all vectors in $\FF$ have relatively short norm, which is achieved by taking the basis to be as short and close to orthogonal as possible. Hence one applies lattice basis reduction to obtain as ``nice'' a basis for $L$ as possible.
-
-Note that, given a basis $\{ \x_1, \dots, \x_n \}$ for $L$ and a vector $\z = (z_1, \dots, z_n ) \in \Z^n$ one can efficiently compute the unique vector in $\FF \cap (\z + L )$ using the Babai nearest plane method~\cite{Bab86} or more advanced methods.
 
 
 
@@ -1535,10 +1542,47 @@ But $\b_k$ is uniform and independent of $\e$ and not known to verifier. \qed
 
 
 
-If the basis for $L$ is sufficiently nice then one can obtain good bounds on the size of the vectors $\z$.
-For example, suppose $L$ has been BKZ-reduced (or even reduced to obtain a best possible basis).
-% to have basis $\{ b_1, \dots, b_n \}$
-Then there are known bounds on the vector output by the Babai nearest plane algorithm.
+
+
+A natural computational problem, that arises in the signature scheme, is to efficiently compute a short vector $(z_1, \dots, z_n)$ corresponding to a given ideal class; we discuss this problem in the next subsection.
+
+
+
+\subsection{Solving close vector problems in the relation lattice}
+
+
+Let $\w = (w_1, \dots, w_n ) \in \Z^n$ be given and suppose we want to compute the isogeny $\a * E$ where $\a = \prod_{i=1}^n \l_i^{w_i}$. Since the computation of the isogeny depends on the sizes of $|w_i|$ it is natural to first compute a short vector $(z_1, \dots, z_n)$ that represents the same element of $\Z^n / L$.
+This can be done by solving a close vector problem in the lattice $L$. 
+Namely, if $\v \in L$ is such that $\Vert \w - \v \Vert$ is short, then $\z = \w - \v$ is a short vector that can be used to compute $\a * E$.
+Hence, the problem of interest is the close vector problem in the relation lattice.
+
+Note that most literature and algorithms for solving close lattice vector problems are with respect to the Euclidean norm, whereas for isogeny problems the natural norms are the $1$-norm $\Vert \z \Vert_1  = \sum_{i=1}^n | z_i |$ or the $\infty$-norm $\Vert \z \Vert_\infty = \max_i | z_i |$.
+The choice of norm depends on how the isogeny is computed. The algorithm for computing $\a * E$ given in~\cite{CLMPR18} depends mostly on the $\infty$-norm, since the V{\'e}lu formulae are used and a block of isogenies are handled together in each iteration.
+However, the intuitive cost of the isogeny (and this is appropriate when using modular polynomials to compute the isogenies) is given by the $1$-norm.
+We use the average-case approximations (assuming that the entries $z_i$ are uniformly distributed in $[ -\Vert \z \Vert_\infty , \Vert \z \Vert_\infty ]$) $ \Vert \z \Vert_\infty \approx \sqrt{3/n} \Vert \z \Vert_2$ and $\Vert \z \Vert_1 \approx \tfrac{n}{2} \Vert \z \Vert_\infty  \approx \sqrt{3n/4} \Vert \z \Vert_2$.
+
+
+There are many approaches to solving the close vector problem.
+All methods start with pre-processing the lattice using some basis reduction, and in our case one can perform a major precomputation to produce a basis customised for solving close vector problems.
+Once the instance $\w$ is provided one can perform: the Babai nearest plane method (or an iterative version of it, as done by Lindner and Peikert); enumeration; reducing to SVP (the Kannan embedding technique) and running a basis reduction algorithm.
+The choice of method depends on the quality of the original basis, the amount of time available to spend on solving CVP (note that a reduction in the sizes of the $|z_i$ pays dividends in the time to compute $\a * E$, and so it may be worth to devote more than a few cycles to this problem).
+
+For this paper we focus on the Babai nearest plane algorithm.
+Let $\bb_1, \dots, \bb_n$ be the (ordered) reduced lattice basis and $\bb_1^*, \dots, \bb_n^*$ the Gram-Schmidt vectors.
+Equation (4.3) of Babai~\cite{Bab86} shows that the near plane algorithm on input $\w$ outputs a vector $\v \in L$ with
+\begin{equation} \label{eq1}
+    \Vert \w -\v \Vert_2^2 \le (\Vert \bb_1^*\Vert_2^2 + \Vert \bb_2^*\Vert_2^2 + \cdots + \Vert \bb_n^*\Vert_2^2 )/4 .
+\end{equation}
+Bounds on $\Vert \bb_i^* \Vert$ are regularly discussed in the literature. For example, much work on the BKZ algorithm is devoted to understanding the sizes of these vectors; see Gama-Nguyen and Chen-Nguyen.
+
+Fukase and Kashiwabara~\cite{FK15} have discussed lattice reduction algorithms that produce a basis that minimises the right hand size of equation~(\ref{eq1}) and hence are good for solving CVP using the nearest-plane algorithm.
+Bl{\"o}mer~\cite{Blo00} has given a variant of the near-plane algorithm that efficiently solves CVP when given a dual-HKZ-reduced basis.
+
+
+For our calculations we simply consider a BKZ-reduced lattice basis and, following Chen-Nguyen, assume that
+\[
+   \Vert \bb_i^* \Vert_2 \approx \Vert \bb_1 \Vert_2^{1 - 0.0263(i-1)}.
+\]
 Some similar calculations are given in~\cite{BS18}.
 
 
@@ -1566,6 +1610,7 @@ Some similar calculations are given in~\cite{BS18}.
 %\end{proof}
 
 
+\subsection{Optimal signature size}
 
 
 We now use an idea that is implicit in the work of Couveignes~\cite{Couv06} and Stolbunov~\cite{Sto12} that gives signatures of optimal size when the relation lattice is known.
@@ -1581,6 +1626,9 @@ Finally, in the scheme, when $b_k = 0$ we return $y_k$ and when $b_k = 1$ we ret
 The verifier just sees a uniformly distributed integer modulo $N$, and uses this to recompute $\E_k$ from either $E$ or $E_A$ (again, this requires reducing a vector modulo the relation lattice and then computing the corresponding isogenies).
 This scheme is clearly optimal, since one cannot represent a random element of a group of order $N$ in fewer than $\log_2(N)$ bits.
 
+The method used to compute the isogenies during verification is left for the verifier to decide.
+Our recommendation is for all users to share the same isogeny graph in which case the relation lattice is precomputed and optimised. 
+The verifier then solves the CVP instances using their preferred method and then computes the isogenies.
 
 
 
