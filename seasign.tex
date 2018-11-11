@@ -179,6 +179,7 @@ Indeed, $\Z[ \sqrt{-p} ] \subseteq \End_{\F_p}(E)$.
 
 We will be concerned with the ideal class group of the order $\OO = \End_{\F_p}(E)$.
 This is the quotient of the group of fractional invertible ideals in $\OO$ by the subgroup of principal fractional invertible ideals.
+The principal ideal $(1) = \OO$ is the identity element of the ideal class group.
 Given two invertible $\OO$-ideals $\a, \b$ we write $\a \equiv \b$ if $\a$ and $\b$ are equivalent (meaning that $\a \b^{-1}$ is a principal fractional $\OO$-ideal). 
 
 
@@ -1446,7 +1447,7 @@ Let $c \leftarrow \ChSet$ be a uniformly chosen challenge, which means that $c \
 Then there is some $k$ with $c_k \ne 0$ and so if $Z$ was to satisfy the verification algorithm
 $\VV( pk, W, c, Z ) = 1$ then it would follow that $\z_k$ gives an ideal $\c_k$ such that $j(\E_k) = j( \c_k * E_A )$.
 From $\a_k * E  \cong \E_k \cong \c_k * E_A$ it follows that $E_A \cong (\c_k^{-1} \a_k ) * E$.
-But $\c_k^{-1} \a_k = \prod_i \l_i^{f_{k,i} - z_{k,i}}$, which violates the claim about $E_A$ corresponding to Lemma~\ref{lem:isogeny count}. Hence $Z$ does not exist and the result is proved. \qed
+But $\c_k^{-1} \a_k = \prod_i \l_i^{f_{k,i} - z_{k,i}}$, which violates the claim about $E_A$ corresponding to Lemma~\ref{lem:isogeny count}. Hence with overwhelming probability $Z$ does not exist, and the result is proved. \qed
 \end{proof}
 
 
@@ -1492,6 +1493,7 @@ One can then combine this proof with the optimisations of Sections~\ref{sec:smal
 This section explains an alternative solution to the problem of representing an ideal class without leaking the private key of the signature scheme.
 This variant can be considered if a quantum computer is available during system setup.
 Essentially, this is the scheme from Stolbunov's thesis (see Section~\ref{sec:Stolbunov}), which can be used securely once the relation lattice is known.
+Note that this section is about signatures that involve sampling ideal classes uniformly and so the techniques can't be used in the lossy keys setting.
 
 
 Let $( \l_1, \dots, \l_n )$ be a sequence of $\OO$-ideals that generates $\Cl( \OO )$.
@@ -1504,12 +1506,15 @@ Indeed, we have the exact sequence of Abelian groups
 \[
    0 \rightarrow L \rightarrow \Z^n \rightarrow \Cl( \OO ) \rightarrow 1
 \]
-where the map $\Z^n \rightarrow \Cl( \OO )$ is the group homomorphism $(x_1, \dots, x_n) \mapsto \prod_i \l_i^{x_i}$.
+where the map $f : \Z^n \rightarrow \Cl( \OO )$ is the group homomorphism $(x_1, \dots, x_n) \mapsto \prod_i \l_i^{x_i}$.
 We call $L$ the \emph{relation lattice}.
 
 A basis for this lattice can be constructed in subexponential time using classical algorithms~\cite{hafner1989rigorous,biasse_fieker_jacobson_2016}.
 However, of interest to us is that a basis can be constructed
-in probabilistic polynomial time using quantum algorithms: define $f:\Z^n\to\Cl(\OO)$ by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalisation of Shor's algorithm~\cite{kitaev1995hsp}.
+in probabilistic polynomial time using quantum algorithms: the function $f:\Z^n\to\Cl(\OO)$ 
+%by $f(x_1,\dots,x_n)=\prod_{i=1}^n\l_i^{x_i}$, then $f$ 
+defined in the previous paragraph
+can be evaluated in polynomial time~\cite{shanks1989gauss,Cohen1993}, and finding a basis for $L=\ker f$ is an instance of the Hidden Subgroup Problem for $\Z^n$, which can be solved in polynomial time using Kitaev's generalisation of Shor's algorithm~\cite{kitaev1995hsp}.
 The classical approach is not very interesting since the underlying computational assumption is only subexponentially hard for quantum computers, but it might make sense in a certain setting.
 The quantum case would make sense in a post-quantum world where a quantum computer can be used to set up the system parameters for the system and then is not required for further use.
 It might also be possible to construct $(E, p )$ such that computing the relation lattice is efficient (e.g., constructing $E$ so that $\Cl( \End(E))$ has smooth order), but we do not consider such approaches in this paper.
@@ -1526,7 +1531,7 @@ Returning to Stolbunov's signature scheme, the solution to the problem is then s
 Given $\a = \prod_{i=1}^n \l_i^{e_i}$ and $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$,
 a representation of $\b_k \a^{-1}$ is obtained by computing the vector $\z' = \f_k - \e$
 % = (f_{k,i} - e_i)$
-and then using Babai nearest-plane to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
+and then using Babai rounding to get the unique vector $\z$ in $\FF \cap (\z' + L )$.
 The vector $\z$ is sent as the response to the $k$-th challenge.
 Since $\b_k$ is a uniformly chosen ideal class, the class $\b_k \a^{-1}$ is also uniformly distributed as an ideal class, and hence the vector $\z \in \FF \cap \Z^n$ is uniformly distributed and carries no information about the private key.
 
@@ -1542,9 +1547,9 @@ But $\b_k$ is uniform and independent of $\e$ and not known to verifier. \qed
 
 
 
-
-
-A natural computational problem, that arises in the signature scheme, is to efficiently compute a short vector $(z_1, \dots, z_n)$ corresponding to a given ideal class; we discuss this problem in the next subsection.
+The above discussion fixes a particular fundamental domain and uses Babai rounding to compute an element in it, but this may not lead to the most efficient signature scheme.
+One can consider different fundamental domains and different ``reduction'' algorithms to compute $\z$. 
+Since the cost of signature verification depends on the size of the entries in $\z$, a natural computational problem is to efficiently compute a short vector $(z_1, \dots, z_n)$ corresponding to a given ideal class; we discuss this problem in the next subsection.
 
 
 
@@ -1559,17 +1564,17 @@ Hence, the problem of interest is the close vector problem in the relation latti
 Note that most literature and algorithms for solving close lattice vector problems are with respect to the Euclidean norm, whereas for isogeny problems the natural norms are the $1$-norm $\Vert \z \Vert_1  = \sum_{i=1}^n | z_i |$ or the $\infty$-norm $\Vert \z \Vert_\infty = \max_i | z_i |$.
 The choice of norm depends on how the isogeny is computed. The algorithm for computing $\a * E$ given in~\cite{CLMPR18} depends mostly on the $\infty$-norm, since the V{\'e}lu formulae are used and a block of isogenies are handled together in each iteration.
 However, the intuitive cost of the isogeny (and this is appropriate when using modular polynomials to compute the isogenies) is given by the $1$-norm.
-We use the average-case approximations (assuming that the entries $z_i$ are uniformly distributed in $[ -\Vert \z \Vert_\infty , \Vert \z \Vert_\infty ]$) $ \Vert \z \Vert_\infty \approx \sqrt{3/n} \Vert \z \Vert_2$ and $\Vert \z \Vert_1 \approx \tfrac{n}{2} \Vert \z \Vert_\infty  \approx \sqrt{3n/4} \Vert \z \Vert_2$.
+If the entries $z_i$ are uniformly distributed in $[ -\Vert \z \Vert_\infty , \Vert \z \Vert_\infty ]$ then we have  $ \Vert \z \Vert_\infty \approx \sqrt{3/n} \Vert \z \Vert_2$ and $\Vert \z \Vert_1 \approx \tfrac{n}{2} \Vert \z \Vert_\infty  \approx \sqrt{3n/4} \Vert \z \Vert_2$.
 
 
 There are many approaches to solving the close vector problem.
 All methods start with pre-processing the lattice using some basis reduction, and in our case one can perform a major precomputation to produce a basis customised for solving close vector problems.
-Once the instance $\w$ is provided one can perform: the Babai nearest plane method (or an iterative version of it, as done by Lindner and Peikert); enumeration; reducing to SVP (the Kannan embedding technique) and running a basis reduction algorithm.
-The choice of method depends on the quality of the original basis, the amount of time available to spend on solving CVP (note that a reduction in the sizes of the $|z_i$ pays dividends in the time to compute $\a * E$, and so it may be worth to devote more than a few cycles to this problem).
+Once the instance $\w$ is provided one can perform one of the following three approaches: the Babai nearest plane method (or an iterative version of it, as done by Lindner and Peikert); enumeration; reducing to SVP (the Kannan embedding technique) and running a basis reduction algorithm.
+The choice of method depends on the quality of the original basis, the amount of time available to spend on solving CVP (note that a reduction in the sizes of the $|z_i|$ pays dividends in the time to compute $\a * E$, and so it may be worth to devote more than a few cycles to this problem).
 
 For this paper we focus on the Babai nearest plane algorithm.
 Let $\bb_1, \dots, \bb_n$ be the (ordered) reduced lattice basis and $\bb_1^*, \dots, \bb_n^*$ the Gram-Schmidt vectors.
-Equation (4.3) of Babai~\cite{Bab86} shows that the near plane algorithm on input $\w$ outputs a vector $\v \in L$ with
+Equation (4.3) of Babai~\cite{Bab86} shows that the nearest plane algorithm on input $\w$ outputs a vector $\v \in L$ with
 \begin{equation} \label{eq1}
     \Vert \w -\v \Vert_2^2 \le (\Vert \bb_1^*\Vert_2^2 + \Vert \bb_2^*\Vert_2^2 + \cdots + \Vert \bb_n^*\Vert_2^2 )/4 .
 \end{equation}
@@ -1624,10 +1629,10 @@ When signing one chooses the $t$ random ideals $\b_k$ by choosing uniform intege
 As before $\E_k = \b_k * E$.
 Finally, in the scheme, when $b_k = 0$ we return $y_k$ and when $b_k = 1$ we return $y_k - x \pmod{N}$.
 The verifier just sees a uniformly distributed integer modulo $N$, and uses this to recompute $\E_k$ from either $E$ or $E_A$ (again, this requires reducing a vector modulo the relation lattice and then computing the corresponding isogenies).
-This scheme is clearly optimal, since one cannot represent a random element of a group of order $N$ in fewer than $\log_2(N)$ bits.
+This scheme is clearly optimal from the point of view of signature size, since one cannot represent a random element of a group of order $N$ in fewer than $\log_2(N)$ bits.
 
 The method used to compute the isogenies during verification is left for the verifier to decide.
-Our recommendation is for all users to share the same isogeny graph in which case the relation lattice is precomputed and optimised. 
+In practice all users will work with the same prime $p$ (e.g., the 512-bit CSIDH prime) in which case the relation lattice can be precomputed and optimised. 
 The verifier then solves the CVP instances using their preferred method and then computes the isogenies.
 
 
