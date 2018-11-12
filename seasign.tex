@@ -1135,10 +1135,13 @@ We have also shown how to get shorter signatures by increasing the public key si
 We do not know how to obtain a similar trade-off between public key size and signature size for the schemes of Yoo \emph{et al.}~\cite{YAJJS17} or Galbraith \emph{et al.}~\cite{GPS17} based on the SIDH setting.
 
 
-%\section*{Acknowledgements}
-%
-%Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
-% Thanks to Lorenz Panny for comments and suggestions.
+\section*{Acknowledgements}
+
+Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
+ Thanks to Lorenz Panny for comments and suggestions.
+Thanks to Damien Stehl{\'{e}} for references about solving close vector problems.
+
+
 
 \bibliographystyle{plain}
 \bibliography{biblio}
@@ -1569,7 +1572,7 @@ If the entries $z_i$ are uniformly distributed in $[ -\Vert \z \Vert_\infty , \V
 
 There are many approaches to solving the close vector problem.
 All methods start with pre-processing the lattice using some basis reduction, and in our case one can perform a major precomputation to produce a basis customised for solving close vector problems.
-Once the instance $\w$ is provided one can perform one of the following three approaches: the Babai nearest plane method (or an iterative version of it, as done by Lindner and Peikert); enumeration; reducing to SVP (the Kannan embedding technique) and running a basis reduction algorithm.
+Once the instance $\w$ is provided one can perform one of the following three approaches: the Babai nearest plane method (or an iterative version of it, as done by Lindner and Peikert~\cite{LP11}); enumeration; reducing to SVP (the Kannan embedding technique) and running a basis reduction algorithm.
 The choice of method depends on the quality of the original basis, the amount of time available to spend on solving CVP (note that a reduction in the sizes of the $|z_i|$ pays dividends in the time to compute $\a * E$, and so it may be worth to devote more than a few cycles to this problem).
 
 For this paper we focus on the Babai nearest plane algorithm.
@@ -1578,13 +1581,13 @@ Equation (4.3) of Babai~\cite{Bab86} shows that the nearest plane algorithm on i
 \begin{equation} \label{eq1}
     \Vert \w -\v \Vert_2^2 \le (\Vert \bb_1^*\Vert_2^2 + \Vert \bb_2^*\Vert_2^2 + \cdots + \Vert \bb_n^*\Vert_2^2 )/4 .
 \end{equation}
-Bounds on $\Vert \bb_i^* \Vert$ are regularly discussed in the literature. For example, much work on the BKZ algorithm is devoted to understanding the sizes of these vectors; see Gama-Nguyen and Chen-Nguyen.
+Bounds on $\Vert \bb_i^* \Vert$ are regularly discussed in the literature. For example, much work on the BKZ algorithm is devoted to understanding the sizes of these vectors; see Gama-Nguyen and Chen-Nguyen~\cite{CN11}.
 
 Fukase and Kashiwabara~\cite{FK15} have discussed lattice reduction algorithms that produce a basis that minimises the right hand size of equation~(\ref{eq1}) and hence are good for solving CVP using the nearest-plane algorithm.
 Bl{\"o}mer~\cite{Blo00} has given a variant of the near-plane algorithm that efficiently solves CVP when given a dual-HKZ-reduced basis.
 
 
-For our calculations we simply consider a BKZ-reduced lattice basis and, following Chen-Nguyen, assume that
+For our calculations we simply consider a BKZ-reduced lattice basis and, following Chen-Nguyen~\cite{CN11}, assume that
 \[
    \Vert \bb_i^* \Vert_2 \approx \Vert \bb_1 \Vert_2^{1 - 0.0263(i-1)}.
 \]
