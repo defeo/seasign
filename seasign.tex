@@ -115,7 +115,7 @@ Stolbunov~\cite{Sto12} was the first to sketch a signature scheme based on isoge
 Stolbunov's scheme is in the framework of class group actions.
 However the scheme was not analysed in the post-quantum setting, and a naive implementation would leak the private key.
 Due to renewed interest in class group actions, especially CSIDH~\cite{CLMPR18} (due to Castryck, Lange, Martindale, Panny and Renes) and the scheme by De Feo, Kieffer and Smith~\cite{DFKS18}, it is of interest to develop a secure signature scheme in this setting.
-Our main contribution is to use Lyubashevsky's ``Fiat-Shamir with aborts'' strategy to obtain a secure signature scheme.
+Our main contribution is to use Lyubashevsky's ``Fiat-Shamir with aborts'' strategy~\cite{Lyu09} to obtain a secure signature scheme.
 We also describe some methods to obtain much shorter signatures than in Stolbunov's original proposal.
 
 
@@ -223,7 +223,7 @@ Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End
 The best classical algorithms for this problem in the general case have exponential time (at least $\sqrt{ \# \Cl( \OO ) }$ isogeny computations).
 Childs, Jao and Soukharev~\cite{childs2014constructing} were the first to point out that this problem can be formulated as a ``hidden shift'' problem, and so quantum algorithms for the hidden shift problem can be applied.
 Hence, there are subexponential-time quantum algorithms for Problem~\ref{defn:ass1} based on the quantum algorithms of Kuperberg~\cite{Kup} and Regev~\cite{regev04}. 
-It is still an active area of research to assess the exact quantum hardness of these problem; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18}).
+It is still an active area of research to assess the exact quantum hardness of these problems; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18}).
 But at the very least, Kuperberg's algorithm requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ quantum gates, thus taking 
 \begin{equation} \label{con1}
    p>2^{2\lambda^2},
@@ -287,7 +287,7 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
   \begin{tabular}{l | r | r | r | r | r | r | r | r}
     & $n$ & $\log_2 p$ & $B$ & NIST level & classical security & quantum security & message size & private key size \\
     \hline
-    CSIDH-1 &  74 &  500 &  5 & 1 & 125 bits &  61 qbits &  63B &  32B\\
+    CSIDH-1 &  74 &  510 &  5 & 1 & 125 bits &  61 qbits &  63B &  32B\\
     CSIDH-3 & 131 & 1020 &  7 & 3 & 255 bits &  93 qbits & 128B &  64B\\
     CSIDH-5 & 208 & 1787 & 10 & 5 & 447 bits & 129 qbits & 224B & 115B
   \end{tabular}
@@ -459,7 +459,7 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 \begin{algorithm}[H]
 	\caption{KeyGen \label{alg:KeyGen}}
 %	\caption{KeyGen}
-	\textbf{Input:} $B$, $\l_1, \dots. \l_n$, $E$
+	\textbf{Input:} $B$, $\l_1, \dots, \l_n$, $E$
 
 	\textbf{Output:} $sk =\e$ and $pk = E_A$
 
@@ -476,7 +476,7 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 	\caption{Sign \label{alg:Sign}}
 	\textbf{Input:} $\msg$, $(E,E_A)$, $\e$
 
-	\textbf{Output:} $(\z_1, \dots, \z_t)$, $(b_1 , \dots, b_t)$
+	\textbf{Output:} $(\z_1, \dots, \z_t , b_1 , \dots, b_t)$
 
 	\begin{algorithmic}[1]
 		\For {$k=1 , \dots , t$}
@@ -492,7 +492,7 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 		\EndIf
 		\If{$\z_{k} \not\in [-ntB,ntB]^n$} \State \Return $\bot$ \EndIf
 		\EndFor
-		\State \Return $\sigma = (\z_1, \dots, \z_t, b_1 , \dots, b_t)$
+		\State \Return $\sigma = (\z_1, \dots, \z_t , b_1 , \dots, b_t)$
 	\end{algorithmic}
 \end{algorithm}
 \end{minipage}
@@ -562,7 +562,7 @@ Hence, the total number of isogeny computations is upper bounded by $(nt)^2 B$.
 The quadratic dependence on $nt$ is a major inconvenience.
 For example, taking $(n,t,B)=(74,128,5)$ gives around $2^{28}$ isogeny computations in signature/verification.
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
-The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
+The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for example, when $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
 
 We discuss some possible optimisations in Appendix~\ref{sec:variants}, including the idea to use discrete Gaussians instead of uniform distributions for the vectors.
 
@@ -715,7 +715,7 @@ Now we have $s$-bit challenges $b_1, \dots, b_t \in \{0, 1, \dots, 2^s-1 \}$.
 For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which corresponds to the ideal class $\c_k = \b_k \a_{b_k}^{-1} $ and the verifier can check that $j( \E_k ) = j( \c_k * E_{A, b_k})$.
 
 A signature consists of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
-But now for security we now only require $ts \ge \lambda$.
+But now for security we only require $ts \ge \lambda$.
 Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of well under one kilobyte (see Table~\ref{tab:alt-params}).
 Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes, and key generation is also $2^{16}$ times slower.
 
@@ -847,7 +847,7 @@ The approach of Section~\ref{sec:smaller-sigs} gives signatures that are potenti
 In this section we explain how to use techniques from hash-based signatures to compress the public key while also maintaining compact signatures.
 The key idea is to use a Merkle tree~\cite{10.1007/0-387-34805-0_21} with leaves the public curves $E_{A,0}, \dots, E_{A,2^s-1}$, and use the tree root (a single hash value) as public key.
 However, the security of plain Merkle trees depends on collision resistance of the underlying hash function, thus requiring hashes of size at least twice the security parameter.
-Instead, we use a modified Merkle tree, as introduced in the hash-based signatures XMSS-T~\cite{10.1007/978-3-662-49384-7_15} and SPHINCS+~\cite{sphincs+}, whose security relies on the second preimage resistance of a keyed hash function.
+Instead, we use a modified Merkle tree, as introduced in the hash-based signatures XMSS-T~\cite{10.1007/978-3-662-49384-7_15} and SPHINCS+~\cite{sphincs+}, whose security relies on the second-preimage resistance of a keyed hash function.
 
 Let $\lambda$ be a security parameter, and let $n,B,s,t,p$ be as in the previous sections; we assume that $\lceil\log p\rceil > 2\lambda$, as this is the case in any secure instantiation.
 Let the following (public) functions be given:
@@ -893,7 +893,7 @@ The $t$ authentication paths eventually merge before the root, thus some hash va
 We can save some space by only sending the hash values once, in some standardised order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
 For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 kilobytes to the signature of Section~\ref{sec:smaller-sigs}.
-Note that this is still an order of magnitude smaller than the best hash-based signature schemes, while being stateless, and also still of the same size as the shortest known lattice-based signatures.
+Note that this is still an order of magnitude smaller than the best stateless hash-based signature schemes (stateful hash-based signatures can be very short), and also still of the same size as the shortest known lattice-based signatures.
 
 Concerning security, the proofs of the previous sections, and that of~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
@@ -901,7 +901,7 @@ Concerning security, the proofs of the previous sections, and that of~\cite[Appe
   The signature scheme of this section is unforgeable under a chosen
   message attack under the following assumptions:
   \begin{itemize}
-  \item Problem~\ref{defn:one-out-of-2s-problem};
+  \item Problem~\ref{defn:one-out-of-2s-problem} is hard;
 %The \emph{one out of $2^s$ ideal action} of Definition~\ref{defn:one-out-of-2s-problem};
   \item The \emph{multi-function multi-target second-preimage resistance} of
     the keyed hash function $M$;
@@ -965,7 +965,7 @@ For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \l
 
 \item Assuming that one wants to optimise for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=\Omega(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = \Omega( n \log(n)) =  \Omega( \lambda \log(\lambda))$. Note that this is compatible with the requirement $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) \sim \lambda\log(\lambda)^2$.
 
-\item Instead of measuring performance in terms $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
+\item Instead of measuring performance in terms of $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
 
 \end{enumerate}
 
@@ -976,7 +976,7 @@ Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $n \sim \lambda^2 / \
 To have a distribution of ideal classes close to uniform we need $(2B+1)^n \gg \sqrt{p}$ and so $\log(B) > \log( \sqrt{p} )/n \sim \log(\lambda)$.
 Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
 
-The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,500)$.
+The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,510)$.
 We estimate these parameters to correspond to the NIST-1 security level.
 Note that we are able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params} (and one can also potentially consider $s > 16$, such as $(s,t)=(21,6)$).
 However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
@@ -994,7 +994,7 @@ On the other hand, rejections that happen during signing multiply the running ti
     \def\lam{128}
     \def\n{74}
     \def\B{5}
-    \def\logp{500}
+    \def\logp{510}
     \def\s{16}
     \def\CSIDHsecs{0.1}
     \pgfmathtruncatemacro{\t}{\lam / \s}
@@ -1094,7 +1094,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       Est. keygen time
 %      & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
       & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
-      Est. sig/verify time
+      Est. verify time
 %      & \BasTime{} s & \RejTime{} s & \ParTime{} s & \ComTime{} s
       & \RejTime{} s & \ParTime{} s & \ComTime{} s
     \end{tabular}
@@ -1102,7 +1102,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       protocols.
       Parameters taken in the asymptotic analysis are:
       $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$.
-The entry CSIDH is for parameters $(\lambda,n,B,\log_2(p)) = (128, 74, 5, 16, 500)$ with $(s,t) = (1,128)$ in the first column and $(s,t)=(16,8)$ in the second two columns.
+The entry CSIDH is for parameters $(\lambda,n,B,\log(p)) = (128, 74, 5, 510)$ with $(s,t) = (1,128)$ in the first column and $(s,t)=(16,8)$ in the second two columns.
       All logarithms are in base 2.
     }
     \label{tab:comparison}
@@ -1140,6 +1140,7 @@ We do not know how to obtain a similar trade-off between public key size and sig
 Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
  Thanks to Lorenz Panny for comments and suggestions.
 Thanks to Damien Stehl{\'{e}} for references about solving close vector problems.
+Thanks to the Eurocrypt referees for their careful reading of the paper.
 
 
 
@@ -1273,7 +1274,7 @@ This bound is sufficient for the keys to be lossy.
 \begin{algorithm}[H]
 	\caption{$\IGen$}
 %	\caption{KeyGen}
-	\textbf{Input:} $B$, $\l_1, \dots. \l_n$, $E$
+	\textbf{Input:} $B$, $\l_1, \dots, \l_n$, $E$
 
 	\textbf{Output:} $sk =\e$ and $pk = E_A$
 
@@ -1466,7 +1467,7 @@ The identification scheme (sigma protocol) of Figure~\ref{fig:id-scheme} has no-
 \end{lemma}
 
 \begin{proof}
-This is simple to show in our setting (due to the rejection sampling): Instead of choosing $W = ( j( (\prod_i \l_i^{f_{1,i}}) * E) \dots, j( ( \prod_i \l_i^{f_{k,i}}) * E ))$, then $c$, and then $Z = (\z_1, \dots, \z_k)$ the simulator chooses $Z$ first, then $c$, and then sets, for $1 \le k \le t$, $j_k = j( (\prod_i \l_i^{z_{k,i}}) * E )$ when $c_k=0$ and $j_k = j( (\prod_i \l_i^{z_{k,i}} ) * E_A )$ when $c_k = 1$.
+This is simple to show in our setting (due to the rejection sampling): Instead of choosing $W = ( j( (\prod_i \l_i^{f_{1,i}}) * E) , \dots, j( ( \prod_i \l_i^{f_{k,i}}) * E ))$, then $c$, and then $Z = (\z_1, \dots, \z_k)$ the simulator chooses $Z$ first, then $c$, and then sets, for $1 \le k \le t$, $j_k = j( (\prod_i \l_i^{z_{k,i}}) * E )$ when $c_k=0$ and $j_k = j( (\prod_i \l_i^{z_{k,i}} ) * E_A )$ when $c_k = 1$.
 Setting $W = (j_1,\dots, j_k)$ it follows that $(W, c, Z )$ is a transcript that satisfies the verification algorithm.
 Further, the distribution of triples $(W,c,Z)$ is identical to the distribution from the real protocol since, for any choice of the private key, this choice of $W$ would have arisen for some choice of the original vectors $\f_k$. \qed
 \end{proof}
@@ -1651,7 +1652,7 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
   \def\lam{128}
   \def\n{74}
   \def\B{15}
-  \def\logp{500}
+  \def\logp{510}
   \def\s{16}
   \def\CSIDHsecs{0.1}
   \pgfmathtruncatemacro{\t}{\lam / \s}
@@ -1689,7 +1690,7 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
     \hline
     \hspace{1em}\textbf{CSIDH} &&&\\
     Sig size             & \StoSig{} B & \ParSig{} B & \ComSig{} B\\
-    Est. sig/verify time & \StoTime{} s & \ParTime{} s & \ComTime{} s
+    Est. verify time & \StoTime{} s & \ParTime{} s & \ComTime{} s
   \end{tabular}
   \caption{Signature size and sign/verify performance of Stolbunov's
     protocol, when combined with the variants of
@@ -1697,7 +1698,7 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
     conventions are the same as in Table~\ref{tab:comparison}:
     $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$ for
     asymptotic analysis,
-    $(\lambda,n,\log_2(p)) = (128, 74, 500)$ with
+    $(\lambda,n,\log(p)) = (128, 74, 510)$ with
     $(s,t) = (1,128)$ or $(16,8)$ for the CSIDH entry.  All logarithms
     are in base 2.}
   \label{tab:stolbunov}
