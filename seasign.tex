@@ -125,7 +125,7 @@ We also describe some methods to obtain much shorter signatures than in Stolbuno
 
 Currently it is a major problem to get practical signatures from isogeny problems.
 Yoo \emph{et al.} (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes
-and signing/verification that take a few seconds on a PC.
+and signing/ve\-ri\-fi\-ca\-tion that take a few seconds on a PC.
 This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for this signature scheme (for classical 128-bit security level) and approximately 11 kilobytes for their main scheme.
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
 Unfortunately, signing and verification are very slow (the order of minutes), but we 
@@ -338,7 +338,7 @@ We require $\Verify( pk, \msg, \Sign( sk, \msg )) = 1$.
 The \emph{Fiat-Shamir transform} is a construction to turn a canonical identification scheme into a public key signature scheme. The main idea is to make the interactive identification scheme into a non-interactive scheme by replacing the challenge $c$ by a hash $H( W, \msg )$.
 
 The standard notion of security is \emph{unforgeability against chosen-message attack (UF-CMA)}.
-A UF-CMA adversary against the signature scheme is a randomised polynomial-time algorithm $A$ that plays the following game against a challenger.
+A UF-CMA adversary against the signature scheme is a randomised poly\-nomial-time algorithm $A$ that plays the following game against a challenger.
 The challenger runs $\KeyGen$ to get $(pk,sk)$ and runs $A( pk )$.
 The adversary $A$ sends messages $\msg$ to the challenger, and receives $\sigma = \Sign(sk, \msg)$ in return.
 The adversary outputs $(\msg^*, \sigma^*)$ and wins if $\Verify( pk, \msg^*, \sigma^* ) = 1$ and if $\msg^*$ was not one of the messages previously sent by the adversary to the challenger.
