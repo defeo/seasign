@@ -900,8 +900,8 @@ Hence, the signature contains $t$ ideals represented as vectors in $[-ntB,ntB]^n
 The $t$ authentication paths eventually merge before the root, thus some hash values will be repeated.
 We can save some space by only sending the hash values once, in some standardised order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
-For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 kilobytes to the signature of Section~\ref{sec:smaller-sigs}.
-Note that this is still an order of magnitude smaller than the best stateless hash-based signature schemes (stateful hash-based signatures can be very short), and also still of the same size as the shortest known lattice-based signatures.
+For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 KiB to the signature of Section~\ref{sec:smaller-sigs}.
+Note that this is still more than twice smaller than the best stateless hash-based signature schemes (the NIST candidate SPHINCS+~\cite{BHHLNPSSWO15,sphincs+} has size-optimized signatures of 8080 B at the NIST security level 1), and is comparable in size to stateful hash-based signatures (e.g., the IETF draft XMSS~\cite[\S~5.3.1]{rfc8391}) and to the shortest known lattice-based signatures.
 
 Concerning security, the proofs of the previous sections, and that of~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
