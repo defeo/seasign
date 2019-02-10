@@ -1,7 +1,7 @@
 \documentclass{llncs}
 
 %\usepackage{amsmath,amssymb}
-\usepackage{amsmath,amssymb,fullpage}
+\usepackage{amsmath,amssymb}
 \usepackage{times}
 \usepackage{algorithm,algorithmicx,algpseudocode}
 \usepackage[utf8]{inputenc}
@@ -83,12 +83,14 @@
 
 \title{SeaSign: Compact isogeny signatures from class group actions}
 
-%\author{Luca De Feo \and Steven D. Galbraith}
-%\institute{Mathematics Department, University of Auckland, NZ.
-%\email{s.galbraith@auckland.ac.nz}
-%\and
-%Universit{\' e} de Versailles -- Saint-Quentin, Paris, France.
-%\email{luca.de-feo@uvsq.fr}}
+\author{Luca De Feo \and Steven D. Galbraith}
+\institute{
+Universit{\' e} de Versailles -- Saint-Quentin, Paris, France.
+\email{luca.de-feo@uvsq.fr}
+\and
+Mathematics Department, University of Auckland, NZ.
+\email{s.galbraith@auckland.ac.nz}
+}
 
 
 
@@ -126,10 +128,12 @@ Yoo \emph{et al.} (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 k
 and signing/verification that take a few seconds on a PC.
 This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for this signature scheme (for classical 128-bit security level) and approximately 11 kilobytes for their main scheme.
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
-Unfortunately, signing and verification are very slow, but we 
+Unfortunately, signing and verification are very slow (the order of minutes), but we 
 %might just about be able to live with that in certain applications.
 hope that future work will lead to more efficient schemes.
 
+
+(XX recheck all the below numbers XX)
 
 We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
 For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is around 4Mb, signature size is 944 bytes, and verification time is around 8 minutes (signing time is up to three times longer than this, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3kb and does not add any significant additional cost to signing or verification time.
@@ -140,9 +144,10 @@ The paper is organised as follows.
 Section~\ref{sec:basic-scheme} gives the basic signature scheme concept, that was proposed by Stolbunov, and our secure variant based on Fiat-Shamir with aborts.
 Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit.
 Section~\ref{sec:smaller-keys} shows how to retain the benefit of shorter signatures, while also having a short public key, by using modified Merkle trees.
-In Appendix~\ref{sec:lossy-keys} we show how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (and this security enhancement involves no increase in signature size, though the primes are larger so computations will be somewhat slower).
+Section~\ref{sec:variants} sketches some optimisations and variants.
+Section~\ref{sec:lossy-keys} shows how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (and this security enhancement involves no increase in signature size, though the primes are larger so computations will be somewhat slower).
 This is the first time that lossy keys have been used in the isogeny setting.
-Appendix~\ref{sec:sig-relation-lattice} explains that, if a quantum computer is available during parameter generation, then a much more practical signature scheme can be obtained by following the methods in Stolbunov's thesis.
+Section~\ref{sec:sig-relation-lattice} explains that, if a quantum computer is available during parameter generation, then a much more practical signature scheme can be obtained by following the methods in Stolbunov's thesis.
 
 
 The name ``SeaSign'' is a reference to the name CSIDH, which is pronounced ``sea-side''.
@@ -154,7 +159,7 @@ The name ``SeaSign'' is a reference to the name CSIDH, which is pronounced ``sea
 
 
 We use the following notation: 
-$\#X$ is the number of elements in a set $X$;
+$\#X$ is the number of elements in a finite set $X$;
 $\log$ denotes the logarithm in base $2$;
 for $B \in \N$ we denote by $[-B,B]$ the set of integers $u$ with $-B \le u \le B$.
 
@@ -170,8 +175,7 @@ Then there is a unique (up to isomorphism) elliptic curve $E'$ and separable iso
 V{\' e}lu~\cite{velu71} gives an algorithm to compute an equation for $E'$ and rational functions that enable to compute $\phi$.
 The complexity of this algorithm is linear in $m$ and requires field operations in $K$, so when $K$ is a finite field it has cost $O( m \log( \#K )^2 )$ bit operations using standard arithmetic.
 In the worst case (i.e., when $m$ is large) this algorithm is exponential-time.
-In practice this computation is only feasible when $m$ is relatively small (say $m < 1000$) and when the field $K$ over which $P$ is defined is not too large (say, at most a few thousand bits).
-
+In practice this computation is only feasible when $m$ is relatively small (say $m < 1000$) and when the field $K$ over which $P$ is defined is not too large (say, at most a few thousand bits)
 For an elliptic curve $E$ over a field $K$ we define $\End(E)$ to be the the ring of endomorphisms of $E$ defined over the algebraic closure of $K$, and $\End_K(E)$ to be the the ring of endomorphisms defined over $K$.
 Since we are mostly concerned with the CSIDH~\cite{CLMPR18} approach, we will be interested in supersingular elliptic curves $E$ such that $j(E) \in \F_p$, where $p$ is a large prime.
 In this case $\End( E )$ is a maximal order in a quaternion algebra, while $\End_{\F_p}(E)$ is an order in the imaginary quadratic field $\Q( \sqrt{-p} )$.
@@ -210,14 +214,13 @@ Theoretically we have the bounds $\#\Cl(\OO) = O( \sqrt{p} \log(p) )$ and, assum
 % NdL: Is #Cl(O) = O(..) really what we want to say? ≈ seems more appropriate
 In practice one usually takes $\ell_i=O(\log(p))$ for efficiency reasons; heuristically, this is more than enough to generate the class group.
 
-The basic computational assumption is the ideal action problem.
-Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
-The CSIDH paper speaks of hard homogeneous spaces and calls the below problem ``Key recovery''.
-It can also be called ``vectorisation''.
+The basic computational assumption is to invert the action of an ideal.
+Couveignes called Problem~\ref{defn:ass1} ``vectorisation'' and Stolbunov called it ``Group Action Inverse Problem (GAIP)''.
+The CSIDH paper speaks of hard homogeneous spaces and calls the problem ``Key recovery''.
 
 \begin{problem}\label{defn:ass1}
 % (GAIP ?? ClAP (Cl Action Problem) ??)
-Given two elliptic curves $E$ and $E_A$ over the same field with $\End(E) = \End(E_A) = \OO$. Find an ideal $\a$ such that $j( E_A ) = j( \a * E )$.
+Given two elliptic curves $E$ and $E_A$ tover the same field with $\End(E) = \End(E_A) = \OO$. Find an ideal $\a$ such that $j( E_A ) = j( \a * E )$.
 \end{problem}
 
 The best classical algorithms for this problem in the general case have exponential time (at least $\sqrt{ \# \Cl( \OO ) }$ isogeny computations).
@@ -234,15 +237,16 @@ should be sufficient to make Problem~\ref{defn:ass1} hard for a quantum computer
 
 If the ideals $\a$ in Problem~\ref{defn:ass1} are sampled uniformly at random then the problem admits a random self-reduction: given an instance $(E, E_A)$ one can choose random ideal classes $\b_1, \b_2$ and construct the instance $(E_1, E_2) = (\b_1 * E, \b_2 * E_A )$, which is now uniformly distributed across the set of pairs of isomorphism classes of curves in the isogeny class.
 If $\a'$ is a solution to the instance $(E_1, E_2)$ then any ideal equivalent to the fractional ideal $\a'\b_1 \b_2^{-1}$ is a solution to the original instance.
-This is a nice feature for security proofs that is not shared by SIDH; we use this idea in Section~\ref{sec:natural-problem}.
+This is a nice feature for security proofs that is not shared by SIDH~\cite{JDF2011}\footnote{On the other hand, SIDH has the advantage that no subexponential-time algorithm is known to break it.}; we use this idea in Section~\ref{sec:natural-problem}.
 
 
 As already mentioned, when instantiating the group action in practice, one must choose parameters that make evaluating isogenies of degree $\ell_i$ as efficient as possible.
-This is done both by choosing the $\ell_i$ to have as small norm as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field as possible (so that V\'elu's formulas can be used).
-In the ordinary case, the best technique currently available to select parameters is due to De~Feo, Kieffer and Smith~\cite{DFKS18}: a prime of a special form is fixed, then elliptic curves are taken at random until a suitable one is found.
-Despite the optimisations described in~\cite{DFKS18}, this technique is currently incapable of producing efficient parameters in a reasonable amount of time.
+This is done both by choosing the primes $\ell_i$ to be as small as possible, and also by arranging that the kernel subgroups $E[ \ell_i ]$ are defined over as small a field extension as possible (so that V\'elu's formulas can be used).
+In the ordinary case, the best technique currently available to select parameters is due to De~Feo, Kieffer and Smith~\cite{DFKS18}.
+% : a prime of a special form is fixed, then elliptic curves are taken at random until a suitable one is found.
+Despite the optimisations described in~\cite{DFKS18}, this technique requires years of CPU time to construct a good curve.
 Like~\cite{DFKS18}, CSIDH~\cite{CLMPR18} chooses a special prime of the form $p+1 = 4\prod_{i=1}^n\ell_i$, but, instead of ordinary curves, it uses supersingular curves defined over $\F_p$.
-This makes the search for a suitable curve instantaneous, and produces very efficient parameters; indeed note that the formula for $p+1$ implies
+This makes the search for a suitable curve virtually instantaneous, and produces very efficient parameters; indeed note that the formula for $p+1$ implies
 % $p \equiv 3 \pmod{8}$, and so the maximal order in $\Q(\sqrt{-p})$ is $\Z[ (1 + \sqrt{-p})/2 ]$ and minimal polynomial of generator $\theta = (1 + \sqrt{-p})/2$ is $f(x) = x^2 + x + (p+1)/4$ satisfies $f(x) \equiv x(x+1) \pmod{\ell_i}$
 that each prime $\ell_i$ splits in $\Q(\sqrt{-p})$ as a product $(\ell_i) = \l_i \bar{\l}_i$ of distinct prime ideals.
 For key exchange, CSIDH samples the exponent vectors $\e = (e_1, \dots, e_n) \in [-B,B]^n \subseteq \Z^n$ for a suitable constant $B$.
@@ -252,7 +256,9 @@ This leads to a special case of Problem~\ref{defn:ass1} where the ideals may not
 In this special case one can also consider a straightforward meet-in-the-middle attack: Let $E$ and $\a * E$ be given, where $\a = \prod_{i=1}^n \l_i^{e_i}$ over $e_i \in [-B, B]$.
 We compute lists (assume $n$ is even)
 \[
-   L_1 = \left\{ \left( \prod_{i=1}^{n/2} \l_i^{e_i} \right) * E : e_i \in [-B,B] \right\} \text{ \ \  and \ \  }
+   L_1 = \left\{ \left( \prod_{i=1}^{n/2} \l_i^{e_i} \right) * E : e_i \in [-B,B] \right\} 
+ %\text{ \ \  and \ \  }
+ ,
    L_2 = \left\{ \left( \prod_{i=n/2 + 1}^{n} \l_i^{e_i} \right) * E_A : e_i \in [-B,B] \right\}.
 \]
 If $L_1 \cap L_2 \ne \varnothing$ then we have solved the isogeny problem.
@@ -284,8 +290,10 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
 
 \begin{table}
   \centering
-  \begin{tabular}{l | r | r | r | r | r | r | r | r}
-    & $n$ & $\log_2 p$ & $B$ & NIST level & classical security & quantum security & message size & private key size \\
+  \begin{tabular}{l | c | c | c | c | c | c | c | c}
+    & $n$ & $\log_2 p$ & $B$ & NIST  & classical  & quantum  & message  & private  \\
+    &   &  &  & level &   security &   security &   size &  key size \\
+
     \hline
     CSIDH-1 &  74 &  510 &  5 & 1 & 125 bits &  61 qbits &  63B &  32B\\
     CSIDH-3 & 131 & 1020 &  7 & 3 & 255 bits &  93 qbits & 128B &  64B\\
@@ -302,7 +310,7 @@ Their implementation of the smallest parameter size CSIDH-1 computes one class g
 
 
 
-For our signature schemes we may work with less specific primes than considered in CSIDH~\cite{CLMPR18}. For example, CSIDH takes $p+1 = 4\prod_{i=1}^n\ell_i$, whereas we may be able to use fewer primes and just multiply by a random co-factor to get a large enough $p$.
+For our signature schemes we may work with more general primes than considered in CSIDH~\cite{CLMPR18}. For example, CSIDH takes $p+1 = 4\prod_{i=1}^n\ell_i$, whereas we may be able to use fewer primes and just multiply by a random co-factor to get a large enough $p$.
 
 
 
@@ -347,7 +355,7 @@ A signature scheme is UF-CMA secure if there is no polynomial-time adversary tha
 This section contains our main ideas and presents a basic signature scheme.
 We focus in this section on classical adversaries and proofs in the random oracle model.
 Hence our signature is based on the traditional Fiat-Shamir transform.
-For schemes and analysis against a post-quantum adversary see Appendix~\ref{sec:lossy-keys}.
+For schemes and analysis against a post-quantum adversary see Section~\ref{sec:lossy-keys}.
 
 For simplicity, we describe our schemes in the setting of a general class group action on a set of $j$-invariants of elliptic curves.
 In Section~\ref{sec:CSIDH-implementation} we explain one small subtlety that arises when implementing the scheme in the setting of CSIDH.
@@ -375,12 +383,12 @@ When $b_k=1$ the verifier checks that $j(\E_k) = j( (\b_k \a^{-1}) * E_A )$.
 A cheating prover (who does not know the private key) can succeed with probability $1/2^t$.
 
 The major problem with the above idea is how to represent the ideal class of $\b_k \a^{-1}$ in a way that does not leak $\a$.
-Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )$ would not be secure as it would leak the private key.
-Instead, Stolbunov (and also Couveignes) work in the setting where the relation lattice in the ideal class group is known; we discuss this further in Appendix~\ref{sec:sig-relation-lattice}.
+Stolbunov notes that sending the vector $\f_k - \e = (f_{k,i} - e_i )_{1 \le i \le n}$ would not be secure as it would leak the private key.
+Instead, Stolbunov (and also Couveignes) work in the setting where the relation lattice in the ideal class group is known; we discuss this further in Section~\ref{sec:sig-relation-lattice}.
 %
 % he gives a one sentence sketch of a solution that is applicable when the discrete logs of the primes $\l_i$ in the class group are known.
 %Couveignes also does not explain how to prevent this leakage.
-A main contribution of our paper is to give solutions to this problem that do not require to know the relation lattice.
+A main contribution of our paper is to give solutions to this problem (using Fiat-Shamir with aborts) that do not require to know the relation lattice.
 
 To obtain a signature scheme Stolbunov applies the Fiat-Shamir transform, and hence obtains the challenge bits $b_k$ as the hash value $H( j(\E_1), \dots, j(\E_t) , \msg )$ where $H$ is a cryptographic hash function with $t$-bit output and $\msg$ is the message to be signed.
 The signature consists of the binary string $b_1\cdots b_t$ and the representations of the ideal classes $\b_k$ when $b_k = 0$ and $\b_k \a^{-1}$ when $b_k = 1$.
@@ -394,14 +402,14 @@ Both authors assume that the relations in the ideal class group have been comput
 However the cost to compute the relations in the ideal class group on a classical computer is in essentially the same asymptotic complexity class as the cost to break the scheme on a quantum computer (using the Kuperberg or Regev algorithms).
 Hence it may not make sense to require the Key Generation algorithm of the scheme to compute the relations in the ideal class group.
 On the other hand, in the fully post-quantum setting where quantum computers are readily available then the relation lattice can be computed in polynomial time.
-We revisit this issue in Appendix~\ref{sec:sig-relation-lattice}.
+We revisit this issue in Section~\ref{sec:sig-relation-lattice}.
 
 
 
-
-The main contribution of this paper is to give a solution to the problem of representing $\b_k \a^{-1}$ without leaking the private key and without needing to compute relations in the ideal class group.
-Our solution uses ideas from lattice cryptography (Fiat-Shamir with aborts) and we describe this in the remainder of the section.
-%An alternative solution requires a basis of a relation lattice in the ideal class group, which can be computed efficiently using a quantum computer. We describe this alternative solution in Appendix~\ref{sec:sig-relation-lattice}.
+%
+%The main contribution of this paper is to give a solution to the problem of representing $\b_k \a^{-1}$ without leaking the private key and without needing to compute relations in the ideal class group.
+%Our solution uses ideas from lattice cryptography (Fiat-Shamir with aborts) and we describe this in the remainder of the section.
+% %An alternative solution requires a basis of a relation lattice in the ideal class group, which can be computed efficiently using a quantum computer. We describe this alternative solution in Appendix~\ref{sec:sig-relation-lattice}.
 
 
 
@@ -415,7 +423,7 @@ To prevent signatures from leaking the private key, we use rejection sampling in
 
 Let $B > 0$ be a constant. When generating the private key we sample uniformly $e_i \in [-B, B]$ for $1 \le i \le n$. Let $\e = ( e_1, \dots, e_n )$.
 The value $B$ may be chosen large enough that $\prod_{i=1}^n \l_i^{e_i}$ covers most ideal classes and so that the output distribution is close to uniformly distributed in $\Cl(\OO)$, but we avoid any explicit requirement or assumption that this distribution is uniform.
-We refer to Definition~\ref{defn:sampling-distributions} for more discussion of this issue, and in Appendix~\ref{sec:lossy-keys} we consider a variant where the ideals are definitely not distributed uniformly in $\Cl(\OO)$.
+We refer to Definition~\ref{defn:sampling-distributions} for more discussion of this issue, and in Section~\ref{sec:lossy-keys} we consider a variant where the ideals are definitely not distributed uniformly in $\Cl(\OO)$.
 
 Exponents $f_{k,i}$ are sampled uniformly in $[-(nt+1)B, (nt+1)B]$, where $t$ is the number of parallel rounds of the identification/signature protocol and $n$ is the number of primes.
 Let $\f_k = (f_{k,1}, \dots, f_{k,n} )$, $\b_k = \prod_{i=1}^n \l_i^{f_{k,i}}$ and define $\E_k = \b_k * E $.
@@ -564,7 +572,7 @@ For example, taking $(n,t,B)=(74,128,5)$ gives around $2^{28}$ isogeny computati
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
 The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for example, when $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
 
-We discuss some possible optimisations in Appendix~\ref{sec:variants}, including the idea to use discrete Gaussians instead of uniform distributions for the vectors.
+We discuss some possible optimisations in Section~\ref{sec:variants}, including the idea to use discrete Gaussians instead of uniform distributions for the vectors.
 
 
 %
@@ -607,7 +615,7 @@ We now prove security of the basic scheme in the random oracle model against a c
 %The proof covers both cases.
 The proof technique is the standard approach that uses the forking lemma.
 In this section we do not consider quantum adversaries, or give a proof in the quantum random oracle model (QROM).
-A proof in the QROM follows from the approach in Appendix~\ref{sec:lossy-keys}.
+A proof in the QROM follows from the approach in Section~\ref{sec:lossy-keys}.
 
 First we need to discuss some subtleties about the distribution of ideal classes coming from the key generation and signing algorithms.
 
@@ -702,7 +710,7 @@ There may be situations where a larger hash output is needed; for more discussio
 \section{Smaller signatures}\label{sec:smaller-sigs}
 
 
-The signature size of the basic scheme is very large, since the sigma protocol that underlies the identification scheme only has single bit challenges. 
+The signature size of the basic scheme is rather large (around 20 kilobytes), since the sigma protocol that underlies the identification scheme only has single bit challenges. 
 In practice we need $t \ge 128$, which means signatures are very large.
 To get shorter signatures it is natural to try to increase the size of the challenges.
 In this section we sketch an approach to obtain $s$-bit challenge values for any small integer $s \in \N$, by trading the challenge size with the public key size. In the next section we explain how to shorten the public keys again.
@@ -825,7 +833,7 @@ In the random oracle model, the signature scheme of this section is unforgeable 
 
 
 %Note that this proof has an extra $1/2$ factor in the success probability, but this is not a serious issue since the security proof isn't tight anyway.
-We have a tight proof in Appendix~\ref{sec:lossy-keys} based on a less standard assumption (see Problem~\ref{defn:decisional-short-isogeny}). It is an open problem to have a tight proof and also the security based on Problem~\ref{defn:ass1}.
+We have a tight proof in Section~\ref{sec:lossy-keys} based on a less standard assumption (see Problem~\ref{defn:decisional-short-isogeny}). It is an open problem to have a tight proof and also the security based on Problem~\ref{defn:ass1}.
 
 
 
