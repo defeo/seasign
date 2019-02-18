@@ -79,7 +79,8 @@
 %\newtheorem{example}{Example}
 %\newtheorem{theorem}{Theorem}
 
-
+\newcommand{\longversion}[1]{}
+\newcommand{\shortversion}[1]{#1}
 
 \title{SeaSign: Compact isogeny signatures from class group actions}
 
@@ -1135,36 +1136,13 @@ The entry CSIDH is for parameters $(\lambda,n,B,\log(p)) = (128, 74, 5, 510)$ wi
 \caption{Parameter choices for small signatures, with $(s,t)=(16,8)$, at around 128-bit classical security level. Signature size is $nt \lceil \log_2( 2ntB + 1) \rceil + 128$ bits. \label{tab:alt-params}}
 \end{table}
 
-\section{Conclusions}
-
-
-We have given a signature scheme suitable for the CSIDH isogeny setting.
-This solves an unresolved problem in Stolbunov's thesis.
-We have also shown how to get shorter signatures by increasing the public key size.
-We do not know how to obtain a similar trade-off between public key size and signature size for the schemes of Yoo \emph{et al.}~\cite{YAJJS17} or Galbraith \emph{et al.}~\cite{GPS17} based on the SIDH setting.
-
-
-\section*{Acknowledgements}
-
-Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
- Thanks to Lorenz Panny for comments and suggestions.
-Thanks to Damien Stehl{\'{e}} for references about solving close vector problems.
-Thanks to the Eurocrypt referees for their careful reading of the paper.
-
-
-Luca De Feo was supported by the French \emph{Programme
-  d'Investissements d'Avenir} under the national project RISQ
-n\textsuperscript{o} P141580-3069086/DOS0044212.
 
 
 
-\bibliographystyle{splncs04}
-\bibliography{biblio}
+%\appendix
 
 
-
-\appendix
-
+\longversion{  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Variants}\label{sec:variants}
 
@@ -1219,6 +1197,8 @@ Similarly, taking $u = 2$ doubles the time spent on computing $\b_k * E$, but ch
 Indeed, if $T$ is the cost for $nt$ computations of $\b_k * E$ then the expected cost of signing is $u T e^{1/u}$. Since $f(x) = x e^{1/x}$ is minimised at $x=1$ it follows that taking $u=1$ is the optimal choice.
 
 \end{enumerate}
+
+}  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
 
 
 \section{Tight security reduction based on lossy keys}\label{sec:lossy-keys}
@@ -1653,7 +1633,9 @@ The method used to compute the isogenies during verification is left for the ver
 In practice all users will work with the same prime $p$ (e.g., the 512-bit CSIDH prime) in which case the relation lattice can be precomputed and optimised. 
 The verifier then solves the CVP instances using their preferred method and then computes the isogenies.
 
+\shortversion{The full version of the paper contains a table of parameters for this scheme.}
 
+\longversion{  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 One can then prove a variant of Theorem~\ref{thm:security-basic} and adapt the optimisations of Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}. 
 This approach gives rise to smaller signatures, and much faster signature and verification times: in terms of the security parameter $\lambda$ the size gain is logarithmic gain, while the performance gain is quadratic.
@@ -1718,6 +1700,34 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
   \label{tab:stolbunov}
 \end{table}
 
+
+}  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusions}
+
+
+We have given a signature scheme suitable for the CSIDH isogeny setting.
+This solves an unresolved problem in Stolbunov's thesis.
+We have also shown how to get shorter signatures by increasing the public key size.
+We do not know how to obtain a similar trade-off between public key size and signature size for the schemes of Yoo \emph{et al.}~\cite{YAJJS17} or Galbraith \emph{et al.}~\cite{GPS17} based on the SIDH setting.
+
+
+\section*{Acknowledgements}
+
+Thanks to Samuel Dobson for doing some experiments with discrete Gaussians.
+ Thanks to Lorenz Panny for comments and suggestions.
+Thanks to Damien Stehl{\'{e}} for references about solving close vector problems.
+Thanks to the Eurocrypt referees for their careful reading of the paper.
+
+
+Luca De Feo was supported by the French \emph{Programme
+  d'Investissements d'Avenir} under the national project RISQ
+n\textsuperscript{o} P141580-3069086/DOS0044212.
+
+
+
+\bibliographystyle{splncs04}
+\bibliography{biblio}
 
 
 
