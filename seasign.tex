@@ -146,7 +146,9 @@ The paper is organised as follows.
 Section~\ref{sec:basic-scheme} gives the basic signature scheme concept, that was proposed by Stolbunov, and our secure variant based on Fiat-Shamir with aborts.
 Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit.
 Section~\ref{sec:smaller-keys} shows how to retain the benefit of shorter signatures, while also having a short public key, by using modified Merkle trees.
+\longversion{
 Section~\ref{sec:variants} sketches some optimisations and variants.
+}
 Section~\ref{sec:lossy-keys} shows how to use our scheme in the context of lossy keys, from which we obtain tight security in the quantum random oracle model via the results of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18} (and this security enhancement involves no increase in signature size, though the primes are larger so computations will be somewhat slower).
 This is the first time that lossy keys have been used in the isogeny setting.
 Section~\ref{sec:sig-relation-lattice} explains that, if a quantum computer is available during parameter generation, then a much more practical signature scheme can be obtained by following the methods in Stolbunov's thesis.
@@ -574,8 +576,9 @@ For example, taking $(n,t,B)=(74,128,5)$ gives around $2^{28}$ isogeny computati
 We can make $t$ small using the techniques in later sections, but one needs $n$ large unless $B$ is going to get very large. So even going down to $t=8$ still has signatures requiring around $2^{20}$ isogeny computations.
 The acceptance probability estimate from Lemma~\ref{lem:rejection} is very close to the true value: for example, when $(n,t,B)=(74,128,5)$ then the true acceptance probability is approximately $0.36790$, while $e^{-1} \approx 0.36788$.
 
+\longversion{
 We discuss some possible optimisations in Section~\ref{sec:variants}, including the idea to use discrete Gaussians instead of uniform distributions for the vectors.
-
+}
 
 %
 %% NOTE: $n=50, B=6$ is too small, as $(2B+1)^n \approx 2^{185}$. So I updated the above.
