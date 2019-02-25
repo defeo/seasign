@@ -136,7 +136,7 @@ hope that future work (see for example~\cite{DPV19}) will lead to more efficient
 
 
 We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
-For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is 4~MiB, signature size is 944 bytes, and verification time is under 3 minutes (signing time is three times longer than this on average, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3~KiB and does not add any significant additional cost to signing or verification time.
+For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is 4~MiB, signature size is 978 bytes, and verification time is under 3 minutes (signing time is three times longer than this on average, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3~KiB and does not add any significant additional cost to signing or verification time.
 One can obtain even shorter signatures by taking different choices of parameters, for example taking $(n,B) = (20,3275)$ leads to signatures as small as 416 bytes, but we do not have an estimate of the verification time for these parameters.
 
 
@@ -961,8 +961,8 @@ The lower bound only takes into account the number of operations needed to compu
     \def\CSIDHsecs{0.03}
     \pgfmathtruncatemacro{\t}{\lam / \s}
     % Sig size
-    \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*\n*\lam*\B + 1)) + \lam) / 8}
-    \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\n*\t*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\RejSig}{round(\lam * \n * ceil(log2(2*\n*\lam*\B + 1)) + \lam) / 8}
+    \pgfmathtruncatemacro{\ParSig}{round(\t * \n * ceil(log2(2*\n*\t*\B + 1)) + \lam) / 8}
     \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
     % PK size
     \pgfmathtruncatemacro{\RejPK}{ceil(\logp / 8)}
@@ -988,9 +988,9 @@ The lower bound only takes into account the number of operations needed to compu
       \hline
       \hspace{1em}\textbf{Exact} &&&\\
       Sig size
-      & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
-      & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
-      & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
+      & $\lambda n\lceil\log (2n\lambda B + 1)\rceil + \lambda$
+      & $\frac{\lambda}{s} n\lceil\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
+      & $\frac{\lambda}{s}( n\lceil\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
       PK size
        & $\log p$ & $2^s\log p$ & $2\lambda$ \\
       SK size
