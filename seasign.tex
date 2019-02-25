@@ -259,10 +259,12 @@ This leads to a special case of Problem~\ref{defn:ass1} where the ideals may not
 In this special case one can also consider a straightforward meet-in-the-middle attack: Let $E$ and $\a * E$ be given, where $\a = \prod_{i=1}^n \l_i^{e_i}$ over $e_i \in [-B, B]$.
 We compute lists (assume $n$ is even)
 \[
-   L_1 = \left\{ \left( \prod_{i=1}^{n/2} \l_i^{e_i} \right) * E : e_i \in [-B,B] \right\} 
+%   L_1 = \left\{ \left( \prod_{i=1}^{n/2} \l_i^{e_i} \right) * E : e_i \in [-B,B] \right\} 
+   L_1 = \left\{ \bigl( \prod_{i=1}^{n/2} \l_i^{e_i} \bigr) * E : e_i \in [-B,B] \right\} 
  %\text{ \ \  and \ \  }
  ,
-   L_2 = \left\{ \left( \prod_{i=n/2 + 1}^{n} \l_i^{e_i} \right) * E_A : e_i \in [-B,B] \right\}.
+%   L_2 = \left\{ \left( \prod_{i=n/2 + 1}^{n} \l_i^{e_i} \right) * E_A : e_i \in [-B,B] \right\}.
+   L_2 = \left\{ \bigl( \prod_{i=n/2 + 1}^{n} \l_i^{e_i} \bigr) * E_A : e_i \in [-B,B] \right\}.
 \]
 If $L_1 \cap L_2 \ne \varnothing$ then we have solved the isogeny problem.
 This attack is faster than general methods when the set of ideal classes generated is a small subset of $\Cl( \OO )$.
