@@ -85,7 +85,7 @@
 \title{SeaSign: Compact isogeny signatures from class group actions}
 
 \author{Luca De Feo\inst{1}\orcidID{0000-0002-9321-0773}
- \and Steven D. Galbraith\inst{2}}
+ \and Steven D. Galbraith\inst{2}\orcidID{0000-0001-7114-8377}}
 \institute{
 Universit{\' e} Paris-Saclay -- UVSQ, LMV, UMR CNRS 8100, Versailles, FR.
 \url{https://defeo.lu/}
@@ -132,17 +132,17 @@ This can be reduced using some optimisations. For example~\cite{GPS17} state app
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
 Unfortunately, signing and verification are very slow (the order of minutes), but we 
 %might just about be able to live with that in certain applications.
-hope that future work will lead to more efficient schemes.
+hope that future work (see for example~\cite{DPV19}) will lead to more efficient schemes.
 
 
 We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
-For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is 4~MiB, signature size is 944 bytes, and verification time is around 3 minutes (signing time is up to three times longer than this, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3~KiB and does not add any significant additional cost to signing or verification time.
+For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is 4~MiB, signature size is 944 bytes, and verification time is under 3 minutes (signing time is three times longer than this on average, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3~KiB and does not add any significant additional cost to signing or verification time.
 One can obtain even shorter signatures by taking different choices of parameters, for example taking $(n,B) = (20,3275)$ leads to signatures as small as 416 bytes, but we do not have an estimate of the verification time for these parameters.
 
 
 The paper is organised as follows.
 Section~\ref{sec:basic-scheme} gives the basic signature scheme concept, that was proposed by Stolbunov, and our secure variant based on Fiat-Shamir with aborts.
-Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit.
+Section~\ref{sec:smaller-sigs} explains how to get shorter signatures, at the expense of public key size, by using challenges that are more than just a single bit. This optimisation also leads to faster signing and verification.
 Section~\ref{sec:smaller-keys} shows how to retain the benefit of shorter signatures, while also having a short public key, by using modified Merkle trees.
 \longversion{
 Section~\ref{sec:variants} sketches some optimisations and variants.
@@ -163,6 +163,7 @@ The name ``SeaSign'' is a reference to the name CSIDH, which is pronounced ``sea
 We use the following notation: 
 $\#X$ is the number of elements in a finite set $X$;
 $\log$ denotes the logarithm in base $2$;
+KiB and MiB denote kilobytes and megabytes respectively;
 for $B \in \N$ we denote by $[-B,B]$ the set of integers $u$ with $-B \le u \le B$.
 
 
@@ -228,7 +229,7 @@ Given two elliptic curves $E$ and $E_A$ tover the same field with $\End(E) = \En
 The best classical algorithms for this problem in the general case have exponential time (at least $\sqrt{ \# \Cl( \OO ) }$ isogeny computations).
 Childs, Jao and Soukharev~\cite{childs2014constructing} were the first to point out that this problem can be formulated as a ``hidden shift'' problem, and so quantum algorithms for the hidden shift problem can be applied.
 Hence, there are subexponential-time quantum algorithms for Problem~\ref{defn:ass1} based on the quantum algorithms of Kuperberg~\cite{Kup} and Regev~\cite{regev04}. 
-It is still an active area of research to assess the exact quantum hardness of these problems; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18}).
+It is still an active area of research to assess the exact quantum hardness of these problems; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18} and Bernstein-Lange-Martindale-Panny\cite{cryptoeprint:2018:1059}.
 But at the very least, Kuperberg's algorithm requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ quantum gates, thus taking 
 \begin{equation} \label{con1}
    p>2^{2\lambda^2},
@@ -564,7 +565,7 @@ We can therefore get a rough idea of parameters and efficiency for the scheme.
 Let $\lambda$ be a security parameter (e.g., $\lambda=128$ or $\lambda=256$), for security
 we need at least $t=\lambda$ so that an attacker cannot guess the hash value or invert the hash function (see also the proof of Theorem~\ref{thm:security-basic}).
 We also need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
-The signature contains one hash value of $t$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-512, we obtain signatures of 19~KiB (see also Table~\ref{tab:comparison}).
+The signature contains one hash value of $t$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-512, we obtain signatures of around 20~KiB (see also Table~\ref{tab:comparison}).
 
 To sign/verify one needs to evaluate the action of either of $\b_k$ and $\b_k\a^{-1}$ for every $1\le k\le t$,
 which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
@@ -710,13 +711,15 @@ There may be situations where a larger hash output is needed; for more discussio
 
 
 
-\section{Smaller signatures}\label{sec:smaller-sigs}
+\section{Smaller signatures and faster signing/verification}\label{sec:smaller-sigs}
 
 
-The signature size of the basic scheme is rather large (around 19~KiB), since the sigma protocol that underlies the identification scheme only has single bit challenges. 
+The signature size of the basic scheme is rather large (around 20~KiB), since the sigma protocol that underlies the identification scheme only has single bit challenges. 
 In practice we need $t \ge 128$, which means signatures are very large.
 To get shorter signatures it is natural to try to increase the size of the challenges.
-In this section we sketch an approach to obtain $s$-bit challenge values for any small integer $s \in \N$, by trading the challenge size with the public key size. In the next section we explain how to shorten the public keys again.
+In this section we sketch an approach to obtain $s$-bit challenge values for any small integer $s \in \N$, by trading the challenge size with the public key size. 
+This optimisation also dramatically speeds up signing and verification.
+In the next section we explain how to shorten the public keys again.
 
 
 The basic idea is to have public keys $( E_{A,0} = \a_0 * E , \dots , E_{A,2^s-1} = \a_{2^s-1} * E )$.
@@ -940,62 +943,9 @@ To simplify the expressions we assume that all hash functions have $\lambda$-bit
 
 In all sections we give a rough lower bound for the performance of the keygen and sign/verify algorithms, in terms of $\F_p$-operations.
 The lower bound only takes into account the number of operations needed to compute and evaluate the isogeny path, and so the exact cost may be higher.
-The operation count is based on the following estimates.
-\begin{enumerate}
-\item Based
-  on~\cite{10.1007/978-3-319-70697-9_11,10.1007/978-3-319-79063-3_11},
-  we estimate that computing/evaluating an isogeny of degree $\ell$, when given a kernel point,
-  costs $O(\ell)$ operations.
-\item By the prime number theorem $\sum_{i=1}^n\ell_i\sim\frac{1}{2}n^2\ln(n)$, and the estimate is very accurate already for $n>3$.
-\end{enumerate}
-Putting these estimates together, an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case. We note that the above estimate is not likely to be the dominant part in the computation, especially asymptotically,
-as scalar multiplications of elliptic points are likely to dominate.
-However, estimating this part of the algorithm is much more complex and dependent on specific optimisations, we thus leave a more precise analysis for future work.
 
-The second section of rows in the table (under the heading ``Asymptotic'') gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
-We now give a brief justification for the parameter restrictions in terms of $\lambda$.
-\begin{enumerate}
-\item Kuperberg's algorithm is believed to require at least $ 2^{\sqrt{\log(N)}}$ operations in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
-\[
-   \sqrt{ \log(N)} > \sqrt{ \tfrac{1}{2} \log(p) } > \sqrt{ \tfrac{1}{2} 2 \lambda^2 } = \lambda.
-\]
-So we choose $\log(p) \approx 2 \lambda^2$.
 
-\item 
-To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$, although the work of Adj \emph{et al.}~\cite{adj+menezes+al-isogenies} suggests this may be too cautious.
-For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, though again this may not be necessary~\cite{cryptoeprint:2019:103}. In any case, we have $n \log(B) = \Omega( \lambda )$.
 
-%The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
-
-%(*** So, do we abandon approximating the uniform distribution or not? This only affects the ``Asymptotic'' part of the table, of course, but then we should say that Theorem 3 does not apply.)
-
-%\item If one is choosing primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}, then one is restricted to taking $n$ not too large compared with $p$.
-%Approximating $\ell_i \approx n \log(n)$ it follows that $p \approx (n \log(n))^n$ and so we must have $n \log(n) < \log(p)$.
-%
-%In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
-
-\item Assuming that one wants to optimise for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=\Omega(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = \Omega( n \log(n)) =  \Omega( \lambda \log(\lambda))$. Note that this is compatible with the requirement $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) \sim \lambda\log(\lambda)^2$.
-
-\item Instead of measuring performance in terms of $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
-
-\end{enumerate}
-
-Note that our asymptotic choices forbid the key space from covering the whole class group.
-If the conditions of Problem~\ref{defn:ass1} are wanted, different choices must be made for $n$ and $B$.
-In this case it is best to choose primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}.
-Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $n \sim \lambda^2 / \log(\lambda)$.
-To have a distribution of ideal classes close to uniform we need $(2B+1)^n \gg \sqrt{p}$ and so $\log(B) > \log( \sqrt{p} )/n \sim \log(\lambda)$.
-Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
-
-The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-512 primitive, i.e., $(n,B,\log(p)) = (74,5,510)$.
-We estimate these parameters to correspond to the NIST-1 security level.
-Note that we are able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params} (and one can also potentially consider $s > 16$, such as $(s,t)=(21,6)$).
-However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
-We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
-In~\cite{CLMPR18,cryptoeprint:2018:782}, for an exponent vector in $[-B,B]^n$, this time is reported to be around $30$ milliseconds.
-Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
-Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations.
-However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees much larger than ours can be computed in a fraction of the time we need to compute isogenies.
 
 
 \begin{landscape}
@@ -1096,11 +1046,11 @@ However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that ha
 %      & \BasSig{} B & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
       & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
       PK size
-%      & \BasPK{} B & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
-      & \RejPK{} B & \ParPK{} KB & \ComPK{} B\\
+%      & \BasPK{} B & \RejPK{} B & \ParPK{} KiB & \ComPK{} B\\
+      & \RejPK{} B & \ParPK{} KiB & \ComPK{} B\\
       SK size
-%      & \BasSK{} B & \RejSK{} B & \ParSK{} B & \ComSK{} KB \\
-      & \RejSK{} B & \ParSK{} B & \ComSK{} KB \\
+%      & \BasSK{} B & \RejSK{} B & \ParSK{} B & \ComSK{} KiB \\
+      & \RejSK{} B & \ParSK{} B & \ComSK{} KiB \\
       Est. keygen time
 %      & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
       & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
@@ -1119,6 +1069,68 @@ The entry CSIDH is for parameters $(\lambda,n,B,\log(p)) = (128, 74, 5, 510)$ wi
     \label{tab:comparison}
   \end{table}
 \end{landscape}
+
+
+
+
+The operation count is based on the following estimates.
+\begin{enumerate}
+\item Based
+  on~\cite{10.1007/978-3-319-70697-9_11,10.1007/978-3-319-79063-3_11},
+  we estimate that computing/evaluating an isogeny of degree $\ell$, when given a kernel point,
+  costs $O(\ell)$ operations.
+\item By the prime number theorem $\sum_{i=1}^n\ell_i\sim\frac{1}{2}n^2\ln(n)$, and the estimate is very accurate already for $n>3$.
+\end{enumerate}
+Putting these estimates together, an ideal with exponent vector within $[-C,C]^n$ can be evaluated in $O(Cn^2\log(n))$ operations on average and in the worst case. We note that the above estimate is not likely to be the dominant part in the computation, especially asymptotically,
+as scalar multiplications of elliptic points are likely to dominate.
+However, estimating this part of the algorithm is much more complex and dependent on specific optimisations, we thus leave a more precise analysis for future work.
+
+The second section of rows in the table (under the heading ``Asymptotic'') gives asymptotic estimates in terms only of the security parameter $\lambda$, and the parameter of $s$ of Section~\ref{sec:smaller-sigs}.
+We now give a brief justification for the parameter restrictions in terms of $\lambda$.
+\begin{enumerate}
+\item Kuperberg's algorithm is believed to require at least $ 2^{\sqrt{\log(N)}}$ operations in a group of size $N$. In our case $N > \sqrt{p}$. Taking $\log(p) > 2 \lambda^2$ gives 
+\[
+   \sqrt{ \log(N)} > \sqrt{ \tfrac{1}{2} \log(p) } > \sqrt{ \tfrac{1}{2} 2 \lambda^2 } = \lambda.
+\]
+So we choose $\log(p) \approx 2 \lambda^2$.
+
+\item 
+To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$, although the work of Adj \emph{et al.}~\cite{adj+menezes+al-isogenies} suggests this may be too cautious.
+For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, though again this may not be necessary~\cite{cryptoeprint:2019:103}. In any case, we have $n \log(B) = \Omega( \lambda )$.
+
+%The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
+
+%(*** So, do we abandon approximating the uniform distribution or not? This only affects the ``Asymptotic'' part of the table, of course, but then we should say that Theorem 3 does not apply.)
+
+%\item If one is choosing primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}, then one is restricted to taking $n$ not too large compared with $p$.
+%Approximating $\ell_i \approx n \log(n)$ it follows that $p \approx (n \log(n))^n$ and so we must have $n \log(n) < \log(p)$.
+%
+%In the table below this is specified as the third condition $n \log(n) \sim 2 \lambda^2$, on the assumption that it is usually appropriate to use as large as possible $n$ in any given situation.
+
+\item Assuming that one wants to optimise for (asymptotic) performance, the best choice is then to take $B=O(1)$ and $n=\Omega(\lambda)$, which means that the prime ideals $\l_i$ have norm $\ell_i = \Omega( n \log(n)) =  \Omega( \lambda \log(\lambda))$. Note that this is compatible with the requirement $\log(p)>2\lambda^2$, since $\sum_{i=1}^n\ln(\ell_i)\sim n\ln(n) \sim \lambda\log(\lambda)^2$.
+
+\item Instead of measuring performance in terms of $\F_p$-operations, here we measure them in terms of bit-operations. After substituting $B$ and $n$, this adds a factor $\lambda^2\log(\lambda)$ in front of the lower bound if using fast (quasi-linear complexity) modular arithmetic.
+
+\end{enumerate}
+
+Note that our asymptotic choices forbid the key space from covering the whole class group.
+If the conditions of Problem~\ref{defn:ass1} are wanted, different choices must be made for $n$ and $B$.
+In this case it is best to choose primes of the form $p+1 = 4\prod_{i=1}^n\ell_i$, as in CSIDH~\cite{CLMPR18}.
+Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $n \sim \lambda^2 / \log(\lambda)$.
+To have a distribution of ideal classes close to uniform we need $(2B+1)^n \gg \sqrt{p}$ and so $\log(B) > \log( \sqrt{p} )/n \sim \log(\lambda)$.
+Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
+
+The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-512 primitive, i.e., $(n,B,\log(p)) = (74,5,510)$.
+We estimate these parameters to correspond to the NIST-1 security level.
+Note that we are able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params} (and one can also potentially consider $s > 16$, such as $(s,t)=(21,6)$).
+However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
+We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
+In~\cite{CLMPR18,cryptoeprint:2018:782}, for an exponent vector in $[-B,B]^n$, this time is reported to be around $30$ milliseconds.
+Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
+Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations.
+However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees much larger than ours can be computed in a fraction of the time we need to compute isogenies.
+
+
 
 
 \begin{table}
@@ -1240,11 +1252,19 @@ A canonical identification scheme is $\epsilon_{zk}$-naHVZK \emph{non-abort hone
 
 A \emph{lossy identification scheme} is a canonical identification scheme as above together with a lossy key generation algorithm $\LossIGen$, which is a randomised algorithm that on input $1^\lambda$ outputs $pk$.
 An adversary against a lossy identification scheme is a randomised algorithm $A$ that takes an input $pk$ and returns $0$ or $1$.
+\longversion{
 The advantage of an adversary against a lossy identification scheme is 
 \[
    \Adv^{\textsf{LOSS}}(A) = \left|
    \Pr\left( A( pk ) = 1 : pk \leftarrow \LossIGen(1^\lambda) \right) - \Pr\left( A( pk ) = 1 : pk \leftarrow \IGen( 1^\lambda ) \right) \right|.
 \]
+}
+\shortversion{
+The advantage $\Adv^{\textsf{LOSS}}(A)$ of an adversary against a lossy identification scheme is defined to be
+\[
+\left|   \Pr\left( A( pk ) = 1 : pk \leftarrow \LossIGen(1^\lambda) \right) - \Pr\left( A( pk ) = 1 : pk \leftarrow \IGen( 1^\lambda ) \right) \right|.
+\]
+}
 The two security properties of a lossy identification scheme are:
 \begin{enumerate}
 \item There is no polynomial-time adversary that has non-negligible advantage $\Adv^{\textsf{LOSS}}$ in distinguishing real and lossy keys.
@@ -1350,6 +1370,10 @@ This bound is sufficient for the keys to be lossy.
 \end{figure}
 
 
+\shortversion{
+We use the generic deterministic signature construction from Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}, and use the fact that signatures can be shortened because the identification protocol is commitment recoverable. We refer to the full version of the paper for details.
+}
+\longversion{
 Now we state the generic deterministic signature construction from Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}:
 The key generation and verification algorithms are the same as Figure~\ref{fig:id-scheme}. The signing algorithm is given in Figure~\ref{fig:sign}. 
 Since the identification protocol is commitment recoverable, the signatures can be shortened to be $(c, Z )$ instead of $(W,Z)$.
@@ -1377,7 +1401,7 @@ Since the identification protocol is commitment recoverable, the signatures can 
 \end{algorithm}
 \caption{The deterministic signature scheme of Kiltz, Lyubashevsky and Schaffner~\cite{KLS18}. Here $K$ is a PRF key that is internal to the signing algorithm and is not required for verification. \label{fig:sign}}
 \end{figure}
-
+}
 
 \subsection{Proofs}
 
