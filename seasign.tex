@@ -126,19 +126,17 @@ We also describe some methods to obtain much shorter signatures than in Stolbuno
 
 
 Currently it is a major problem to get practical signatures from isogeny problems.
-Yoo \emph{et al.} (see Table~1 of~\cite{YAJJS17}) state signatures of over 100 kilobytes
+Yoo \emph{et al.} (see Table~1 of~\cite{YAJJS17}) state signatures of over 100~KiB
 and signing/ve\-ri\-fi\-ca\-tion that take a few seconds on a PC.
-This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12 kilobytes for this signature scheme (for classical 128-bit security level) and approximately 11 kilobytes for their main scheme.
+This can be reduced using some optimisations. For example~\cite{GPS17} state approximately 12~KiB for this signature scheme (for classical 128-bit security level) and approximately 11~KiB for their main scheme.
 In contrast, in this paper we are able to get signatures smaller than a kilobyte, which is better even than lattice signatures.
 Unfortunately, signing and verification are very slow (the order of minutes), but we 
 %might just about be able to live with that in certain applications.
 hope that future work will lead to more efficient schemes.
 
 
-(XX recheck all the below numbers XX)
-
 We now briefly summarise the main findings in the paper (for more details see Table~\ref{tab:comparison}).
-For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is around 4Mb, signature size is 944 bytes, and verification time is around 8 minutes (signing time is up to three times longer than this, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3kb and does not add any significant additional cost to signing or verification time.
+For the parameters $(n,B) = (74,5)$ as used in CSIDH~\cite{CLMPR18} we propose a signature scheme whose public key is 4~MiB, signature size is 944 bytes, and verification time is around 3 minutes (signing time is up to three times longer than this, since rejection sampling requires repeating the signing algorithm). For the same parameters we show that one can reduce the public key size to only 32 bytes, but this increases the signature size to around 3~KiB and does not add any significant additional cost to signing or verification time.
 One can obtain even shorter signatures by taking different choices of parameters, for example taking $(n,B) = (20,3275)$ leads to signatures as small as 416 bytes, but we do not have an estimate of the verification time for these parameters.
 
 
@@ -274,9 +272,9 @@ Hence for security we may require
 where $\lambda$ is the security parameter.
 Further, there is a quantum algorithm due to Tani, which is straightforward to adapt to this problem (we refer to Section~5.2 of De Feo, Jao and Pl{\^{u}}t~\cite{FJP14} for details).
 This means we might need to take $(2B+1)^n > 2^{3 \lambda}$ to have post-quantum security.
-However, Adj \emph{et al.}~\cite{adj+menezes+al-isogenies} have given an in-depth analysis of these algorithms, and they argue that the naive analysis is unrealistic as it ignores storage costs and other overheads.
-Instead, they claim the fastest algorithm in practice (even considering quantum adversaries) for this problem is based on an approach by van Oorschot and Wiener that takes time $(2B+1)^n/M^{3/2}$, where $M$ is the number of processors.
-Since $M < (2B+1)^{n/3}$ in practice, this cost is larger than $(2B+1)^{n/2}$.
+However, recent analyses~\cite{adj+menezes+al-isogenies,cryptoeprint:2019:103} question the pertinence of the complexity models of the meet-in-the-middle and Tani algorithms, and advocate for more relaxed bounds.
+% Instead, they claim the fastest algorithm in practice (even considering quantum adversaries) for this problem is based on an approach by van Oorschot and Wiener that takes time $(2B+1)^n/M^{3/2}$, where $M$ is the number of processors.
+% Since $M < (2B+1)^{n/3}$ in practice, this cost is larger than $(2B+1)^{n/2}$.
 
 Choosing the best values of $B,n,p$ for large choices of $\lambda$ (e.g., satisfying the constraints of equations~(\ref{con1}) and~(\ref{con2})) is non-trivial, but will generally lead to sampling in a very small subset of the whole ideal class group.
 
@@ -289,22 +287,22 @@ We leave the study of this question to future work.
 
 By taking into account the best known attacks, the CSIDH authors propose parameters for the three NIST categories~\cite{NIST2016}, as summarised in Table~\ref{tab:csidh-parms}.
 Note that in all CSIDH instances the set of sampled ideal classes is (heuristically) likely to cover the whole class group.
-Their implementation of the smallest parameter size CSIDH-1 computes one class group action in under 100ms on a 3.5GHz processor.
+Their implementation of the smallest parameter size CSIDH-512 computes one class group action in 40ms on a 3.5GHz processor.
 
 
 \begin{table}
   \centering
   \begin{tabular}{l | c | c | c | c | c | c | c | c}
-    & $n$ & $\log_2 p$ & $B$ & NIST  & classical  & quantum  & message  & private  \\
+    & $n$ & $\lfloor\log_2 p\rfloor$ & $B$ & NIST  & classical  & quantum  & message  & private  \\
     &   &  &  & level &   security &   security &   size &  key size \\
 
     \hline
-    CSIDH-1 &  74 &  510 &  5 & 1 & 127 bits &  61 qbits &  64B &  32B\\
-    CSIDH-3 & 131 & 1029 &  7 & 3 & 257 bits &  93 qbits & 129B &  64B\\
-    CSIDH-5 & 208 & 1797 & 10 & 5 & 449 bits & 129 qbits & 225B & 115B
+    CSIDH-512 &  74 &  510 &  5 & 1 & 127 bits &  62 qbits &  64B &  32B\\
+    CSIDH-1024 & 130 & 1019 &  8 & 3 & 257 bits &  94 qbits & 127B &  67B\\
+    CSIDH-1792 & 208 & 1786 & 10 & 5 & 449 bits & 129 qbits & 223B & 114B
   \end{tabular}
   \caption{Proposed parameters for CSIDH~\cite{CLMPR18}.  Effective
-    parameters $p$, $n$ and $B$ for CSIDH-3 and CSIDH-5 were not given
+    parameters $p$, $n$ and $B$ for CSIDH-1024 and CSIDH-1792 were not given
     in the paper, and are produced here following their methodology.
     Message size is the number of bytes to represent a $j$-invariant, and private key size is the space required to store the exponent vector $\e \in \Z^n$.}
   \label{tab:csidh-parms}
@@ -566,7 +564,7 @@ We can therefore get a rough idea of parameters and efficiency for the scheme.
 Let $\lambda$ be a security parameter (e.g., $\lambda=128$ or $\lambda=256$), for security
 we need at least $t=\lambda$ so that an attacker cannot guess the hash value or invert the hash function (see also the proof of Theorem~\ref{thm:security-basic}).
 We also need a large enough set of private keys, so we need $(2B+1)^n$ large enough.
-The signature contains one hash value of $t$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-1, we obtain signatures of 19.6 kilobytes (see also Table~\ref{tab:comparison}).
+The signature contains one hash value of $t$ bits, plus $t$ vectors $\f_k$ or $\z_k$ with entries of size bounded by $(nt+1)B$, for a total of $\lambda + t\lceil n\log(2(nt+1)B + 1)\rceil$ bits (assuming each vector is represented optimally). If we take $t=\lambda=128$, and $(n,B)=(74,5)$ as in CSIDH-512, we obtain signatures of 19~KiB (see also Table~\ref{tab:comparison}).
 
 To sign/verify one needs to evaluate the action of either of $\b_k$ and $\b_k\a^{-1}$ for every $1\le k\le t$,
 which means that for each $k$ and each prime $\l_i$ one needs to compute up to $ntB$ isogenies of degree $\ell_i$.
@@ -715,7 +713,7 @@ There may be situations where a larger hash output is needed; for more discussio
 \section{Smaller signatures}\label{sec:smaller-sigs}
 
 
-The signature size of the basic scheme is rather large (around 20 kilobytes), since the sigma protocol that underlies the identification scheme only has single bit challenges. 
+The signature size of the basic scheme is rather large (around 19~KiB), since the sigma protocol that underlies the identification scheme only has single bit challenges. 
 In practice we need $t \ge 128$, which means signatures are very large.
 To get shorter signatures it is natural to try to increase the size of the challenges.
 In this section we sketch an approach to obtain $s$-bit challenge values for any small integer $s \in \N$, by trading the challenge size with the public key size. In the next section we explain how to shorten the public keys again.
@@ -729,8 +727,8 @@ For each $1 \le k \le t$ the signer computes $\z_k = \f_k - \e_{b_k}$, which cor
 
 A signature consists of one hash value, plus $t$ vectors $\z_k$ with entries of size bounded by $ntB$, i.e., a total of $\lambda + t\lceil n\log(2ntB + 1)\rceil$ bits, similar to the previous section.
 But now for security we only require $ts \ge \lambda$.
-Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of well under one kilobyte (see Table~\ref{tab:alt-params}).
-Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4 megabytes, and key generation is also $2^{16}$ times slower.
+Taking, say, $\lambda = 128$ and $s = 16$ can mean $t$ as low as 8, and so only 8 vectors need to be transmitted as part of the signature, giving signatures of well under 1~KiB (see Table~\ref{tab:alt-params}).
+Of course the public key now includes $2^{16}$ $j$-invariants (elements of $\F_p$) which would be around 4~MiB, and key generation is also $2^{16}$ times slower.
 
 
 As far as we can tell, this idea cannot be applied to the schemes of Yoo \emph{et al.}~\cite{YAJJS17} or Galbraith \emph{et al.}~\cite{GPS17}.
@@ -893,7 +891,7 @@ See~\cite{10.1007/978-3-662-49384-7_15,sphincs+} for more details.
 
 Typically, in hash-based signatures the secret key would only contain $\SK.\seed$, since all secret and public values can be reconstructed from it at an acceptable cost.
 However, in our case recomputing the leaves of the hash tree ($2^s$ class group actions) is much more expensive than recomputing the internal nodes ($2^s-1$ hash function evaluations), thus we set the secret key to the tuple $(\SK.\seed,h_{s,0},\dots,h_{s,2^s-1})$.
-This is a considerably large secret key, e.g., around $1$ megabyte when $\lambda=128$ and $s=16$, but it is offset by a more than tenfold gain in signing time.
+This is a considerably large secret key, e.g., around $1$~MiB when $\lambda=128$ and $s=16$, but it is offset by a more than tenfold gain in signing time.
 Also note that the values $h_{s,u}$ can (and will) be leaked without any loss in security, they are indeed part of the uncompressed public key, thus they are more formally treated as auxiliary signer data, rather than as part of the secret key.
 
 To sign we proceed like in Section~\ref{sec:smaller-sigs}, but the signature now needs to contain additional information.
@@ -905,8 +903,8 @@ Hence, the signature contains $t$ ideals represented as vectors in $[-ntB,ntB]^n
 The $t$ authentication paths eventually merge before the root, thus some hash values will be repeated.
 We can save some space by only sending the hash values once, in some standardised order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
-For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2 KiB to the signature of Section~\ref{sec:smaller-sigs}.
-Note that this is still more than twice smaller than the best stateless hash-based signature schemes (the NIST candidate SPHINCS+~\cite{BHHLNPSSWO15,sphincs+} has size-optimized signatures of 8080 B at the NIST security level 1), and is comparable in size to stateful hash-based signatures (e.g., the IETF draft XMSS~\cite[\S~5.3.1]{rfc8391}) and to the shortest known lattice-based signatures.
+For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2~KiB to the signature of Section~\ref{sec:smaller-sigs}.
+Note that this is still more than twice smaller than the best stateless hash-based signature schemes (the NIST candidate SPHINCS+~\cite{BHHLNPSSWO15,sphincs+} has size-optimized signatures of 8080 bytes at the NIST security level 1), and is comparable in size to stateful hash-based signatures (e.g., the IETF draft XMSS~\cite[\S~5.3.1]{rfc8391}) and to the shortest known lattice-based signatures.
 
 Concerning security, the proofs of the previous sections, and that of~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
@@ -965,7 +963,7 @@ So we choose $\log(p) \approx 2 \lambda^2$.
 
 \item 
 To resist a classical meet-in-the-middle attack we need $(2B+1)^n > 2^{2 \lambda}$, although the work of Adj \emph{et al.}~\cite{adj+menezes+al-isogenies} suggests this may be too cautious.
-For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, though again this may not be necessary. In any case, we have $n \log(B) = \Omega( \lambda )$.
+For security against Tani's quantum algorithm we may require $(2B+1)^n > 2^{3 \lambda}$, and so $n \log(B) \sim 3 \lambda$, though again this may not be necessary~\cite{cryptoeprint:2019:103}. In any case, we have $n \log(B) = \Omega( \lambda )$.
 
 %The table below states  $n\log B\sim \lambda^2$, which may not be relevant in our situation as we base our security on a different assumption to other works.
 
@@ -989,16 +987,15 @@ Then, $n\log(n)\sim\log(p)\sim 2\lambda^2$ and so we have  $n \sim \lambda^2 / \
 To have a distribution of ideal classes close to uniform we need $(2B+1)^n \gg \sqrt{p}$ and so $\log(B) > \log( \sqrt{p} )/n \sim \log(\lambda)$.
 Hence $B > \sqrt{n}$, making all asymptotic bounds considerably worse.
 
-The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-1 primitive, i.e., $(n,B,\log(p)) = (74,5,510)$.
+The third block of rows (under the heading ``CSIDH'') gives concrete sizes obtained by fixing $\lambda=128$ and $s=16$ and using the CSIDH-512 primitive, i.e., $(n,B,\log(p)) = (74,5,510)$.
 We estimate these parameters to correspond to the NIST-1 security level.
 Note that we are able to get smaller signatures at similar cost, for example see the various options in Table~\ref{tab:alt-params} (and one can also potentially consider $s > 16$, such as $(s,t)=(21,6)$).
 However, for Table~\ref{tab:comparison} we choose the same parameters as~\cite{CLMPR18} so that we are able to refer to their running-time computations.
 We estimate real-world performance, using as baseline the worst-case time for one isogeny action in CSIDH.
-In~\cite{CLMPR18,cryptoeprint:2018:782}, for an exponent vector in $[-B,B]^n$, this time is reported to be around $0.1$ seconds.
+In~\cite{CLMPR18,cryptoeprint:2018:782}, for an exponent vector in $[-B,B]^n$, this time is reported to be around $30$ milliseconds.
 Accordingly, we multiply this time by the size of the exponent vector to obtain our estimates.
-Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations and rejections in signing.
+Note that the estimates are very rough, as they purposely ignore other factors such as hash tree computations.
 However the results in~\cite{10.1007/978-3-662-49384-7_15,sphincs+} show that hash trees much larger than ours can be computed in a fraction of the time we need to compute isogenies.
-On the other hand, rejections that happen during signing multiply the running time by a small constant, typically less than $3$ on average.
 
 
 \begin{landscape}
@@ -1009,7 +1006,7 @@ On the other hand, rejections that happen during signing multiply the running ti
     \def\B{5}
     \def\logp{510}
     \def\s{16}
-    \def\CSIDHsecs{0.1}
+    \def\CSIDHsecs{0.03}
     \pgfmathtruncatemacro{\t}{\lam / \s}
     % Sig size
     \pgfmathtruncatemacro{\BasSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8} 
@@ -1088,7 +1085,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$\\
-      $\to$ verify
+      $\to$ sign/verify
 %      & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
       & $\Omega\bigl(\lambda^7\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$
@@ -1117,6 +1114,7 @@ On the other hand, rejections that happen during signing multiply the running ti
       $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$.
 The entry CSIDH is for parameters $(\lambda,n,B,\log(p)) = (128, 74, 5, 510)$ with $(s,t) = (1,128)$ in the first column and $(s,t)=(16,8)$ in the second two columns.
       All logarithms are in base 2.
+      Estimated signature time is approximately 3 times the estimated verification time.
     }
     \label{tab:comparison}
   \end{table}
@@ -1181,7 +1179,7 @@ which leads to an additional factor.
 For our choices $n=50, t = 8, \sigma = 5$ this gives $\sigma' \approx 3500$.
 % (experiments ongoing).
 If we use some kind of compact coding of integers distributed as Gaussians~\cite{DDLL13} then signature size would be at best $nt \log_2( 2 \pi e (\sigma')^2 )/2$ bits.
-For our example parameters this would be between 7000-8000 bits, or around one kilobyte again.
+For our example parameters this would be between 7000-8000 bits, or around 1~KiB again.
 % More work is needed to work out the exact details and determine the rejection sampling probabilities. 
 
 % TODO: This \item needs updating, esp. regarding concrete parameters below
