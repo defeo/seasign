@@ -229,7 +229,7 @@ Given two elliptic curves $E$ and $E_A$ tover the same field with $\End(E) = \En
 The best classical algorithms for this problem in the general case have exponential time (at least $\sqrt{ \# \Cl( \OO ) }$ isogeny computations).
 Childs, Jao and Soukharev~\cite{childs2014constructing} were the first to point out that this problem can be formulated as a ``hidden shift'' problem, and so quantum algorithms for the hidden shift problem can be applied.
 Hence, there are subexponential-time quantum algorithms for Problem~\ref{defn:ass1} based on the quantum algorithms of Kuperberg~\cite{Kup} and Regev~\cite{regev04}. 
-It is still an active area of research to assess the exact quantum hardness of these problems; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18} and Bernstein-Lange-Martindale-Panny\cite{cryptoeprint:2018:1059}.
+It is still an active area of research to assess the exact quantum hardness of these problems; see the recent papers by Biasse-Iezzi-Jacobson~\cite{BIJ18}, Bonnetain-Schrottenloher~\cite{BS18}, Jao-LeGrow-Leonardi-Ruiz-Lopez~\cite{JLGLRL18} and Bernstein-Lange-Martindale-Panny~\cite{cryptoeprint:2018:1059}.
 But at the very least, Kuperberg's algorithm requires at least $\tilde{O}( 2^{\sqrt{\log(p)/2}} )$ quantum gates, thus taking 
 \begin{equation} \label{con1}
    p>2^{2\lambda^2},
@@ -468,7 +468,7 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 
 %\begin{figure}[!htb]
 \begin{figure}
-\begin{minipage}{.45\textwidth}
+\begin{minipage}{.47\textwidth}
 \begin{algorithm}[H]
 	\caption{KeyGen \label{alg:KeyGen}}
 %	\caption{KeyGen}
@@ -510,7 +510,7 @@ This argument does not depend on the choice of $\e$, so the output distribution 
 \end{algorithm}
 \end{minipage}
  \ \ \ \ \ \ \ \ \ \ \ \ 
-\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.47\textwidth}
 \begin{algorithm}[H]
 	\caption{Verify \label{alg:Verify}}
 	\textbf{Input:} $\msg$, $(E,E_A)$, $\sigma$
