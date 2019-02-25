@@ -717,7 +717,7 @@ There may be situations where a larger hash output is needed; for more discussio
 
 
 The signature size of the basic scheme is rather large (around 20~KiB), since the sigma protocol that underlies the identification scheme only has single bit challenges. 
-In practice we need $t \ge 128$, which means signatures are very large.
+In practice we need $t \ge 128$, which means signatures are very large (several megabytes).
 To get shorter signatures it is natural to try to increase the size of the challenges.
 In this section we sketch an approach to obtain $s$-bit challenge values for any small integer $s \in \N$, by trading the challenge size with the public key size. 
 This optimisation also dramatically speeds up signing and verification.
@@ -909,7 +909,7 @@ The $t$ authentication paths eventually merge before the root, thus some hash va
 We can save some space by only sending the hash values once, in some standardised order: the worst case happening when no path merges before level $\log(t)$, no more than $t(s-\log(t))$ hash values need to be sent as part of the signature.
 In total, a signature requires at most $t\lceil n \log(2ntB+1)\rceil + t\log(p) + t\lambda(s-\log(t))$ bits.
 For our parameters $t=8, s=16$ and $\lambda=128$, this adds about 2~KiB to the signature of Section~\ref{sec:smaller-sigs}.
-Note that this is still more than twice smaller than the best stateless hash-based signature schemes (the NIST candidate SPHINCS+~\cite{BHHLNPSSWO15,sphincs+} has size-optimized signatures of 8080 bytes at the NIST security level 1), and is comparable in size to stateful hash-based signatures (e.g., the IETF draft XMSS~\cite[\S~5.3.1]{rfc8391}) and to the shortest known lattice-based signatures.
+Note that this is still less than half the size of the best stateless hash-based signature schemes (the NIST candidate SPHINCS+~\cite{BHHLNPSSWO15,sphincs+} has size-optimized signatures of 8080 bytes at the NIST security level 1), and is comparable in size to stateful hash-based signatures (e.g., the IETF draft XMSS~\cite[\S~5.3.1]{rfc8391}) and to the shortest known lattice-based signatures.
 
 Concerning security, the proofs of the previous sections, and that of~\cite[Appendix~B]{10.1007/978-3-662-49384-7_15} can be combined to prove the following theorem.
 
@@ -1066,7 +1066,7 @@ The lower bound only takes into account the number of operations needed to compu
       $\log p \sim 2\lambda^2$, $n\log(B)\sim 3\lambda$, $B = O(1)$.
 The entry CSIDH is for parameters $(\lambda,n,B,\log(p)) = (128, 74, 5, 510)$ with $(s,t) = (1,128)$ in the first column and $(s,t)=(16,8)$ in the second two columns.
       All logarithms are in base 2.
-      Estimated signature time is approximately 3 times the estimated verification time.
+      Signing time is on average 3 times the estimated verification time.
     }
     \label{tab:comparison}
   \end{table}
