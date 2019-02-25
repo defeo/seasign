@@ -300,9 +300,9 @@ Their implementation of the smallest parameter size CSIDH-512 computes one class
     &   &  &  & level &   security &   security &   size &  key size \\
 
     \hline
-    CSIDH-512 &  74 &  510 &  5 & 1 & 127 bits &  62 qbits &  64B &  32B\\
-    CSIDH-1024 & 130 & 1019 &  8 & 3 & 257 bits &  94 qbits & 127B &  67B\\
-    CSIDH-1792 & 208 & 1786 & 10 & 5 & 449 bits & 129 qbits & 223B & 114B
+    CSIDH-512  &  74 &  510 &  5 & 1 & 127 bits &  62 qbits &  64B &  37B\\
+    CSIDH-1024 & 130 & 1019 &  8 & 3 & 257 bits &  94 qbits & 127B &  82B\\
+    CSIDH-1792 & 208 & 1786 & 10 & 5 & 449 bits & 129 qbits & 223B & 130B
   \end{tabular}
   \caption{Proposed parameters for CSIDH~\cite{CLMPR18}.  Effective
     parameters $p$, $n$ and $B$ for CSIDH-1024 and CSIDH-1792 were not given
@@ -961,103 +961,77 @@ The lower bound only takes into account the number of operations needed to compu
     \def\CSIDHsecs{0.03}
     \pgfmathtruncatemacro{\t}{\lam / \s}
     % Sig size
-    \pgfmathtruncatemacro{\BasSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8} 
     \pgfmathtruncatemacro{\RejSig}{round(\lam * ceil(\n * log2(2*\n*\lam*\B + 1)) + \lam) / 8}
     \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\n * log2(2*\n*\t*\B + 1)) + \lam) / 8}
     \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
     % PK size
-    \pgfmathtruncatemacro{\BasPK}{ceil(\logp / 8)}
-    \pgfmathtruncatemacro{\RejPK}{\BasPK}
+    \pgfmathtruncatemacro{\RejPK}{ceil(\logp / 8)}
     \pgfmathtruncatemacro{\ParPK}{round(2^\s * \RejPK / 1024)}
     \pgfmathtruncatemacro{\ComPK}{2 * \lam / 8}
     % SK size
-    \pgfmathtruncatemacro{\BasSK}{ceil(\n * log2(2*\B + 1)) / 8}
-    \pgfmathtruncatemacro{\RejSK}{\BasSK}
+    \pgfmathtruncatemacro{\RejSK}{ceil(\n * log2(2*\B + 1)) / 8}
     \pgfmathtruncatemacro{\ParSK}{\lam / 8}
     \pgfmathtruncatemacro{\ComSK}{(2^\s + 1) * \lam / 8 / 1024}
     % keygen time
-    \pgfmathsetmacro{\BasKG}{\CSIDHsecs}
-    \pgfmathsetmacro{\RejKG}{\BasKG}
-    \pgfmathtruncatemacro{\ParKG}{round(2^\s * \BasKG)}
+    \pgfmathsetmacro{\RejKG}{\CSIDHsecs}
+    \pgfmathtruncatemacro{\ParKG}{round(2^\s * \CSIDHsecs)}
     \pgfmathtruncatemacro{\ComKG}{\ParKG}
     % sig time
-    \pgfmathtruncatemacro{\BasTime}{round(\lam * \CSIDHsecs)}
-    \pgfmathtruncatemacro{\RejTime}{\n * \lam * \BasTime}
-    \pgfmathtruncatemacro{\ParTime}{round(\n * \t^2 * \CSIDHsecs)}
+    \pgfmathtruncatemacro{\RejTime}{\n * \lam^2 * \CSIDHsecs}
+    \pgfmathtruncatemacro{\ParTime}{\n * \t^2 * \CSIDHsecs}
     \pgfmathtruncatemacro{\ComTime}{\ParTime}
     \centering
-%    \begin{tabular}{l | c | c | c | c |}
     \begin{tabular}{l | c | c | c |}
-%      & Stolbunov scheme (Section~\ref{sec:Stolbunov})
       & Rejection sampling (Section~\ref{sec:sig-reject-sample})
       & Shorter signatures (Section~\ref{sec:smaller-sigs})
       & Smaller public keys (Section~\ref{sec:smaller-keys}) \\
       \hline
-%      \hspace{1em}\textbf{Exact} &&&&\\
       \hspace{1em}\textbf{Exact} &&&\\
       Sig size
-%      & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
       & $\lambda\lceil n\log (2n\lambda B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \lambda$
       & $\frac{\lambda}{s}(\lceil n\log (2n\frac{\lambda}{s}B + 1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
       PK size
-%      & $\log p$ & $\log p$ & $2^s\log p$ & $2\lambda$ \\
        & $\log p$ & $2^s\log p$ & $2\lambda$ \\
       SK size
-%      & $n\log(2B+1)$ & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
        & $n\log(2B+1)$ & $\lambda$ & $(2^s+1) \lambda$\\
-%      Performance ($\F_p$-ops) &&&&\\
       Performance ($\F_p$-ops) &&&\\
       $\to$ keygen
-%      & $\Omega\bigl(Bn^2\log(n)\bigr)$
       & $\Omega\bigl(Bn^2\log(n)\bigr)$
       & $\Omega\bigl(2^sBn^2\log(n)\bigr)$
       & $\Omega\bigl(2^sBn^2\log(n)\bigr)$\\
       $\to$ sign/verify
-%      & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
       & $\Omega\bigl(\lambda^2Bn^3\log(n)\bigr)$
       & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$
       & $\Omega\bigl((\lambda/s)^2Bn^3\log(n)\bigr)$\\
       \hline
-%      \hspace{1em}\textbf{Asymptotic} &&&&\\
       \hspace{1em}\textbf{Asymptotic} &&&\\
       Sig size
-%      & $O(\lambda^2)$ & $O(\lambda^2\log(\lambda))$ & $O((\lambda^2/s)\log(\lambda))$ & $O(\lambda^3/s)$\\
       & $O(\lambda^2\log(\lambda))$ & $O((\lambda^2/s)\log(\lambda))$ & $O(\lambda^3/s)$\\
       PK size
-%      & $2\lambda^2$ & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $2\lambda$\\
        & $2\lambda^2$ & $2^{s+1}\lambda^2$ & $2\lambda$\\
       SK size
-%      & $3\lambda$ & $3\lambda$ & $\lambda$ & $(2^s+1)\lambda$\\
       & $3\lambda$ & $\lambda$ & $(2^s+1)\lambda$\\
-%      Performance (bits) &&&&\\
       Performance (bits) &&&\\
       $\to$ keygen
-%      & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$
       & $\Omega\bigl(2^s\lambda^4\log(\lambda)^2\bigr)$\\
       $\to$ sign/verify
-%      & $\Omega\bigl(\lambda^5\log(\lambda)^2\bigr)$
       & $\Omega\bigl(\lambda^7\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$
       & $\Omega\bigl((\lambda^7/s^2)\log(\lambda)^2\bigr)$\\
       \hline
       \hspace{1em}\textbf{CSIDH} &&&\\
       Sig size
-%      & \BasSig{} B & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
       & \RejSig{} B & \ParSig{} B & \ComSig{} B\\
       PK size
-%      & \BasPK{} B & \RejPK{} B & \ParPK{} KiB & \ComPK{} B\\
       & \RejPK{} B & \ParPK{} KiB & \ComPK{} B\\
       SK size
-%      & \BasSK{} B & \RejSK{} B & \ParSK{} B & \ComSK{} KiB \\
       & \RejSK{} B & \ParSK{} B & \ComSK{} KiB \\
       Est. keygen time
-%      & \BasKG{} s & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
       & \RejKG{} s & \ParKG{} s & \ComKG{} s\\
       Est. verify time
-%      & \BasTime{} s & \RejTime{} s & \ParTime{} s & \ComTime{} s
       & \RejTime{} s & \ParTime{} s & \ComTime{} s
     \end{tabular}
     \caption{Parameter size and performance of the various signature
