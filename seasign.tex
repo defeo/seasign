@@ -1647,7 +1647,7 @@ The verifier then solves the CVP instances using their preferred method and then
 \longversion{  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 One can then prove a variant of Theorem~\ref{thm:security-basic} and adapt the optimisations of Sections~\ref{sec:smaller-sigs} and~\ref{sec:smaller-keys}. 
-This approach gives rise to smaller signatures, and much faster signature and verification times: in terms of the security parameter $\lambda$ the size gain is logarithmic gain, while the performance gain is quadratic.
+This approach gives rise to smaller signatures, and much faster signature and verification times: in terms of the security parameter $\lambda$ the size gain is logarithmic, while the performance gain is quadratic.
 Public/private key sizes and key generation time are unaffected.
 We summarise the obtained parameters and expected performance in Table~\ref{tab:stolbunov}, using the same conventions as in Table~\ref{tab:comparison}; we only report data on signature size and sign/verify performance, and we refer to Table~\ref{tab:comparison} for the other (unchanged) entries.
 
@@ -1663,7 +1663,7 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
   \pgfmathtruncatemacro{\t}{\lam / \s}
   % Sig size
   \pgfmathtruncatemacro{\StoSig}{round(\lam * ceil(\n * log2(2*\B + 1)) + \lam) / 8}
-  \pgfmathtruncatemacro{\ParSig}{round(\logp + \lam) / 8}
+  \pgfmathtruncatemacro{\ParSig}{round(\t * ceil(\logp) / 2) + \lam) / 8}
   \pgfmathtruncatemacro{\ComSig}{round(\ParSig + (-\lam + \t * \logp  + \lam * (\lam - \t * log2(\t))) / 8)}
   % sig time
   \pgfmathtruncatemacro{\StoTime}{round(\lam * \CSIDHsecs)}
@@ -1678,7 +1678,7 @@ We summarise the obtained parameters and expected performance in Table~\ref{tab:
     \hspace{1em}\textbf{Exact} &&&\\
     Sig size
     & $\lambda\lceil n\log (2B+1)\rceil + \lambda$
-    & $\frac{\lambda}{s}\lceil n\log (2B+1)\rceil + \lambda$
+    & $\frac{\lambda}{s}\lceil \log(p)/2\rceil + \lambda$
     & $\frac{\lambda}{s}(\lceil n\log (2B+1)\rceil + \log p) + \lambda(\lambda-\frac{\lambda}{s}\log\frac{\lambda}{s})$\\
     Performance ($\F_p$-ops)
     & $\Omega\bigl(\lambda Bn^2\log(n)\bigr)$
